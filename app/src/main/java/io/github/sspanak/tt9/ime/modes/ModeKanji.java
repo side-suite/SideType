@@ -1,0 +1,56 @@
+package io.github.sspanak.tt9.ime.modes;
+
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.ArrayList;
+
+import io.github.sspanak.tt9.hacks.InputType;
+import io.github.sspanak.tt9.ime.helpers.TextField;
+import io.github.sspanak.tt9.languages.Language;
+import io.github.sspanak.tt9.languages.LanguageKind;
+import io.github.sspanak.tt9.preferences.settings.SettingsStore;
+
+public class ModeKanji extends ModePinyin {
+	protected ModeKanji(@NonNull SettingsStore settings, @NonNull Language lang, @Nullable InputType inputType, @Nullable TextField textField) {
+		super(settings, lang, inputType, textField);
+		NAME = language.getName().replace(" / ローマ字", "");
+	}
+
+
+	@NonNull
+	@Override
+	public ArrayList<String> getSuggestions() {
+		ArrayList<String> snapshot = suggestions;
+		ArrayList<String> newSuggestions = new ArrayList<>(snapshot.size());
+		for (String s : snapshot) {
+			// "Ql" is the transcription of "—" in the database, as defined in Japanese.yml. However, this
+			// has only technical meaning. When displaying the suggestions, we want to show "—" for better
+			// readability.
+			newSuggestions.add(s.replaceAll("Ql", "—"));
+		}
+
+		return newSuggestions;
+	}
+
+
+	@Override
+	public boolean onReplaceSuggestion(@NonNull String word) {
+		// revert to the transcription, so that filtering works correctly
+		return super.onReplaceSuggestion(word.replaceAll("—", "Ql"));
+	}
+
+
+	@Override
+	public boolean validateLanguage(@Nullable Language newLanguage) {
+		return LanguageKind.isJapanese(newLanguage);
+	}
+
+	@NonNull
+	@Override
+	public String toAccessibilityString(@NonNull Context c) {
+		return language.getName();
+	}
+}

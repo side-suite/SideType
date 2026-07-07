@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<style name="TTheme" parent="Theme.Material3.DynamicColors.DayNight">
+		<item name="colorKeyboardBackground">@color/keyboard_background</item>
+		<item name="colorKeyboardText">@color/keyboard_text</item>
+
+		<item name="colorKeyNumBackground">@color/key_num_background</item>
+		<item name="colorKeyNumBorder">@color/key_num_border</item>
+		<item name="colorKeyNumRipple">@color/key_num_ripple</item>
+		<item name="colorKeyNumText">@color/key_num_text</item>
+		<item name="colorKeyNumAlternativeText">@color/key_num_alternative_text</item>
+
+		<item name="colorKeyFnBackground">@color/key_fn_background</item>
+		<item name="colorKeyFnBorder">@color/key_fn_border</item>
+		<item name="colorKeyFnRipple">@color/key_fn_ripple</item>
+		<item name="colorKeyFnText">@color/key_fn_text</item>
+		<item name="colorKeyFnAlternativeText">@color/key_fn_alternative_text</item>
+
+		<item name="colorKeyLF4Background">@color/key_lf4_background</item>
+		<item name="colorKeyLF4Border">@color/key_lf4_border</item>
+		<item name="colorKeyLF4Ripple">@color/key_lf4_ripple</item>
+		<item name="colorKeyLF4Text">@color/key_lf4_text</item>
+		<item name="colorKeyLF4AlternativeText">@color/key_lf4_alternative_text</item>
+
+		<item name="colorKeyOkBackground">@color/key_ok_background</item>
+		<item name="colorKeyOkBorder">@color/key_ok_border</item>
+		<item name="colorKeyOkRipple">@color/key_ok_ripple</item>
+		<item name="colorKeyOkText">@color/key_ok_text</item>
+
+		<item name="colorSuggestionSelectedBackground">@color/suggestion_selected_background</item>
+		<item name="colorSuggestionSelectedText">@color/suggestion_selected_text</item>
+		<item name="colorSuggestionSeparator">@color/suggestion_separator</item>
+	</style>
+
+	<!--*******************************************
+		Add Word
+	*******************************************-->
+
+	<style name="TTheme.AddWord" parent="Theme.Material3.DayNight.Dialog.Alert">
+		<item name="windowNoTitle">true</item> <!-- hide some weird floating rectangle above the dialog -->
+		<item name="textAppearanceBodyMedium">@style/TextAppearance.AppCompat.Widget.PopupMenu.Large</item> <!-- body text size -->
+		<item name="textAppearanceLabelLarge">@style/TextAppearance.MaterialComponents.Button</item> <!-- button text size -->
+	</style>
+
+	<!--*******************************************
+		Keyboard
+	*******************************************-->
+
+	<style name="TTheme.Keyboard.Key.VersionStyle" parent="Widget.Material3.Button.OutlinedButton">
+		<item name="android:textAppearance">@style/TextAppearance.AppCompat.Medium</item>
+		<item name="android:textSize">@dimen/key_text_size</item>
+		<item name="strokeWidth">0dp</item>
+		<item name="strokeColor">@android:color/transparent</item>
+	</style>
+
+	<style name="TTheme.Numpad.Key.VersionStyle" parent="TTheme.Keyboard.Key.VersionStyle">
+		<item name="cornerRadius">8dp</item>
+	</style>
+
+	<!--*******************************************
+		Language Selection Dialog
+	*******************************************-->
+
+	<style name="TTheme.LanguageSelect.RadioButton.Radio">
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:paddingEnd">0dp</item>
+		<item name="android:paddingStart">0dp</item>
+	</style>
+
+	<style name="TTheme.LanguageSelect.RadioButton.Label">
+		<item name="android:paddingTop">12dp</item>
+		<item name="android:paddingBottom">12dp</item>
+		<item name="android:paddingStart">0dp</item>
+		<item name="android:paddingEnd">0dp</item>
+		<item name="android:textAppearance">@style/TextAppearance.AppCompat.Widget.PopupMenu.Large</item>
+	</style>
+
+	<!--*******************************************
+		Preferences
+	*******************************************-->
+
+	<style name="TTheme.Preferences" parent="TTheme">
+		<item name="preferenceTheme">@style/TTheme.Preferences.Overlay</item>
+
+		<!-- title bar -->
+		<item name="tint">@color/prefs_title_text_color</item>
+		<item name="colorOnSurface">@color/prefs_title_text_color</item>
+		<item name="colorSurfaceContainer">@color/prefs_title_background</item>
+
+		<!-- page -->
+		<item name="android:windowBackground">@color/prefs_page_background</item> <!-- page background -->
+		<item name="colorSecondary">@color/prefs_category_title_color</item> <!-- category title -->
+		<item name="android:textAppearanceListItem">@style/TextAppearance.Material3.TitleLarge</item> <!-- preference title -->
+
+<!--		<item name="android:popupWindowStyle">@style/AppDropDownStyle</item> &lt;!&ndash; dropdown background &ndash;&gt;-->
+
+		<!--
+				// ANY PREFERENCE
+				android:textColor = preference text color
+				android:textColorSecondary = preference summary color
+
+				// SWITCH
+				colorOutline = switch outline
+				colorSurfaceContainerHighest = switch background when off
+				colorPrimary = switch background when on
+				colorOnPrimary = switch handle color
+				colorPrimaryContainer = switch handle color when moving
+		-->
+	</style>
+
+	<style name="TTheme.Preferences.Overlay" parent="@style/PreferenceThemeOverlay">
+		<item name="switchPreferenceCompatStyle">@style/TTheme.Preferences.Switch</item>
+	</style>
+
+	<style name="TTheme.Preferences.Switch" parent="@style/Preference.SwitchPreferenceCompat.Material">
+		<item name="widgetLayout">@layout/pref_switch_v31</item>
+	</style>
+
+<!--	<style name="AppDropDownStyle" parent="Widget.Material3.PopupMenu.ListPopupWindow">-->
+<!--		<item name="android:background">@color/material_dynamic_neutral_variant90</item>-->
+<!--		<item name="popupMenuBackground">@color/material_dynamic_neutral_variant90</item>-->
+<!--	</style>-->
+</resources>

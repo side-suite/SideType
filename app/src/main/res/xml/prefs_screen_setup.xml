@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+	app:orderingFromXml="true">
+	<Preference
+			app:key="global_tt9_status"
+			app:title="@string/setup_keyboard_status" />
+
+	<Preference
+			app:key="global_default_keyboard"
+			app:title="@string/setup_default_keyboard" />
+
+	<Preference
+			app:key="global_spellchecker"
+			app:title="@string/setup_spell_checker" />
+</PreferenceScreen>

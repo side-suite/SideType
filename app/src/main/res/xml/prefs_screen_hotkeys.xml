@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto" app:orderingFromXml="true">
+	<PreferenceCategory app:key="category_hotkeys" app:title="@string/pref_category_function_keys" />
+	<Preference app:key="reset_keys" app:title="@string/function_reset_keys_title" />
+</PreferenceScreen>

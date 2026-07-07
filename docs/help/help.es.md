@@ -1,0 +1,544 @@
+# Traditional T9
+Este manual explica cómo configurar y utilizar el T9 Tradicional en diferentes escenarios. Para obtener instrucciones de instalación e información sobre las versiones "lite" y "full", consulte la [Guía de Instalación](https://github.com/sspanak/tt9/blob/master/docs/installation.md) en GitHub. Finalmente, puede visitar la [página del repositorio principal](https://github.com/sspanak/tt9), que incluye todo el código fuente, una guía para desarrolladores, la política de privacidad y documentación complementaria.
+
+## Configuración Inicial
+Después de instalar, primero debe habilitar T9 Tradicional como teclado de Android. Para hacerlo, haga clic en el icono del lanzador. Si necesita realizar alguna acción, todas las opciones, excepto la Configuración Inicial, estarán deshabilitadas, y habrá una etiqueta: "TT9 está deshabilitado". Vaya a Configuración Inicial y habilítelo.
+
+_Si no ve el icono justo después de la instalación, reinicie su teléfono, y debería aparecer. Esto se debe a que Android intenta ahorrar batería al no actualizar la lista de aplicaciones recién instaladas._
+
+### Uso en un teléfono solo con pantalla táctil
+En dispositivos con pantalla táctil, también se recomienda encarecidamente desactivar el corrector ortográfico del sistema. Cuando está activado, subraya en rojo algunas o todas las palabras que escribe.
+
+Otro problema es que el corrector ortográfico puede mostrar un confuso cuadro emergente de “Agregar palabra”. Este cuadro añadirá nuevas palabras al teclado predeterminado del sistema (normalmente Gboard) y no al diccionario de Traditional T9.
+
+Para evitar estas situaciones, el corrector ortográfico del sistema debe desactivarse.
+
+Si necesita realizar este paso, el elemento “Corrector ortográfico del sistema” estará activo en la pantalla de configuración inicial. Tóquelo para desactivar el componente del sistema. Si el elemento está desactivado, no se requiere ninguna acción adicional.
+
+Después de completar la configuración inicial, consulte la sección [Teclado en pantalla](#teclado-en-pantalla) para obtener más consejos y trucos.
+
+### Habilitar el Modo Predictivo
+El Modo Predictivo requiere que se cargue un diccionario de idioma para ofrecer sugerencias de palabras. Puede activar o desactivar los idiomas habilitados y cargar sus diccionarios desde la Pantalla de Configuración → [Idiomas](#opciones-de-idioma). En caso de que olvide cargar algún diccionario, T9 Tradicional lo hará automáticamente cuando empiece a escribir. Para más información, [consulte a continuación](#opciones-de-idioma).
+
+#### Notas para teléfonos de gama baja
+La carga del diccionario puede saturar teléfonos de gama baja. Al usar la versión "lite" de TT9, esto puede hacer que Android interrumpa la operación. Si la carga dura más de 30 segundos, conecte el cargador o asegúrese de que la pantalla permanezca encendida durante la carga.
+
+Puede evitar lo anterior usando la versión "full".
+
+## Configuración
+En la pantalla de Configuración, puedes elegir los idiomas para escribir, configurar las teclas rápidas del teclado, cambiar la apariencia de la aplicación o mejorar la compatibilidad con tu teléfono.
+
+### ¿Cómo acceder a la Configuración?
+
+#### Método 1
+Haz clic en el ícono del lanzador de T9 Tradicional.
+
+#### Método 2 (usando pantalla táctil)
+- Toca en un campo de texto o número para activar TT9.
+- Usa el botón de engranaje en pantalla.
+
+#### Método 3 (usando un teclado físico)
+- Empieza a escribir en un campo de texto o número para activar TT9.
+- Abre la lista de comandos usando el botón de herramientas en pantalla o presionando la tecla asignada [Por Defecto: Mantener presionado ✱].
+- Presiona la tecla 2.
+
+### Navegando en la Configuración
+Si tienes un dispositivo con teclado físico, hay dos formas de navegar en la Configuración.
+
+1. Usa las teclas Arriba/Abajo para desplazarte y OK para abrir o activar una opción.
+2. Presiona las teclas del 1 al 9 para seleccionar la opción respectiva y presiona dos veces para abrir/activar. El doble toque funcionará sin importar dónde estés en la pantalla. Por ejemplo, incluso si estás en la parte superior, presionar dos veces la tecla 3 activará la tercera opción. Finalmente, la tecla 0 es un atajo conveniente para desplazarte hasta el final, pero no abre la última opción.
+
+### Opciones de idioma
+
+#### Cargar un diccionario
+Después de habilitar uno o más idiomas nuevos, debes cargar los diccionarios respectivos para el Modo Predictivo. Una vez cargado un diccionario, permanecerá allí hasta que utilices una de las opciones de "eliminar". Esto significa que puedes habilitar y deshabilitar idiomas sin tener que recargar sus diccionarios cada vez. Solo hazlo una vez, solo la primera vez.
+
+También significa que si necesitas comenzar a usar el idioma X, puedes deshabilitar de manera segura todos los demás idiomas, cargar solo el diccionario X (¡y ahorrar tiempo!), y luego volver a habilitar todos los idiomas que usabas antes.
+
+Ten en cuenta que recargar un diccionario restablecerá la popularidad de las sugerencias a los valores predeterminados de fábrica. Sin embargo, no debería ser motivo de preocupación. En la mayoría de los casos, verás poca o ninguna diferencia en el orden de las sugerencias, a menos que uses palabras inusuales con frecuencia.
+
+#### Carga automática de diccionarios
+
+Si omites o te olvidas de cargar un diccionario desde la pantalla de Configuración, se cargará automáticamente más tarde, cuando vayas a una aplicación donde puedas escribir y cambies al Modo Predictivo. Se te pedirá que esperes hasta que termine y después de eso, podrás comenzar a escribir de inmediato.
+
+Si eliminas uno o más diccionarios, NO se recargarán automáticamente. Tendrás que hacerlo manualmente. Solo se cargarán automáticamente los diccionarios de los idiomas recién habilitados.
+
+#### Eliminar un diccionario
+Si has dejado de usar los idiomas X o Y, podrías deshabilitarlos y también usar "Eliminar no seleccionados" para liberar algo de espacio de almacenamiento.
+
+Para eliminar todo, independientemente de la selección, utiliza "Eliminar todo".
+
+En todos los casos, tus palabras agregadas de forma personalizada se preservarán y se restaurarán una vez que recargues el diccionario respectivo.
+
+#### Palabras añadidas
+La opción "Exportar" permite crear un archivo CSV con todas las palabras añadidas para todos los idiomas. Luego, puedes usar el archivo CSV para mejorar Traditional T9. Ve a GitHub y comparte las palabras en un [nuevo issue](https://github.com/sspanak/tt9/issues) o [pull request](https://github.com/sspanak/tt9/pulls). Después de ser revisadas y aprobadas, se incluirán en la próxima versión.
+
+Con "Importar", puedes importar un CSV exportado previamente. Sin embargo, hay algunas restricciones:
+- Solo puedes importar palabras que consistan en letras. No se permiten apóstrofes, guiones, otras puntuaciones o caracteres especiales.
+- No se permiten emojis.
+- Un archivo CSV puede contener un máximo de 250 palabras.
+- Puedes importar hasta 1000 palabras, lo que significa que puedes importar como máximo 4 archivos x 250 palabras. Más allá de ese límite, aún puedes agregar palabras mientras escribes.
+
+Con la opción "Eliminar", puedes buscar y eliminar palabras mal escritas u otras que no deseas en el diccionario.
+
+## Atajos de teclas físicas
+
+Todas las teclas de acceso rápido se pueden reconfigurar o deshabilitar desde Configuración → Teclado → Seleccionar Teclas de Acceso Rápido.
+
+### Teclas de Escritura
+
+#### Tecla de Sugerencia Anterior (Por Defecto: Flecha Izquierda del D-pad):
+Seleccione la sugerencia de palabra/letra anterior.
+
+#### Tecla de Sugerencia Siguiente (Por Defecto: Flecha Derecha del D-pad):
+Seleccione la siguiente sugerencia de palabra/letra.
+
+#### Tecla de Filtrar Sugerencias (Por Defecto: Flecha Arriba del D-pad):
+_Solo en modo predictivo._
+
+- **Una sola pulsación**: Filtra la lista de sugerencias, dejando solo las que comienzan con la palabra actual. No importa si es una palabra completa o no. Por ejemplo, escriba "remin" y presione Filtrar. Dejará solo las palabras que comienzan con "remin": "remin" en sí, "remind", "reminds", "reminded", "reminding", etc.
+- **Doble pulsación**: Expande el filtro a la sugerencia completa. Por ejemplo, escriba "remin" y presione Filtrar dos veces. Primero filtrará por "remin", luego expandirá el filtro a "remind". Puede seguir expandiendo el filtro hasta llegar a la palabra más larga del diccionario.
+
+El filtrado también es útil para escribir palabras desconocidas. Supongamos que quiere escribir "Anakin", que no está en el diccionario. Comience con "A", luego presione Filtrar para ocultar "B" y "C". Ahora presione la tecla 6. Como el filtro está activado, además de las palabras reales del diccionario, proporcionará todas las combinaciones posibles para 1+6: "A..." + "m", "n", "o". Seleccione "n" y presione Filtrar para confirmar su selección y producir "An". Ahora, al presionar la tecla 2, se proporcionará "An..." + "a", "b", y "c". Seleccione "a", y siga hasta obtener "Anakin".
+
+Cuando el filtro está habilitado, el texto base se volverá negrita e itálico.
+
+#### Tecla de Borrar Filtro (Por Defecto: Flecha Abajo del D-pad):
+_Solo en modo predictivo._
+
+Borrar el filtro de sugerencias, si está aplicado.
+
+#### Flecha Central del D-pad (OK o ENTER):
+- Cuando se muestran sugerencias, escribe la sugerencia actualmente seleccionada.
+- De lo contrario, realiza la acción predeterminada para la aplicación actual (por ejemplo, enviar un mensaje, ir a una URL o simplemente escribir una nueva línea).
+
+_**Nota:** Cada aplicación decide por sí misma qué hacer cuando se presiona OK y TT9 no tiene control sobre esto._
+
+_**Nota 2:** Para enviar mensajes con OK en aplicaciones de mensajería, debes habilitar la opción "Enviar con ENTER" o una opción con un nombre similar. Si la aplicación no tiene esta opción, probablemente no sea compatible con el envío de mensajes de esta forma. En este caso, usa la aplicación KeyMapper desde [Play Store](https://play.google.com/store/apps/details?id=io.github.sds100.keymapper) o desde [F-droid](https://f-droid.org/packages/io.github.sds100.keymapper/). KeyMapper puede detectar aplicaciones de chat y simular un toque en el botón de enviar mensaje al presionar o mantener pulsada una tecla física. Consulta la [guía de inicio rápido](https://docs.keymapper.club/quick-start/) para más información._
+
+#### Tecla 0:
+- **En modo 123:**
+  - **Presione:** escribir "0".
+  - **Mantenga presionado:** escribir caracteres especiales/matemáticos.
+- **En modo ABC:**
+  - **Presione:** escribir un espacio, nueva línea o caracteres especiales/matemáticos.
+  - **Mantenga presionado:** escribir "0".
+- **En modo Predictivo:**
+  - **Presione:** escribir un espacio, nueva línea o caracteres especiales/matemáticos.
+  - **Presione dos veces:** escribir el carácter asignado en la configuración de modo predictivo. (Por Defecto: ".")
+  - **Mantenga presionado:** escribir "0".
+- **En modo Cheonjiin (Coreano):**
+  - **Presione:** escribir "ㅇ" y "ㅁ".
+  - **Mantenga presionado:** escribir espacio, nueva línea, "0" o caracteres especiales/matemáticos.
+
+#### Tecla 1:
+- **En modo 123:**
+  - **Presione:** escribir "1".
+  - **Mantenga presionado:** escribir caracteres de puntuación.
+- **En modo ABC:**
+  - **Presione:** escribir caracteres de puntuación.
+  - **Mantenga presionado:** escribir "1".
+- **En modo Predictivo:**
+  - **Presione:** escribir caracteres de puntuación.
+  - **Presione varias veces:** escribir emojis.
+  - **Mantenga presionado:** escribir "1".
+- **En modo Cheonjiin (Coreano):**
+  - **Presione:** escribir la vocal "ㅣ".
+  - **Mantenga presionado:** escribir caracteres de puntuación.
+  - **Mantene, luego presione:** escribir emojis.
+
+#### Teclas del 2 al 9:
+- **En modo 123:** escribir el número correspondiente.
+- **En modo ABC y Predictivo:** escribir una letra o mantener presionado para escribir el número correspondiente.
+
+### Teclas de Función
+
+#### Tecla de Agregar Palabra:
+Agregar una nueva palabra al diccionario para el idioma actual.
+
+#### Tecla de Editar Palabra:
+Editar la palabra donde está ubicado el cursor de texto.
+
+En modo de edición, tiene las siguientes opciones:
+- **Presione la tecla 1-9:** Reemplaza la letra seleccionada actualmente por otra.
+- **Mantenga presionada la tecla Izquierda/Derecha:** Ir a la letra anterior/siguiente.
+- **Presione la tecla OK:** Continuar a la siguiente letra. Si no hay más letras, finalizará la edición, guardará la palabra y añadirá automáticamente un espacio después (si la opción correspondiente está habilitada).
+- **Presione la tecla Retroceso:** Elimina la letra actual.
+- **Presione la tecla Filtrar:** Duplica la letra actual. Por ejemplo, si la letra actual es "a", al presionar Filtrar pasará a ser "aa".
+- **Presione la tecla 0:** Finalizar la edición y guardar la palabra.
+
+**Dispositivos con pantalla táctil:**
+- **Toque una letra de la lista de sugerencias:** Equivale a seleccionar la letra y presionar OK.
+- **Mantenga pulsada la última letra de la palabra:** Selecciona la letra, finaliza la edición, pero no añade automáticamente un espacio después.
+
+También puede usar el modo de edición para escribir palabras nuevas. Por ejemplo, si quiere escribir "Anakin", que no está en el diccionario, solo presione las teclas correspondientes: 2-6-2-5-4-6. Esto producirá una palabra sin sentido que puede convertir fácilmente en "Anakin" reemplazando las letras por las correctas.
+
+#### Tecla de Borrar (Atrás, Del o Retroceso):
+Simplemente elimina el texto.
+
+Si su teléfono tiene una tecla dedicada de "Del" o "Clear", no necesita configurar nada en los Ajustes, a menos que desee tener otra tecla de retroceso. En este caso, la opción en blanco: "--" se preseleccionará automáticamente.
+
+En teléfonos que tienen una tecla combinada de "Eliminar"/"Atrás", esa tecla se seleccionará automáticamente. Sin embargo, puede asignar la función de "Retroceso" a otra tecla, por lo que "Atrás" solo navegará hacia atrás.
+
+_**NB:** Usar "Atrás" como retroceso no funciona en todas las aplicaciones, especialmente en Firefox, Spotify y Termux. Pueden tomar control total de la tecla y redefinir su función, lo que significa que hará lo que los autores de la aplicación pretendan. Desafortunadamente, no se puede hacer nada, porque "Atrás" juega un papel especial en Android y su uso está restringido por el sistema._
+
+_**NB 2:** Mantener presionada la tecla "Atrás" siempre activará la acción predeterminada del sistema (es decir, mostrar la lista de aplicaciones en ejecución)._
+
+_En estos casos, podría asignar otra tecla (todas las demás teclas son completamente utilizables), o usar el retroceso en pantalla._
+
+#### Tecla de Modo de Entrada Siguiente (Por Defecto: presionar #):
+Ciclar entre los modos de entrada (abc → Predictivo → 123).
+
+_El modo predictivo no está disponible en campos de contraseñas._
+
+_En campos de solo números, cambiar el modo no es posible. En tales casos, la tecla vuelve a su función predeterminada (es decir, escribir "#")._
+
+#### Tecla de Herramientas del portapapeles:
+Mostrar el panel de herramientas del portapapeles, que permite seleccionar, cortar, copiar y pegar texto. Puede cerrar el panel volviendo a presionar la tecla "✱" o, en la mayoría de las aplicaciones, la tecla Atrás. Más detalles están disponibles [a continuación](#herramientas-del-portapapeles).
+
+#### Tecla de Ocultar Teclado:
+Ocultar el teclado. Para mostrarlo de nuevo, solo empiece a escribir o toque un campo de texto o de números.
+
+#### Tecla de Idioma Siguiente (Por Defecto: mantener presionado #):
+Cambiar el idioma de escritura cuando se hayan habilitado varios idiomas en la configuración.
+
+#### Tecla de Seleccionar Teclado:
+Abra el diálogo de Cambiar Teclado de Android, donde puede seleccionar entre todos los teclados instalados.
+
+#### Tecla Shift (Por Defecto: presionar ✱):
+- **Al escribir texto:** Alterna entre mayúsculas y minúsculas.
+- **Al escribir caracteres especiales con la tecla 0:** Muestra el siguiente grupo de caracteres.
+
+#### Tecla de Mostrar Emojis:
+_Solo en modo Predictivo._
+
+Mostrar el panel de emojis. Es un atajo para presionar la tecla 1 varias veces en modo Predictivo.
+
+#### Tecla de Mostrar Ajustes:
+Abra la pantalla de configuración de Ajustes. Aquí puede elegir los idiomas para escribir, configurar las teclas de acceso rápido del teclado, cambiar la apariencia de la aplicación o mejorar la compatibilidad con su teléfono.
+
+#### Tecla de Alternar Modo Predictivo:
+Alterna entre el Modo Predictivo y el modo ABC. En la práctica, equivale a activar o desactivar el modo Predictivo.
+
+#### Tecla de Deshacer:
+Revierte la última acción. Equivale a presionar Ctrl+Z en un ordenador o Cmd+Z en un Mac.
+
+_El historial de deshacer lo gestionan las aplicaciones, no Traditional T9. Esto significa que puede que no sea posible deshacer en todas las aplicaciones._
+
+#### Tecla de Rehacer:
+Repite la última acción deshecha. Equivale a presionar Ctrl+Y o Ctrl+Shift+Z en un ordenador o Cmd+Y en un Mac.
+
+_Al igual que con Deshacer, el comando Rehacer puede no estar disponible en todas las aplicaciones._
+
+#### Tecla de Entrada por Voz:
+Active la entrada por voz en teléfonos que lo soporten. Consulte [a continuación](#entrada-por-voz) para obtener más información.
+
+#### Tecla de Lista de Comandos / también conocida como Paleta de Comandos / (Por Defecto: mantener presionado ✱):
+Mostrar una lista de todos los comandos (o funciones).
+
+Muchos teléfonos tienen solo dos o tres botones "libres" que se pueden usar como teclas de acceso rápido. Pero T9 Tradicional tiene muchas más funciones, lo que significa que simplemente no hay espacio para todas en el teclado. La Paleta de Comandos resuelve este problema. Permite invocar las funciones adicionales (o comandos) usando combinaciones de teclas.
+
+A continuación se muestra una lista de los posibles comandos:
+- **Agregar una palabra (Combinación por Defecto: mantener presionado ✱, tecla 1).** Igual que presionar [Agregar Palabra](#tecla-de-agregar-palabra).
+- **Editar una palabra (Combinación por Defecto: mantener presionado ✱, tecla 2).** Igual que presionar [Editar Palabra](#tecla-de-editar-palabra).
+- **Entrada por voz (Combinación por Defecto: mantener presionado ✱, tecla 3).** Igual que presionar [Entrada por Voz](#tecla-de-entrada-por-voz).
+- **Deshacer (Combinación por Defecto: mantener presionado ✱, tecla 4).** Igual que presionar [Tecla de Deshacer](#tecla-de-deshacer).
+- **Herramientas del portapapeles (Combinación por Defecto: mantener presionado ✱, tecla 5).** Igual que presionar [Herramientas del portapapeles](#tecla-de-herramientas-del-portapapeles).
+- **Rehacer (Combinación por Defecto: mantener presionado ✱, tecla 6).** Igual que presionar [Tecla de Rehacer](#tecla-de-rehacer).
+- **Seleccionar un teclado diferente (Combinación por Defecto: mantener presionado ✱, tecla 8).** Igual que presionar [Seleccionar Teclado](#tecla-de-seleccionar-teclado).
+- **Mostrar la pantalla de Ajustes (Combinación por Defecto: mantener presionado ✱, tecla 9).** Igual que presionar [Mostrar Ajustes](#tecla-de-mostrar-ajustes).
+
+_Esta tecla no hace nada cuando el diseño de pantalla está configurado en "Teclado Virtual" porque todas las teclas para todas las funciones posibles ya están disponibles en la pantalla._
+
+## Teclado en Pantalla
+En dispositivos exclusivamente táctiles, hay disponible un teclado en pantalla totalmente funcional que se activa automáticamente. Si el dispositivo no se detecta como táctil, puede habilitarse manualmente desde Configuración → Apariencia → Diseño en pantalla seleccionando «Teclado numérico virtual».
+
+En dispositivos con pantalla táctil y teclado físico, las teclas en pantalla pueden desactivarse para liberar espacio. Esta opción se encuentra en Configuración → Apariencia.
+
+También se recomienda desactivar el comportamiento especial que asigna la tecla «Atrás» a «Retroceso», ya que solo es útil cuando se utiliza un teclado físico. Esto suele gestionarse automáticamente. Si no es así, vaya a Configuración → Teclado → Seleccionar teclas rápidas → Tecla de retroceso y seleccione la opción «--».
+
+### Diseños en pantalla Retro y Modern
+Hay dos diseños de teclado virtual disponibles: Retro y Modern.
+
+El diseño Retro incluye un D-pad con una tecla OK central en la parte superior y teclas numéricas debajo, similar a los teclados de los teléfonos de principios de los años 2000. Es adecuado para usuarios que buscan una experiencia tradicional, para dispositivos con pantallas pequeñas y para personas con pulgares grandes. También puede resultar familiar para quienes hayan usado aplicaciones T9 antiguas ya descontinuadas como Old Keyboard o Big Old Keyboard.
+
+El diseño Modern conserva la apariencia estándar de Android y utiliza un diseño de escritura de 12 teclas. Cuenta con un bloque central de teclas numéricas (0–9) para la entrada de texto, con teclas de función como Mayús, Retroceso, cambio de idioma y OK (Enter) dispuestas en columnas a la izquierda y a la derecha.
+
+### Descripción general de las teclas virtuales
+El teclado en pantalla funciona de la misma manera que un teclado físico de teléfono. Las teclas con una sola función muestran una etiqueta o icono central. Las teclas con una función adicional mediante pulsación prolongada muestran una etiqueta o icono secundario en la esquina superior derecha.
+
+#### Teclas 0–9
+Las teclas numéricas se utilizan para escribir palabras y para introducir dígitos. El diseño Retro también permite gestos de deslizamiento hacia la izquierda y la derecha en algunas teclas. Cuando están disponibles, estas funciones se indican mediante iconos en la esquina inferior izquierda o derecha de la tecla.
+
+En la versión de Google Play, los gestos de deslizamiento pueden personalizarse o desactivarse tanto en el diseño Retro como en el Modern. Esto se configura desde Configuración → Teclado → Funciones de las teclas.
+
+#### Teclas de texto personalizadas («!» y «?»)
+De forma predeterminada, estas teclas insertan sus signos de puntuación correspondientes. En campos de entrada numéricos o telefónicos, pueden insertar caracteres alternativos como asterisco, signo de almohadilla o punto decimal.
+
+En la versión de Google Play, estas teclas pueden personalizarse. Puede cambiar el carácter predeterminado y asignar acciones para deslizar hacia arriba, abajo, izquierda y derecha. Esto se configura desde Configuración → Teclado → Funciones de las teclas.
+
+#### Tecla de modo de entrada
+- **Pulsar:** Alterna entre los modos de entrada (abc → Predictivo → 123).
+- **Mantener pulsado:** Cambia el idioma de escritura cuando hay varios idiomas habilitados en Configuración.
+- **Deslizamiento horizontal:** Cambia al último teclado utilizado que no sea TT9.
+- **Deslizamiento vertical:** Abre el diálogo de Android para cambiar de teclado, donde se pueden seleccionar todos los teclados instalados.
+
+La tecla mostrará un pequeño icono de globo cuando haya varios idiomas habilitados desde Configuración → Idiomas. El icono indica que es posible cambiar el idioma manteniendo pulsada la tecla.
+
+_En el diseño Retro, es la tecla inferior derecha._
+
+_En el diseño Modern, es la tecla inferior izquierda._
+
+#### Retroceso
+Elimina caracteres al pulsarla. Cuando Configuración → Teclado → Eliminación rápida está habilitado, puede deslizar hacia atrás para borrar la palabra anterior.
+
+#### Tecla de filtro
+- **Pulsar:** Filtra la lista de sugerencias. Consulte [arriba](#tecla-de-filtrar-sugerencias-por-defecto-flecha-arriba-del-d-pad) cómo funciona el filtrado de palabras.
+- **Mantener pulsado:** Borra el filtro, si está activo.
+
+_Esta tecla solo está disponible en el diseño Modern. Ubicación: segunda tecla desde arriba._
+
+_El filtrado solo es posible en el modo predictivo._
+
+#### Herramientas del portapapeles / Tecla de entrada por voz
+- **Pulsar:** Abre las opciones de copiar, pegar y edición de texto.
+- **Mantener pulsado:** Activa la entrada por voz.
+
+_Esta tecla solo está disponible en el diseño Modern. Ubicación: tercera tecla desde arriba._
+
+#### Tecla OK
+- **Pulsar:** Equivale a pulsar la tecla ENTER en otros teclados.
+
+El diseño Retro permite además habilitar gestos de deslizamiento desde Configuración → Apariencia → Teclas.
+
+- **Deslizar hacia arriba sin sugerencias:** Mover el cursor hacia arriba (igual que D-PAD arriba).
+- **Deslizar hacia abajo sin sugerencias:** Mover el cursor hacia abajo (igual que D-PAD abajo).
+- **Deslizar hacia arriba con sugerencias:** Filtrar la lista de sugerencias. Consulte [arriba](#tecla-de-filtrar-sugerencias-por-defecto-flecha-arriba-del-d-pad).
+- **Deslizar hacia abajo con sugerencias:** Borrar el filtro de sugerencias.
+
+### Redimensionar el Panel del Teclado Mientras Escribes
+En algunos casos, puede que el teclado virtual ocupe demasiado espacio en la pantalla, impidiéndote ver lo que estás escribiendo o algunos elementos de la aplicación. Si es así, puedes redimensionarlo manteniendo presionada y arrastrando la tecla de Configuración/Paleta de Comandos o arrastrando la Barra de Estado (donde se muestra el idioma actual o el modo de escritura). Cuando la altura se vuelva demasiado pequeña, el diseño cambiará automáticamente a "Teclas de Función" o "Solo lista de sugerencias". Respectivamente, al redimensionar hacia arriba, el diseño cambiará a "Teclado Virtual". También puedes tocar dos veces la barra de estado para minimizar o maximizar instantáneamente.
+
+_El cambio de tamaño mediante doble toque está desactivado de forma predeterminada. Puede activarlo en: Ajustes → Apariencia._
+
+_Redimensionar T9 Tradicional también redimensiona la aplicación actual. Hacer ambas cosas es computacionalmente muy costoso. Puede causar parpadeos o retrasos en muchos teléfonos, incluso en los de gama alta._
+
+### Cambiar la Altura de las Teclas
+También es posible cambiar la altura de las teclas en pantalla. Para hacerlo, ve a Configuración → Apariencia → Altura de las Teclas en Pantalla y ajústalo como desees.
+
+La configuración predeterminada del 100% es un buen equilibrio entre el tamaño útil de los botones y el espacio de pantalla ocupado. Sin embargo, si tienes dedos grandes, es posible que quieras aumentar la configuración un poco, mientras que si usas TT9 en una pantalla más grande, como una tableta, es posible que quieras reducirla.
+
+_Si el espacio de pantalla disponible es limitado, TT9 ignorará esta configuración y reducirá su altura automáticamente, para dejar suficiente espacio para la aplicación actual._
+
+## Herramientas del portapapeles
+Desde el panel de herramientas del portapapeles, puede seleccionar, cortar, copiar y pegar texto, igual que en un teclado de computadora. Para salir de este panel, presione la tecla "✱", la tecla Atrás (excepto en navegadores web, Spotify y algunas otras aplicaciones) o una tecla de letras en el teclado en pantalla.
+
+A continuación, se muestra una lista de los posibles comandos de texto:
+1. Seleccionar el carácter anterior (como Shift+Izquierda en un teclado de computadora)
+2. Deseleccionar todo
+3. Seleccionar el siguiente carácter (como Shift+Derecha)
+4. Seleccionar la palabra anterior (como Ctrl+Shift+Izquierda)
+5. Seleccionar todo
+6. Seleccionar la siguiente palabra (como Ctrl+Shift+Derecha)
+7. Cortar
+8. Copiar
+9. Pegar
+
+Para facilitar la edición, las teclas de retroceso, espacio y OK también están activas.
+
+## Entrada por voz
+La entrada por voz permite convertir el habla en texto, de forma similar a Gboard. Al igual que otros teclados, Traditional T9 no realiza el reconocimiento de voz por sí mismo, sino que utiliza los servicios de entrada por voz de Android.
+
+_El botón de entrada por voz en pantalla está oculto en dispositivos que no admiten esta función._
+
+### Dispositivos con servicios de Google
+En dispositivos con Servicios de Google, TT9 utiliza la infraestructura de Google para convertir sus palabras en texto. En Android 12 o anterior, debe conectarse a una red Wi-Fi o activar los datos móviles para que este método funcione. En Android 13 o superior, TT9 puede realizar el reconocimiento de voz tanto en línea como fuera de línea utilizando los paquetes de idioma del dispositivo. Para el uso sin conexión, asegúrese de descargar todos los idiomas deseados desde: Configuración de Android → Sistema → Reconocimiento en el dispositivo → Agregar un idioma.
+
+_Los paquetes de idioma instalados para Google Voice, otros asistentes de voz o teclados no están garantizados para funcionar con Traditional T9. Se recomienda instalar los paquetes globales desde la pantalla "Reconocimiento en el dispositivo"._
+
+### Dispositivos sin servicios de Google
+Para usar el reconocimiento de voz de Google en dispositivos sin servicios de Google:
+
+1. Instale la aplicación de Google:
+   - **Android Go:** Google Go (_com.<wbr>google.<wbr>android.<wbr>apps.<wbr>searchlite_)
+   - **Android estándar:** Google (_com.<wbr>google.<wbr>android.<wbr>googlequicksearchbox_)
+2. Conceda manualmente permisos de micrófono e Internet a la aplicación Google o Google Go.
+3. Conceda permiso de micrófono a TT9.
+
+_Algunos dispositivos pueden requerir un reinicio para completar la configuración, incluso si no lo solicitan._
+
+### Uso de alternativas de entrada por voz no basadas en Google
+TT9 también admite métodos de entrada por voz no basados en Google, como Futo Voice o Sayboard. Si hay varios métodos disponibles, TT9 le pedirá que elija uno. Si solo hay instalado un método no basado en Google, TT9 lo utilizará automáticamente.
+
+## Solución de problemas
+Para varias aplicaciones o dispositivos, es posible habilitar opciones especiales que harán que Traditional T9 funcione mejor con ellos. Puedes encontrarlas al final de cada pantalla de configuración, en la sección Compatibilidad.
+
+### Método alternativo de desplazamiento de sugerencias
+_En: Configuración → Apariencia._
+
+En algunos dispositivos, en el Modo Predictivo, es posible que no puedas desplazarte hasta el final de la lista o que necesites desplazarte hacia atrás y hacia adelante varias veces hasta que aparezca la última sugerencia. El problema ocurre a veces en Android 9 o anterior. Habilita la opción si experimentas este problema.
+
+### Siempre en la parte superior
+_En: Configuración → Apariencia._
+
+En algunos teléfonos, especialmente Sonim XP3plus (XP3900), Traditional T9 puede no aparecer cuando comienzas a escribir o puede estar parcialmente cubierto por las teclas táctiles. En otros casos, puede haber barras blancas a su alrededor. El problema puede ocurrir en una aplicación en particular o en todas ellas. Para evitarlo, habilita la opción "Siempre en la parte superior".
+
+### Espacio inferior (orientación vertical)
+_En: Ajustes → Apariencia._
+
+En dispositivos Samsung con Android 15 o superior, Traditional T9 puede aparecer demasiado abajo en la pantalla. Cuando esto ocurre, la barra de navegación del sistema cubre la última fila del teclado, lo que hace que las teclas no se puedan utilizar. Al intentar escribir un espacio, pulsar OK o cambiar el modo de entrada, el teclado se cierra. Aumentar el valor de «Espacio inferior» a 48 dp solucionará el problema.
+
+En otros casos, puede aparecer un espacio en blanco innecesario debajo del bloque de teclas. Reducir «Espacio inferior» a 0 dp lo eliminará.
+
+_Consulte el error [#950](https://github.com/sspanak/tt9/issues/950) para obtener más información._
+
+_En casos muy poco frecuentes, dispositivos que no son Samsung pueden presentar los mismos problemas. Véase [#755](https://github.com/sspanak/tt9/issues/755)._
+
+### Protección contra repetición de teclas
+_En: Configuración → Teclado._
+
+Los teléfonos CAT S22 Flip y Qin F21 son conocidos por sus teclados de baja calidad, que se degradan rápidamente con el tiempo y comienzan a registrar múltiples clics por una sola pulsación de tecla. Es posible que notes esto al escribir o al navegar por los menús del teléfono.
+
+Para los teléfonos CAT, la configuración recomendada es de 50-75 ms. Para el Qin F21, prueba con 20-30 ms. Si aún experimentas el problema, aumenta un poco el valor, pero en general intenta mantenerlo lo más bajo posible.
+
+_**Nota:** Cuanto mayor sea el valor que configures, más lento tendrás que escribir. TT9 ignorará las pulsaciones de teclas muy rápidas._
+
+_**Nota 2:** Además de lo anterior, los teléfonos Qin también pueden fallar al detectar pulsaciones largas. Desafortunadamente, en este caso, no se puede hacer nada._
+
+### Mostrar texto en composición
+_En: Configuración → Teclado._
+
+Si tienes problemas al escribir en Deezer o Smouldering Durtles porque las sugerencias desaparecen rápidamente antes de que puedas verlas, desactiva esta opción. Esto hará que la palabra actual permanezca oculta hasta que presiones OK o Espacio, o hasta que toques la lista de sugerencias.
+
+El problema ocurre porque Deezer y Smouldering Durtles a veces modifican el texto que escribes, causando un mal funcionamiento en TT9.
+
+### Los paneles de stickers y emoji de Telegram/Snapchat no se abren
+Esto ocurre si estás utilizando uno de los diseños de tamaño pequeño. Actualmente, no hay una solución permanente, pero puedes utilizar el siguiente método alternativo:
+- Ve a Configuración → Apariencia y habilita Teclado numérico en pantalla.
+- Vuelve al chat y haz clic en el botón de emoji o stickers. Ahora aparecerán.
+- Puedes volver a la configuración y deshabilitar el teclado numérico en pantalla. Los paneles de emoji y stickers seguirán siendo accesibles hasta que reinicies la aplicación o el teléfono.
+
+### Traditional T9 no aparece inmediatamente en algunas aplicaciones (solo para teléfonos sin pantalla táctil)
+Si has abierto una aplicación donde puedes escribir, pero TT9 no aparece automáticamente, solo comienza a escribir y lo hará. Alternativamente, presionar las teclas de acceso rápido para cambiar [el modo de entrada](#tecla-de-modo-de-entrada-siguiente-por-defecto-presionar) o el [idioma](#tecla-de-idioma-siguiente-por-defecto-mantener-presionado) también puede hacer aparecer TT9, cuando esté oculto.
+
+En algunos dispositivos, TT9 puede permanecer invisible, sin importar lo que hagas. En esos casos, debes habilitar [Siempre en la parte superior](#siempre-en-la-parte-superior).
+
+**Explicación larga.** La razón de este problema es que Android está diseñado principalmente para dispositivos con pantalla táctil. Por lo tanto, espera que toques el campo de texto/número para mostrar el teclado. Es posible hacer que TT9 aparezca sin esta confirmación, pero entonces, en algunos casos, Android olvidará ocultarlo cuando deba hacerlo. Por ejemplo, puede permanecer visible después de marcar un número de teléfono o después de enviar texto en un campo de búsqueda.
+
+Por estas razones, para cumplir con los estándares esperados de Android, el control está en tus manos. Solo presiona una tecla para "tocar" la pantalla y sigue escribiendo.
+
+### En el Qin F21 Pro, mantener presionadas las teclas 2 o 8 sube o baja el volumen en lugar de escribir un número
+Para mitigar este problema, ve a Configuración → Apariencia, y habilita "Icono de estado". TT9 debería detectar Qin F21 y habilitar la configuración automáticamente, pero en caso de que la detección automática falle o hayas deshabilitado el icono por alguna razón, debes tenerlo habilitado para que todas las teclas funcionen correctamente.
+
+**Explicación larga.** Qin F21 Pro (y posiblemente F22 también), tiene una aplicación de teclas rápidas que permite asignar funciones de subir y bajar volumen a las teclas numéricas. Por defecto, el administrador de teclas rápidas está habilitado, y mantener presionada la tecla 2 aumenta el volumen, mantener presionada la tecla 8 lo disminuye. Sin embargo, cuando no hay icono de estado, el administrador asume que no hay un teclado activo y ajusta el volumen en lugar de permitir que Traditional T9 maneje la tecla y escriba un número. Por lo tanto, habilitar el icono simplemente evita el administrador de teclas rápidas y todo funciona bien.
+
+### Problemas generales en los teléfonos Xiaomi
+Xiaomi ha introducido varios permisos no estándar en sus teléfonos que impiden que el teclado virtual en pantalla de Traditional T9 funcione correctamente. Más precisamente, las teclas "Mostrar Configuración" y "Agregar Palabra" pueden no realizar sus funciones respectivas. Para solucionarlo, debes otorgar los permisos "Mostrar ventana emergente" y "Mostrar ventana emergente mientras se ejecuta en segundo plano" a TT9 desde la configuración de tu teléfono. [Esta guía](https://parental-control.flashget.com/how-to-enable-display-pop-up-windows-while-running-in-the-background-on-flashget-kids-on-xiaomi) para otra aplicación explica cómo hacerlo.
+
+_Los problemas con Xiaomi se han discutido en [este issue de GitHub](https://github.com/sspanak/tt9/issues/490)._
+
+### La entrada por voz tarda mucho en detenerse
+Es [un problema conocido](https://issuetracker.google.com/issues/158198432) en Android 10 que Google nunca solucionó. No es posible mitigar este problema en el lado de TT9. Para detener la operación de Entrada por Voz, permanece en silencio durante un par de segundos. Android apaga el micrófono automáticamente cuando no puede detectar ningún habla.
+
+### Mi aplicación bancaria no acepta Traditional T9
+Esto no constituye un problema de TT9. Las entidades bancarias suelen restringir teclados no estándar o de código abierto, ya que no desean asumir riesgos y presuponen que dichos teclados son inseguros. Algunas incluso proporcionan sus propios teclados, llegando a bloquear el teclado estándar de Google, Gboard. Lamentablemente, en este caso la única opción es cambiar al teclado original del dispositivo.
+
+### La vibración no funciona (solo dispositivos con pantalla táctil)
+Las opciones de ahorro de batería, optimización y la función "No molestar" pueden impedir la vibración. Verifica en la Configuración del sistema de tu dispositivo si alguna de estas opciones está activada. En algunos dispositivos, es posible configurar la optimización de batería de forma individual para cada aplicación desde Configuración del sistema → Aplicaciones. Si tu dispositivo lo permite, desactiva las optimizaciones para TT9.
+
+Otra posible causa de que la vibración no funcione es que podría estar deshabilitada a nivel del sistema. Comprueba si tu dispositivo tiene opciones como "vibrar al tocar" o "vibrar al presionar teclas" en Configuración del sistema → Accesibilidad y actívalas. Los dispositivos Xiaomi y OnePlus permiten un control de vibración aún más detallado. Asegúrate de que todas las configuraciones relevantes estén activadas.
+
+Por último, la vibración no funciona de manera confiable en algunos dispositivos. Para solucionarlo, sería necesario conceder permisos y acceder a más funciones del dispositivo. Sin embargo, como TT9 es un teclado que prioriza la privacidad, no solicitará dicho acceso.
+
+## Preguntas Frecuentes
+
+### ¿Por qué no añaden el idioma X?
+Me encantaría hacerlo, pero necesito tu ayuda. Es imposible mantener más de 40 idiomas por mi cuenta. Como no hablo tu idioma, me resulta difícil encontrar recursos fiables en Internet. Aquí es donde los hablantes nativos como tú pueden marcar la diferencia.
+De hecho, más del 90 % de los idiomas actuales fueron añadidos por o con la ayuda de usuarios entusiastas.
+
+Para agregar uno nuevo, necesito una lista de palabras revisada ortográficamente, preferiblemente de una fuente oficial o académica (por ejemplo, “Gran diccionario del idioma X”). Este tipo de listas ofrecen las mejores sugerencias al escribir.
+
+Si no existe tal diccionario, puedes proporcionar una lista de palabras disponible para descargar gratuitamente. Lo ideal es que tenga entre 300 000 y 500 000 palabras, pero si el idioma tiene muchas inflexiones (por tiempo, género o número), se pueden necesitar alrededor de 1 millón.
+
+### Hay palabras mal escritas o faltantes en el idioma XYZ. ¿Por qué no se corrigen?
+Como dije antes, no hablo tu idioma, así que puede que no note esos errores. Pero con tu ayuda, podemos corregirlos y mejorar el diccionario para todos.
+
+### ¿No pueden añadir la función X?
+No.
+
+Como dijo una vez Henry Ford: «Puede ser de cualquier color que el cliente quiera, siempre que sea negro».
+
+Cada persona tiene sus propias preferencias. Algunos quieren teclas más grandes, otros un orden diferente, algunos quieren una tecla de acceso rápido para escribir ".com" y otros extrañan su antiguo teléfono o teclado. Pero por favor, entiende que hago esto voluntariamente en mi tiempo libre. Es imposible cumplir con miles de solicitudes diferentes, algunas de las cuales incluso se contradicen entre sí.
+
+### ¿No pueden hacerlo más similar a mi dispositivo favorito (p. ej., Sony Ericsson, Xperia, Nokia C2, Samsung) o a mi aplicación de teclado favorita?
+No.
+
+Traditional T9 no está diseñado para ser un reemplazo o una aplicación clon. Tiene un diseño único, inspirado principalmente en los Nokia 3310 y 6303i. Y aunque captura la esencia de los clásicos, ofrece una experiencia propia que no replicará exactamente ningún dispositivo.
+
+### ¡Deberían copiar TouchPal; era el mejor teclado!
+No. Consulte los puntos anteriores.
+
+TouchPal era un teclado rápido y con buena capacidad de respuesta, que ofrecía amplias opciones de temas, personalización y compatibilidad con varios idiomas. Fue popular alrededor de 2015, cuando la competencia era limitada. Sin embargo, nunca fue un verdadero teclado T9: el diseño de 12 teclas solo estaba disponible en algunos idiomas y estaba pensado exclusivamente para pantallas táctiles.
+
+Con el tiempo, comenzó a perder el foco en lo más importante: la escritura. Se introdujeron anuncios, empezó a solicitar permisos de forma agresiva y a recopilar datos sensibles de los usuarios. Finalmente, fue retirado de Play Store.
+
+En cambio, la [filosofía](https://github.com/sspanak/tt9/?tab=readme-ov-file#-philosophy) de TT9 se basa en los principios del software de código abierto. Su código fuente y sus diccionarios están disponibles públicamente para su revisión. La privacidad del usuario se respeta desde el diseño. Las contribuciones de la comunidad han ayudado a mejorar el proyecto, incluyendo correcciones de errores, nuevos idiomas y traducciones. Los usuarios también pueden crear sus propias versiones modificadas.
+
+TT9 no ofrece elementos como formas de teclas personalizables, sino un diseño limpio y legible centrado en una escritura eficiente. No reproduce el estilo visual de TouchPal, pero funciona en teléfonos modernos con Android 16, en dispositivos de inspiración nostálgica con teclados físicos como Qin F21, Cat S22 Flip y Sonim XP3800, e incluso en mandos a distancia de televisores.
+
+Si no está de acuerdo o desea explicar su punto de vista, participe en la [discusión abierta](https://github.com/sspanak/tt9/issues/647) en GitHub. Recuerde mantener un tono respetuoso. No se tolerarán mensajes de odio.
+
+### Android me advirtió que el teclado podría recopilar mis datos personales, incluidos números de tarjetas de crédito y contraseñas
+Este es un aviso estándar de Android que aparece al instalar y activar cualquier teclado, no únicamente Traditional T9. Puede estar seguro de que todo lo que escriba permanece en su dispositivo. El motor de escritura es completamente de código abierto; por ello, puede revisar su código en GitHub y confirmar que su privacidad está protegida.
+
+_Si aun así tiene alguna inquietud, consulte la Política de Privacidad de la aplicación._
+
+### Necesito usar un diseño QWERTY (solo dispositivos con pantalla táctil)
+Traditional T9 es un teclado T9 y, como tal, no proporciona un diseño similar a QWERTY.
+
+Si aún estás aprendiendo a usar T9 y necesitas cambiar de vez en cuando, o encuentras más conveniente escribir nuevas palabras usando QWERTY, desliza hacia la tecla de modo de entrada para cambiar a un teclado diferente. Consulta la [visión general de teclas virtuales](#descripción-general-de-las-teclas-virtuales) para obtener más información.
+
+La mayoría de los otros teclados permiten cambiar de nuevo a Traditional T9 manteniendo presionada la barra espaciadora o la tecla de "cambiar idioma". Consulta el respectivo readme o manual para más información.
+
+### No puedo cambiar el idioma en un teléfono con pantalla táctil
+Primero, asegúrese de haber habilitado todos los idiomas deseados desde Configuración → Idiomas. Luego mantenga pulsada la [tecla de modo de entrada](#tecla-de-modo-de-entrada) para cambiar el idioma.
+
+### ¿Cómo escribir contracciones y palabras con apóstrofes o guiones?
+Pulse **1** en el lugar donde deba aparecer el apóstrofo o el guion. Incluso si se sugieren varios signos de puntuación, no es necesario seleccionar uno manualmente. El más apropiado se insertará automáticamente cuando escriba la siguiente letra o un espacio.
+
+A continuación se muestran ejemplos prácticos.
+
+#### Inglés
+Las contracciones están disponibles como “palabras” independientes, lo que permite combinarlas libremente con otras palabras.
+
+- **Apóstrofes:** I'll → 4155, donde: 4 (I) + 155 ('ll)
+- **Guiones:** check-in → 24325146, donde: 24325 (check) + 146 (-in)
+- **Múltiples apóstrofes:** rock'n'roll → 7625 (rock) + 161 ('n') + 7655 (roll)
+- **Formas negativas (siempre palabras completas):**
+  - can't → 22618
+  - don't → 46618
+  - etc.
+
+#### Neerlandés
+Todas las contracciones en neerlandés también están disponibles para combinarse con otras palabras. En este caso, los signos de puntuación pueden aparecer al principio, al final o en ambos lugares.
+
+- ’s-Hertogenbosch → 171 ('s-) + 4372643626724 (Hertogenbosch)
+
+#### Otros idiomas con alfabeto latino
+De forma similar a lo anterior, puede escribir contracciones y expresiones complejas en francés, italiano y otros idiomas que utilizan el alfabeto latino.
+
+- **Italiano:** dov'è → 3681 (dov') + 3 (è)
+- **Francés, apóstrofes:** j'ai → 51 (j') + 24 (ai)
+- **Francés, expresión compleja:** qu'est-ce que c'est → 781 (qu') + 378123 (est-ce) + 783 (que) + 21378 (c'est)
+- **Turco:** Antalya'da → 2682592 (Antalya) + 132 ('da)
+
+#### Palabras completas (ucraniano y hebreo)
+En ucraniano y hebreo, los apóstrofes siempre forman parte de la palabra.
+
+- **Ucraniano:** пам'ять → 525196
+- **Hebreo:** צ'ארלס → 813759
+
+#### Sitios web
+Las extensiones de dominio más comunes están disponibles como “palabras” independientes en idiomas con alfabeto latino, lo que permite escribir direcciones web de forma rápida y sencilla.
+
+- google.com → 466453 (google) + 1266 (.com)

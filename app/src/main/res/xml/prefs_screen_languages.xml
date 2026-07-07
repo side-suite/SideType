@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto" app:orderingFromXml="true">
+
+	<Preference
+		app:fragment="io.github.sspanak.tt9.preferences.screens.languageSelection.LanguageSelectionScreen"
+		app:key="pref_languages"
+		app:title="@string/pref_choose_languages" />
+
+	<Preference
+		app:key="dictionary_load"
+		app:title="@string/dictionary_load_title" />
+
+	<Preference
+		app:key="dictionary_export"
+		app:title="@string/dictionary_export"
+		app:isPreferenceVisible="false" />
+
+	<Preference
+		app:key="dictionary_truncate_unselected"
+		app:title="@string/dictionary_truncate_unselected" />
+
+	<Preference
+		app:key="dictionary_truncate"
+		app:title="@string/dictionary_truncate_title" />
+
+	<io.github.sspanak.tt9.preferences.screens.languages.QuickSwitchLanguagePreference />
+
+	<PreferenceCategory
+		app:key="category_added_words"
+		app:title="@string/pref_category_custom_words"
+		app:singleLineTitle="true">
+
+		<io.github.sspanak.tt9.preferences.screens.languages.SwitchAddWordsWithoutConfirmation />
+
+		<Preference
+			app:key="dictionary_import_custom"
+			app:title="@string/dictionary_import_custom_words"
+			app:enabled="false"/>
+
+		<io.github.sspanak.tt9.preferences.screens.languages.SwitchRaiseImportLimits />
+
+		<Preference
+			app:key="dictionary_export_custom"
+			app:title="@string/dictionary_export_custom_words" />
+
+		<Preference
+			app:fragment="io.github.sspanak.tt9.preferences.DeleteWordsScreen"
+			app:key="screen_delete_words"
+			app:title="@string/delete"
+			app:summary="@string/delete_words_link_summary"/>
+
+	</PreferenceCategory>
+
+</PreferenceScreen>

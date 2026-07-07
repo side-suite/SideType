@@ -1,0 +1,272 @@
+package io.github.sspanak.tt9.ui.main;
+
+import android.view.Gravity;
+import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import io.github.sspanak.tt9.ime.TraditionalT9;
+import io.github.sspanak.tt9.preferences.settings.SettingsStore;
+import io.github.sspanak.tt9.ui.Vibration;
+import io.github.sspanak.tt9.util.sys.DeviceInfo;
+
+public class ResizableMainView extends StaticMainView implements View.OnAttachStateChangeListener {
+	private Vibration vibration;
+
+	private int height;
+	private float resizeStartY;
+	private long lastResizeTime;
+
+	private int heightClassic;
+	private int heightNumpad;
+	private int heightSmall;
+	private int heightTray;
+
+
+	public ResizableMainView(TraditionalT9 tt9) {
+		super(tt9);
+		calculateSnapHeights();
+	}
+
+
+	private void calculateSnapHeights() {
+		boolean forceRecalculate = DeviceInfo.AT_LEAST_ANDROID_15;
+
+		heightClassic = new MainLayoutClassic(tt9).getHeight(forceRecalculate);
+		heightNumpad = new MainLayoutNumpad(tt9).getHeight(forceRecalculate);
+		heightSmall = new MainLayoutSmall(tt9).getHeight(forceRecalculate);
+		heightTray = new MainLayoutTray(tt9).getHeight(forceRecalculate);
+	}
+
+
+	@Nullable
+	@Override
+	public View getView() {
+		final View view = super.getView();
+		if (view != null) {
+			view.removeOnAttachStateChangeListener(this);
+			view.addOnAttachStateChangeListener(this);
+			vibration = new Vibration(tt9.getSettings(), view);
+		}
+
+		return view;
+	}
+
+
+	@Override
+	public boolean create() {
+		return super.create() && main != null;
+	}
+
+
+	@Override
+	public void destroy() {
+		if (main != null && main.getView() != null) {
+			main.getView().removeOnAttachStateChangeListener(this);
+		}
+		super.destroy();
+	}
+
+
+	@Override public void onViewDetachedFromWindow(@NonNull View v) {}
+	@Override public void onViewAttachedToWindow(@NonNull View v) {
+		if (main != null) {
+			main.setPadding();
+			setHeight(height, heightSmall, main instanceof MainLayoutNumpad ? heightNumpad : heightClassic);
+		}
+	}
+
+
+	public void onOrientationChanged() {
+		showKeyboard();
+		render();
+	}
+
+
+	public void onAlign(float deltaX) {
+		if (!(main instanceof MainLayoutNumpad) && !(main instanceof MainLayoutClassic)) {
+			return;
+		}
+
+		boolean right = deltaX > 0;
+		SettingsStore settings = tt9.getSettings();
+
+		if (settings.getAlignment(null) == Gravity.START && right) {
+			settings.setAlignment(Gravity.CENTER_HORIZONTAL, null);
+		} else if (settings.getAlignment(null) == Gravity.END && !right) {
+			settings.setAlignment(Gravity.CENTER_HORIZONTAL, null);
+		} else if (settings.getAlignment(null) == Gravity.CENTER_HORIZONTAL && right) {
+			settings.setAlignment(Gravity.END, null);
+		} else if (settings.getAlignment(null) == Gravity.CENTER_HORIZONTAL && !right) {
+			settings.setAlignment(Gravity.START, null);
+		}
+
+		render();
+	}
+
+
+	public void onResizeStart(float startY) {
+		resizeStartY = startY;
+	}
+
+
+	public void onResize(float currentY) {
+		int resizeDelta = (int) (resizeStartY - currentY);
+		resizeStartY = currentY;
+
+		if (resizeDelta < 0) {
+			shrink(resizeDelta);
+		} else if (resizeDelta > 0) {
+			expand(resizeDelta);
+		}
+	}
+
+
+	public void onResizeThrottled(float currentY) {
+		long now = System.currentTimeMillis();
+		if (now - lastResizeTime > SettingsStore.RESIZE_THROTTLING_TIME) {
+			lastResizeTime = now;
+			onResize(currentY);
+		}
+	}
+
+
+	public void onSnap() {
+		SettingsStore settings = tt9.getSettings();
+
+		if (settings.isMainLayoutTray()) {
+			expand(1);
+		} else if (settings.isMainLayoutSmall()) {
+			expand(heightNumpad);
+		} else {
+			shrink(-heightNumpad);
+		}
+	}
+
+
+	private void expand(int delta) {
+		if (main == null) {
+			return;
+		}
+
+		final SettingsStore settings = tt9.getSettings();
+		final int largeSize = settings.getPreferredLargeLayout() == SettingsStore.LAYOUT_CLASSIC ? heightClassic : heightNumpad;
+
+		if (settings.isMainLayoutTray()) {
+			settings.setMainViewLayout(SettingsStore.LAYOUT_SMALL);
+			height = heightSmall;
+			tt9.setCurrentView();
+			main.requestPreventEdgeToEdge();
+			vibration.vibrate();
+		} else if (settings.isMainLayoutSmall()) {
+			settings.setMainViewLayout(settings.getPreferredLargeLayout());
+			height = (int) Math.max(Math.max(largeSize * 0.6, heightSmall * 1.1), height + delta);
+			tt9.setCurrentView();
+			main.requestPreventEdgeToEdge();
+			vibration.vibrate();
+		} else {
+			changeHeight(delta, heightSmall, largeSize);
+		}
+	}
+
+
+	private void shrink(int delta) {
+		SettingsStore settings = tt9.getSettings();
+
+		if (main == null || settings.isMainLayoutTray()) {
+			return;
+		}
+
+		final int largeSize = settings.getPreferredLargeLayout() == SettingsStore.LAYOUT_CLASSIC ? heightClassic : heightNumpad;
+
+		if (settings.isMainLayoutSmall()) {
+			settings.setMainViewLayout(SettingsStore.LAYOUT_TRAY);
+			height = heightTray;
+			tt9.setCurrentView();
+			fitMain();
+			main.requestPreventEdgeToEdge();
+			vibration.vibrate();
+		} else if (!changeHeight(delta, heightSmall, largeSize)) {
+			settings.setMainViewLayout(SettingsStore.LAYOUT_SMALL);
+			height = heightSmall;
+			tt9.setCurrentView();
+			main.requestPreventEdgeToEdge();
+			vibration.vibrate();
+		}
+	}
+
+
+	private boolean changeHeight(int delta, int minHeight, int maxHeight) {
+		int keyboardHeight = main != null ? main.getKeyboardHeight() : -1;
+		if (keyboardHeight == 0) {
+			return false;
+		}
+
+		return setHeight(keyboardHeight + delta, minHeight, maxHeight);
+	}
+
+
+	private boolean setHeight(int height, int minHeight, int maxHeight) {
+		if (main == null || height < minHeight) {
+			return false;
+		}
+
+		height = Math.min(height, maxHeight);
+		if (main.setKeyboardHeight(height)) {
+			this.height = height;
+			return true;
+		}
+
+		return false;
+	}
+
+	protected void fitMain() {
+		if (main == null || main instanceof MainLayoutStealth) {
+			return;
+		}
+
+		calculateSnapHeights();
+		int heightLow, heightHigh, heightMain = main.getHeight(true);
+
+		if (main instanceof MainLayoutNumpad) {
+			heightLow = heightSmall;
+			heightHigh = heightNumpad;
+		} else if (main instanceof MainLayoutClassic) {
+			heightLow = heightSmall;
+			heightHigh = heightClassic;
+		} else if (main instanceof MainLayoutSmall) {
+			heightLow = 0;
+			heightHigh = Math.max(heightSmall, heightMain); // make room for the command palette
+		} else {
+			heightLow = 0;
+			heightHigh = Math.max(heightTray, heightMain); // make room for the command palette
+		}
+
+		setHeight(heightMain, heightLow, heightHigh);
+	}
+
+	@Override
+	public void showCommandPalette() {
+		super.showCommandPalette();
+		fitMain();
+	}
+
+	@Override
+	public void showKeyboard() {
+		super.showKeyboard();
+		fitMain();
+	}
+
+	@Override
+	public void showTextEditingPalette() {
+		super.showTextEditingPalette();
+		fitMain();
+	}
+
+	@Override
+	public void render() {
+		super.render();
+		fitMain();
+	}
+}

@@ -1,0 +1,150 @@
+package io.github.sspanak.tt9.ui.main.keys;
+
+import android.content.Context;
+import android.util.AttributeSet;
+import android.view.Gravity;
+
+import androidx.annotation.NonNull;
+
+import io.github.sspanak.tt9.R;
+import io.github.sspanak.tt9.commands.CmdNextInputMode;
+import io.github.sspanak.tt9.commands.CmdNextKeyboard;
+import io.github.sspanak.tt9.commands.CmdNextLanguage;
+import io.github.sspanak.tt9.commands.CmdSelectKeyboard;
+import io.github.sspanak.tt9.preferences.settings.SettingsStore;
+import io.github.sspanak.tt9.ui.Vibration;
+
+public class SoftKeyLF4 extends BaseSwipeableKey {
+	private final CmdNextLanguage nextLanguage = new CmdNextLanguage();
+
+	public SoftKeyLF4(Context context) {
+		super(context);
+		isSwipeable = true;
+	}
+	public SoftKeyLF4(Context context, AttributeSet attrs) {
+		super(context, attrs);
+		isSwipeable = true;
+	}
+	public SoftKeyLF4(Context context, AttributeSet attrs, int defStyleAttr) {
+		super(context, attrs, defStyleAttr);
+		isSwipeable = true;
+	}
+
+	@Override
+	protected void initColors(@NonNull SettingsStore settings) {
+		backgroundColor = settings.getKeyLf4BackgroundColor();
+		borderColor = settings.getKeyLf4BorderColor();
+		cornerElementColor = settings.getKeyLf4CornerElementColor();
+		rippleColor = settings.getKeyLf4RippleColor();
+		centralIconColor = textColor = settings.getKeyLf4TextColor();
+	}
+
+	private boolean areThereManyLanguages() {
+		return tt9 != null && tt9.getSettings().areEnabledLanguagesMoreThanN(1);
+	}
+
+	private boolean setVisibility() {
+		if (tt9 != null && tt9.getSettings().isMainLayoutClassic()) { // no change for other layouts
+			final boolean isVisible = !tt9.isFnPanelVisible();
+
+			getOverlayWrapper();
+			overlay.setVisibility(isVisible ? VISIBLE : GONE);
+
+			return isVisible;
+		}
+
+		return true;
+	}
+
+	private boolean isKeySmall() {
+		return Math.max(getTT9Height(), getTT9Width()) < 0.9f;
+	}
+
+	@Override
+	protected void handleHold() {
+		preventRepeat();
+		if (nextLanguage.isAvailable(tt9) && nextLanguage.run(tt9)) {
+			vibrate(Vibration.getHoldVibration());
+		}
+	}
+
+	@Override
+	protected boolean handleRelease() {
+		return notSwiped() && new CmdNextInputMode().run(tt9);
+	}
+
+	@Override
+	protected void handleEndSwipeX(float position, float delta) {
+		new CmdNextKeyboard().run(tt9);
+	}
+
+	@Override
+	protected void handleEndSwipeY(float position, float delta) {
+		new CmdSelectKeyboard().run(tt9);
+	}
+
+	@Override
+	protected String getAccessibilityText() {
+		return getContext().getString(R.string.function_next_mode);
+	}
+
+	@Override
+	protected String getTitle() {
+		return tt9 != null ? tt9.getInputModeName() : getContext().getString(R.string.virtual_key_input_mode);
+	}
+
+	@Override
+	protected float getTitleScale() {
+		return super.getTitleScale() * (isBopomofo() && tt9.isInputModeABC() ? 0.63f : 0.9f);
+	}
+
+	@Override
+	protected int getCornerIcon(int position) {
+		return position == ICON_POSITION_TOP_RIGHT && areThereManyLanguages() ? new CmdNextLanguage().getIcon() : -1;
+	}
+
+	@Override
+	protected float getCornerElementScale(int position) {
+		if (position == ICON_POSITION_TOP_RIGHT) {
+			return super.getCornerElementScale(ICON_POSITION_TOP_RIGHT) * 0.75f;
+		}
+		return super.getCornerElementScale(position);
+	}
+
+	@Override
+	public boolean isHoldEnabled() {
+		return nextLanguage.isAvailable(tt9);
+	}
+
+	@Override
+	public void render() {
+		if (!setVisibility()) {
+			return;
+		}
+
+		if (tt9 != null && tt9.isInputModeNumeric()) {
+			resetIconCache();
+		}
+
+		if (areThereManyLanguages() && isKeySmall()) {
+			setGravity(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
+			setPaddingRelative(0, 0, 0, 10);
+		} else if (areThereManyLanguages()) {
+			setPaddingRelative(0, 20, 0, 0);
+			setGravity(Gravity.CENTER);
+		} else {
+			setPadding(0, 0, 0, 0);
+			setGravity(Gravity.CENTER);
+		}
+
+		setEnabled(
+			tt9 != null
+			&& !tt9.isVoiceInputActive()
+			&& !tt9.isInputTypeNumeric()
+			&& !tt9.isInputTypePhone()
+			&& !tt9.isFnPanelVisible()
+		);
+
+		super.render();
+	}
+}

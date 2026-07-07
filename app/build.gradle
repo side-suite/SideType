@@ -1,0 +1,237 @@
+plugins {
+	id 'com.android.application'
+}
+
+apply from: 'constants.gradle'
+apply from: 'build-definitions.gradle'
+apply from: 'build-dictionaries.gradle'
+apply from: 'build-ngrams.gradle'
+apply from: 'validate-languages.gradle'
+apply from: 'help-tools.gradle'
+apply from: 'status-icon-tools.gradle'
+apply from: 'version-tools.gradle'
+
+
+tasks.register('validateLanguages') {
+	inputs.dir LANGUAGES_INPUT_DIR
+	outputs.dir LANGUAGE_VALIDATION_DIR
+
+	doLast {
+		validateLanguageFiles(DEFINITIONS_INPUT_DIR, DICTIONARIES_INPUT_DIR, LANGUAGE_VALIDATION_DIR.get().asFile, ICONS_DIR, NGRAMS_INPUT_DIR)
+	}
+}
+
+
+tasks.register('buildDefinition') {
+	inputs.dir DEFINITIONS_INPUT_DIR
+	outputs.file DEFINITIONS_OUTPUT_FILE
+
+	doLast {
+		mergeDefinitions(DEFINITIONS_INPUT_DIR, DEFINITIONS_OUTPUT_FILE)
+	}
+}
+
+
+tasks.register('buildDictionaryDownloads') {
+	inputs.dir LANGUAGES_INPUT_DIR
+	outputs.dir DICTIONARY_META_OUTPUT_DIR
+	outputs.files(fileTree(DICTIONARIES_DOWNLOAD_DIR) { include '**/*.zip'; exclude '**/*ngrams.zip' })
+
+	dependsOn validateLanguages
+	mustRunAfter validateLanguages
+
+	doLast {
+		convertDictionaries(DEFINITIONS_INPUT_DIR, DICTIONARIES_INPUT_DIR, DICTIONARIES_DOWNLOAD_DIR, DICTIONARY_META_OUTPUT_DIR, ICONS_DIR, NGRAMS_INPUT_DIR)
+	}
+}
+
+
+tasks.register('copyDownloadsToAssets', Copy) {
+	from DICTIONARIES_DOWNLOAD_DIR
+	include '**/*.zip'
+	exclude '**/*ngrams.zip'
+	into DICTIONARIES_OUTPUT_DIR
+	dependsOn buildDictionaryDownloads
+	mustRunAfter buildDictionaryDownloads
+}
+
+
+tasks.register('generateNgramsMeta') {
+	inputs.dir NGRAMS_INPUT_DIR
+	outputs.dir NGRAMS_META_OUTPUT_DIR
+
+	dependsOn validateLanguages
+	mustRunAfter validateLanguages
+
+	doLast {
+		generateNgramsMetadata(DEFINITIONS_INPUT_DIR, DICTIONARIES_INPUT_DIR, ICONS_DIR, NGRAMS_INPUT_DIR, NGRAMS_META_OUTPUT_DIR)
+	}
+}
+
+
+tasks.register('copyNgramsToAssets', Copy) {
+	from NGRAMS_INPUT_DIR
+	include '**/*ngrams.zip'
+	into NGRAMS_OUTPUT_DIR
+	dependsOn generateNgramsMeta
+	mustRunAfter generateNgramsMeta
+}
+
+
+tasks.register('copyNgramsToDownloads', Copy) {
+	from NGRAMS_INPUT_DIR
+	include '**/*ngrams.zip'
+	into DICTIONARIES_DOWNLOAD_DIR
+	dependsOn generateNgramsMeta
+	mustRunAfter generateNgramsMeta, copyDownloadsToAssets
+}
+
+
+tasks.register('generateDocs') {
+	inputs.dir HELP_MARKDOWN_DIR
+	inputs.file PRIVACY_POLICY_MARKDOWN
+	outputs.dir DOCS_HTML_DIR
+
+	doLast {
+		convertDocs(HELP_MARKDOWN_DIR, PRIVACY_POLICY_MARKDOWN, DOCS_HTML_DIR)
+	}
+}
+
+tasks.register('updateStatusIcons') {
+	doLast {
+		updateStatusIconCache(DEFINITIONS_INPUT_DIR, ICONS_DIR, ICONS_JAVA_FILE)
+	}
+}
+
+tasks.register('updateManifest') {
+	doLast {
+		updateManifestVersion(getVersionCode(), getVersionName())
+	}
+}
+
+clean {
+	delete DOCS_HTML_DIR
+	delete DICTIONARIES_OUTPUT_DIR
+	delete DICTIONARIES_DOWNLOAD_DIR
+	delete LANGUAGES_OUTPUT_DIR
+	delete NGRAMS_OUTPUT_DIR
+}
+
+// using the exported Closures directly causes weird values, hence the extra wrappers here
+def getDonationUrl = { -> new File(FUNDING_FILE)
+		.readLines().get(0).trim()
+		.replaceFirst("^([^:]+)\\s*:\\s*([^\\n]+)", "https://\$1.com/\$2")
+		.replace('_', '-')
+}
+def getVerCode = { -> return getVersionCode() }
+def getVerName = { -> return getVersionName() }
+def getVersionString = { flavor -> return flavor == 'debug' ? getDebugVersion() : getReleaseVersion() }
+
+
+android {
+	namespace = PACKAGE_NAME
+	compileSdk = 37
+
+	defaultConfig {
+		applicationId = PACKAGE_NAME
+		buildFeatures.buildConfig = true
+		minSdk = 24
+		targetSdk = 37
+		versionCode = getVerCode()
+		versionName = getVerName()
+
+		buildConfigField 'String', 'DICTIONARY_EXTENSION', "\"${DICTIONARY_OUTPUT_EXTENSION}\""
+		buildConfigField 'String', 'DOCS_DIR', "\"${DOCS_DIR_NAME}\""
+		buildConfigField 'String', 'DONATION_URL', "\"${getDonationUrl()}\""
+
+		// F-droid hacks
+		dependenciesInfo.includeInApk = false
+		vectorDrawables.generatedDensities = []
+	}
+
+	buildTypes {
+		debug {
+			buildConfigField 'String', 'VERSION_FULL', "\"${getVersionString('debug')}\""
+		}
+		release {
+			buildConfigField 'String', 'VERSION_FULL', "\"${getVersionString('release')}\""
+
+			debuggable = false
+			jniDebuggable = false
+			minifyEnabled = true
+			shrinkResources = true
+			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+		}
+	}
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_17
+		targetCompatibility JavaVersion.VERSION_17
+	}
+
+	flavorDimensions = ['app']
+	productFlavors {
+		full {
+			dimension 'app'
+			buildConfigField 'Boolean', 'LITE', 'false'
+			buildConfigField 'Boolean', 'PREMIUM', 'false'
+		}
+		lite {
+			dimension 'app'
+			buildConfigField 'Boolean', 'LITE', 'true'
+			buildConfigField 'Boolean', 'PREMIUM', 'false'
+		}
+		premium {
+			dimension 'app'
+			buildConfigField 'Boolean', 'LITE', 'true'
+			buildConfigField 'Boolean', 'PREMIUM', 'true'
+		}
+	}
+
+	androidComponents {
+		onVariants(selector().all()) { variant ->
+			def variantName = variant.name.capitalize()
+
+			tasks.matching { it.name == "javaPreCompile${variantName}" }.configureEach {
+				dependsOn(updateStatusIcons)
+			}
+
+			[
+				"merge${variantName}Assets",
+				"lintAnalyze${variantName}",
+				"generate${variantName}LintReportModel",
+				"lintVitalAnalyze${variantName}",
+				"generate${variantName}LintVitalReportModel"
+			].each { taskName ->
+				tasks.matching { it.name == taskName }.configureEach {
+					dependsOn(buildDefinition, generateDocs, validateLanguages, buildDictionaryDownloads, copyNgramsToAssets, copyNgramsToDownloads)
+
+					if (taskName.toLowerCase().contains("full")) {
+						dependsOn(copyDownloadsToAssets)
+					}
+				}
+			}
+
+			def assembleTaskName = "assemble${variantName}"
+			tasks.matching { it.name == assembleTaskName }.configureEach {
+				finalizedBy(updateManifest)
+			}
+
+			variant.outputs.forEach { output ->
+				def fullSuffix = variant.flavorName == 'full' ? '-full' : ''
+				def debugSuffix = variant.name.containsIgnoreCase('debug') ? '-debug' : ''
+
+				output.outputFileName.set(
+					"${APP_NAME}-v${getVerName()}${fullSuffix}${debugSuffix}.apk"
+				)
+			}
+		}
+	}
+}
+
+dependencies {
+	implementation 'androidx.preference:preference:1.2.1'
+	implementation "androidx.window:window:1.5.1"
+	implementation "androidx.window:window-java:1.5.1"
+	implementation 'com.google.android.material:material:1.14.0'
+	premiumImplementation 'com.android.billingclient:billing:9.0.0'
+}

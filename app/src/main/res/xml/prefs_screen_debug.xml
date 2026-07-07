@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	app:orderingFromXml="true">
+	<Preference
+		app:key="pref_device_info"
+		app:title="Device Info" />
+
+	<Preference
+		app:key="screen_test_input"
+		app:title="Test Input">
+		<intent
+			android:action="android.intent.action.VIEW"
+			android:targetPackage="io.github.sspanak.tt9"
+			android:targetClass="io.github.sspanak.tt9.preferences.screens.debug.TestInputActivity" />
+	</Preference>
+
+	<Preference
+		android:fragment="io.github.sspanak.tt9.preferences.screens.UsageStatsScreen"
+		android:key="pref_slow_queries"
+		android:title="@string/pref_category_usage_stats" />
+
+	<PreferenceCategory app:title="Hacks" app:singleLineTitle="true">
+		<SwitchPreferenceCompat
+			app:key="pref_demo_mode"
+			app:title="Demo Mode" />
+
+		<io.github.sspanak.tt9.preferences.screens.debug.DropDownInputHandlingMode app:title="Keypad Handling Mode" />
+	</PreferenceCategory>
+
+	<PreferenceCategory app:title="Logging" app:singleLineTitle="true">
+		<io.github.sspanak.tt9.preferences.screens.debug.DropDownLogLevel app:title="Log Level" />
+
+		<SwitchPreferenceCompat
+			app:defaultValue="false"
+			app:key="pref_enable_system_logs"
+			app:title="System Logs" />
+
+		<Preference
+			app:key="pref_export_logcat"
+			app:title="Export Logs" />
+
+		<Preference
+			app:key="screen_logs"
+			app:title="Recent Log Messages...">
+			<intent
+				android:action="android.intent.action.VIEW"
+				android:targetPackage="io.github.sspanak.tt9"
+				android:targetClass="io.github.sspanak.tt9.preferences.LogsActivity" />
+		</Preference>
+	</PreferenceCategory>
+
+</PreferenceScreen>
