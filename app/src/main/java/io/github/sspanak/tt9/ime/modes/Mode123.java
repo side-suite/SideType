@@ -111,7 +111,10 @@ class Mode123 extends ModePassthrough {
 
 	@Override public boolean onNumber(int number, boolean hold, int repeat, @NonNull String[] s) {
 		reset();
-		digitSequence = String.valueOf(number);
+		// Emit the numeral/symbol PRINTED on the key (from the language's `numerals` map), not the raw
+		// key index. On the Compact QWERTY tile the keys are not 0-9 in order (e.g. the "1" is on the
+		// E/R key, "!" on the Q/W key), so String.valueOf(number) would type the wrong character.
+		digitSequence = language.getKeyNumeral(number);
 
 		if (hold && number < KEY_CHARACTERS.size() && !KEY_CHARACTERS.get(number).isEmpty()) {
 			suggestions = new ArrayList<>(KEY_CHARACTERS.get(number));
