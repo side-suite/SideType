@@ -34,6 +34,8 @@ local.properties
 #Other
 t9build.properties
 *.keystore
+*.jks
+keystore.properties
 
 # IDE project files
 *.iws

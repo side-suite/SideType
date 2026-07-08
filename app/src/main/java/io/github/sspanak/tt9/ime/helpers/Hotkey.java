@@ -27,6 +27,7 @@ import io.github.sspanak.tt9.commands.CmdSelectKeyboard;
 import io.github.sspanak.tt9.commands.CmdShift;
 import io.github.sspanak.tt9.commands.CmdShowEmojis;
 import io.github.sspanak.tt9.commands.CmdShowSettings;
+import io.github.sspanak.tt9.commands.CmdShowSymbols;
 import io.github.sspanak.tt9.commands.CmdSpaceKorean;
 import io.github.sspanak.tt9.commands.CmdSuggestionNext;
 import io.github.sspanak.tt9.commands.CmdSuggestionPrevious;
@@ -55,6 +56,7 @@ public class Hotkey {
 		defaults.put(CmdSelectKeyboard.ID, R.integer.hotkey_select_keyboard);
 		defaults.put(CmdShift.ID, R.integer.hotkey_shift);
 		defaults.put(CmdShowEmojis.ID, R.integer.hotkey_show_emojis);
+		defaults.put(CmdShowSymbols.ID, R.integer.hotkey_show_symbols);
 		defaults.put(CmdShowSettings.ID, R.integer.hotkey_show_settings);
 		defaults.put(CmdSpaceKorean.ID, R.integer.hotkey_space_korean);
 		defaults.put(CmdSuggestionNext.ID, R.integer.hotkey_next_suggestion);

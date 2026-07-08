@@ -118,25 +118,51 @@ clean {
 }
 
 // using the exported Closures directly causes weird values, hence the extra wrappers here
-def getDonationUrl = { -> new File(FUNDING_FILE)
-		.readLines().get(0).trim()
+// SideType hides the donation link, so this URL is unused at runtime; tolerate a missing FUNDING.yml.
+def getDonationUrl = { ->
+	def f = new File(FUNDING_FILE)
+	if (!f.exists() || f.readLines().isEmpty()) return ""
+	return f.readLines().get(0).trim()
 		.replaceFirst("^([^:]+)\\s*:\\s*([^\\n]+)", "https://\$1.com/\$2")
 		.replace('_', '-')
 }
-def getVerCode = { -> return getVersionCode() }
-def getVerName = { -> return getVersionName() }
+// Release versions can be pinned deterministically with -PreleaseVersionCode / -PreleaseVersionName.
+// This matters because the default version is derived from git and is unreliable from a shallow clone
+// (commit count = 1). For a real release: build from full history with tags, or pass these properties.
+def getVerCode = { -> return project.hasProperty('releaseVersionCode') ? (project.releaseVersionCode as int) : getVersionCode() }
+def getVerName = { -> return project.hasProperty('releaseVersionName') ? project.releaseVersionName.toString() : getVersionName() }
 def getVersionString = { flavor -> return flavor == 'debug' ? getDebugVersion() : getReleaseVersion() }
+
+// Release signing: drop a git-ignored keystore.properties at the repo root with
+// storeFile / storePassword / keyAlias / keyPassword to sign release builds. See RELEASE.md.
+// Without it, release builds are produced unsigned (debug builds are unaffected).
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+	keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
 
 
 android {
 	namespace = PACKAGE_NAME
-	compileSdk = 37
+	compileSdk = 36
+
+	signingConfigs {
+		release {
+			if (keystorePropertiesFile.exists()) {
+				storeFile rootProject.file(keystoreProperties['storeFile'])
+				storePassword keystoreProperties['storePassword']
+				keyAlias keystoreProperties['keyAlias']
+				keyPassword keystoreProperties['keyPassword']
+			}
+		}
+	}
 
 	defaultConfig {
-		applicationId = PACKAGE_NAME
+		applicationId = APPLICATION_ID
 		buildFeatures.buildConfig = true
 		minSdk = 24
-		targetSdk = 37
+		targetSdk = 36
 		versionCode = getVerCode()
 		versionName = getVerName()
 
@@ -155,6 +181,10 @@ android {
 		}
 		release {
 			buildConfigField 'String', 'VERSION_FULL', "\"${getVersionString('release')}\""
+
+			if (keystorePropertiesFile.exists()) {
+				signingConfig signingConfigs.release
+			}
 
 			debuggable = false
 			jniDebuggable = false

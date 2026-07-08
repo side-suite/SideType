@@ -15,6 +15,7 @@ import io.github.sspanak.tt9.ime.modes.helpers.Sequences;
 import io.github.sspanak.tt9.ime.modes.predictions.Predictions;
 import io.github.sspanak.tt9.ime.modes.predictions.SyllablePredictions;
 import io.github.sspanak.tt9.languages.EmojiLanguage;
+import io.github.sspanak.tt9.languages.KeySequence;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.languages.LanguageKind;
@@ -182,7 +183,7 @@ class ModeCheonjiin extends InputMode {
 		if (seq.startsWithEmojiSequence(digitSequence)) {
 			digitSequence = EmojiLanguage.validateEmojiSequence(seq, digitSequence, nextNumber);
 		} else if (!seq.CHARS_GROUP_0_SEQUENCE.equals(digitSequence) && !seq.CHARS_GROUP_1_SEQUENCE.equals(digitSequence)) {
-			digitSequence += String.valueOf(nextNumber);
+			digitSequence += KeySequence.keyToTokenString(nextNumber);
 		}
 
 		if (seq.PREFERRED_CHAR_SEQUENCE.equals(digitSequence)) {

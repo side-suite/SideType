@@ -118,6 +118,7 @@ public class CommandCollection {
 			hotkeys.add(new CmdShift());
 			hotkeys.add(new CmdSpaceKorean());
 			hotkeys.add(new CmdShowEmojis());
+			hotkeys.add(new CmdShowSymbols());
 			hotkeys.add(new CmdShowSettings());
 			hotkeys.add(new CmdTogglePredictiveMode());
 			hotkeys.add(new CmdUndo());

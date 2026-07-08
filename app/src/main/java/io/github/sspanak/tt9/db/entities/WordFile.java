@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import io.github.sspanak.tt9.languages.KeySequence;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.util.Logger;
 import io.github.sspanak.tt9.util.RemoteAssetFile;
@@ -165,12 +166,12 @@ public class WordFile extends RemoteAssetFile {
 		StringBuilder sequence = new StringBuilder();
 
 		// use the last char from getNextWords() if it's a digit
-		if (Character.isDigit(lastCharCode)) {
+		if (KeySequence.isToken((char) lastCharCode)) {
 			sequence.append((char) lastCharCode);
 		}
 
 		while ((lastCharCode = reader.read()) != -1) {
-			if (Character.isDigit(lastCharCode)) {
+			if (KeySequence.isToken((char) lastCharCode)) {
 				sequence.append((char) lastCharCode);
 			} else {
 				break;
@@ -201,7 +202,7 @@ public class WordFile extends RemoteAssetFile {
 			areWordsSeparated = true;
 		}
 		// use the last char from getNextSequence() if it's a letter
-		else if (!Character.isDigit(lastCharCode)) {
+		else if (!KeySequence.isToken((char) lastCharCode)) {
 			word.append((char) lastCharCode);
 		}
 
@@ -210,7 +211,7 @@ public class WordFile extends RemoteAssetFile {
 		// start extracting the words
 		int wordLength = word.length();
 		while ((lastCharCode = reader.read()) != -1) {
-			if (Character.isDigit(lastCharCode)) {
+			if (KeySequence.isToken((char) lastCharCode)) {
 				break;
 			}
 

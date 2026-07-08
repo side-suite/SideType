@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:tools="http://schemas.android.com/tools"
-	android:versionCode="1596"
-	android:versionName="62.0"
+	android:versionCode="1"
+	android:versionName="0.0"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/> <!-- allows displaying notifications on Android >= 13 -->
@@ -23,6 +23,7 @@
 		android:supportsRtl="true">
 
 		<service android:name="io.github.sspanak.tt9.ime.TraditionalT9" android:permission="android.permission.BIND_INPUT_METHOD"
+			android:label="@string/keyboard_name"
 			android:exported="true">
 			<intent-filter>
 				<action android:name="android.view.InputMethod"/>
@@ -51,6 +52,18 @@
 			android:excludeFromRecents="true"
 			android:label=""
 			android:name="io.github.sspanak.tt9.ui.dialogs.AutoUpdateMonologActivity"
+			android:theme="@style/TTheme.AddWord" />
+
+		<activity
+			android:label="@string/pref_emoji_binds"
+			android:name="io.github.sspanak.tt9.preferences.EmojiBindsActivity"
+			android:exported="false"
+			android:theme="@style/TTheme.Preferences" />
+
+		<activity
+			android:label="@string/add_word_title"
+			android:name="io.github.sspanak.tt9.preferences.AddWordActivity"
+			android:exported="false"
 			android:theme="@style/TTheme.AddWord" />
 
 		<activity

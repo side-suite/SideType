@@ -8,7 +8,7 @@
 		app:title="@string/pref_help">
 		<intent
 			android:action="android.intent.action.VIEW"
-			android:targetPackage="io.github.sspanak.tt9"
+			android:targetPackage="fi.palonkorpi.sidetype"
 			android:targetClass="io.github.sspanak.tt9.preferences.HelpActivity" />
 	</Preference>
 
@@ -26,6 +26,15 @@
 		app:fragment="io.github.sspanak.tt9.preferences.KeyPadScreen"
 		app:key="screen_keypad"
 		app:title="@string/pref_category_keypad" />
+
+	<Preference
+		app:key="screen_emoji_binds"
+		app:title="@string/pref_emoji_binds">
+		<intent
+			android:action="android.intent.action.VIEW"
+			android:targetPackage="fi.palonkorpi.sidetype"
+			android:targetClass="io.github.sspanak.tt9.preferences.EmojiBindsActivity" />
+	</Preference>
 
 	<Preference
 		app:fragment="io.github.sspanak.tt9.preferences.SetupScreen"
@@ -46,7 +55,7 @@
 			app:summary="@string/english_only">
 			<intent
 				android:action="android.intent.action.VIEW"
-				android:targetPackage="io.github.sspanak.tt9"
+				android:targetPackage="fi.palonkorpi.sidetype"
 				android:targetClass="io.github.sspanak.tt9.preferences.PrivacyPolicyActivity" />
 		</Preference>
 

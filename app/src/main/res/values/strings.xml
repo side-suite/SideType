@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name" translatable="false">Traditional T9</string>
-	<string name="app_name_short" translatable="false">TT9</string>
+	<string name="app_name" translatable="false">SideType</string>
+	<string name="app_name_short" translatable="false">SideType</string>
+	<string name="keyboard_name" translatable="false">SideType</string>
 	<string name="dictionary_url" translatable="false">https://raw.githubusercontent.com/sspanak/tt9/%1$s/downloads/%2$s</string>
 	<string name="system_night_mode" translatable="false">n</string>
 
-	<string name="app_settings">TT9 Settings</string>
+	<string name="app_settings">SideType Settings</string>
 	<string name="click_here_for_preview">Click here for preview</string>
 	<string name="completed">Completed</string>
 	<string name="delete">Delete</string>
@@ -15,7 +16,7 @@
 	<string name="loading">Loading…</string>
 	<string name="search_results">Search Results</string>
 	<string name="search_results_void">No results.</string>
-	<string name="version_info">%1$s\nMade by Dimo Karaivanov, and contributors from all over the world.</string>
+	<string name="version_info">%1$s\nSideType by Oliver Palonkorpi — a Sidephone Compact QWERTY fork of Traditional T9 by Dimo Karaivanov and contributors.</string>
 
 	<string name="error_unexpected">Unexpected error occurred.</string>
 
@@ -30,6 +31,7 @@
 
 	<string name="add_word_add">Add</string>
 	<string name="add_word_confirm">Add word \"%1$s\" to %2$s?</string>
+	<string name="add_word_type_prompt">Type a word to add to %1$s:</string>
 	<string name="add_word_no_confirmation">Add Without Confirmation</string>
 	<string name="add_word_no_selection">Move the cursor inside a word to add it.</string>
 	<string name="add_word_not_available_in_language">Adding words is not possible in this language.</string>
@@ -259,6 +261,11 @@
 	<string name="function_next_mode">Next Input Mode</string>
 	<string name="function_select_keyboard">Select Keyboard</string>
 	<string name="function_show_emojis">Show Emojis</string>
+	<string name="function_show_symbols">Show Symbols</string>
+	<string name="pref_emoji_binds">Emoji key binds</string>
+	<string name="emoji_binds_hint">Tap a key to assign an emoji to it. On the keypad, type the emoji by holding SYM and pressing that key.</string>
+	<string name="emoji_binds_pick">Pick an emoji</string>
+	<string name="emoji_binds_clear">Clear</string>
 	<string name="function_show_settings">Show Settings</string>
 	<string name="function_toggle_predictive_mode">Toggle predictive mode</string>
 	<string name="function_txt_select_all">Select all</string>
@@ -309,7 +316,7 @@
 	<string name="setup_default_keyboard">Select Default Keyboard</string>
 	<string name="setup_tt9_on">%1$s is enabled</string>
 	<string name="setup_tt9_off">%1$s is disabled</string>
-	<string name="setup_click_here_to_enable">Click here to enable TT9 from Android Settings.</string>
+	<string name="setup_click_here_to_enable">Click here to enable SideType from Android Settings.</string>
 	<string name="setup_spell_checker">System Spell Checker</string>
 	<string name="setup_spell_checker_on">The system spell checker underlines text in red and may prevent adding new words. Tap to disable.</string>
 	<string name="setup_spell_checker_off">Disabled</string>

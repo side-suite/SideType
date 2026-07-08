@@ -23,6 +23,7 @@ import io.github.sspanak.tt9.db.sqlite.InsertOps;
 import io.github.sspanak.tt9.db.sqlite.SQLiteOpener;
 import io.github.sspanak.tt9.db.sqlite.Tables;
 import io.github.sspanak.tt9.db.sqlite.WordDbOpener;
+import io.github.sspanak.tt9.languages.KeySequence;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageKind;
 import io.github.sspanak.tt9.languages.NaturalLanguage;
@@ -275,7 +276,7 @@ public class DictionaryLoader {
 		boolean isEnglish = LanguageKind.isEnglish(language);
 		WordBatch letters = new WordBatch(language);
 
-		for (int key = 2; key <= 9; key++) {
+		for (int key = 2; key <= KeySequence.MAX_KEY; key++) {
 			for (String langChar : language.getKeyCharacters(key)) {
 				langChar = (isEnglish && langChar.equals("i")) ? langChar.toUpperCase(Locale.ENGLISH) : langChar;
 				letters.add(langChar, 0, key);

@@ -3,14 +3,23 @@ dictionaryFile: pl-utf8.csv
 ngramFile: pl-ngrams.zip
 iconABC: ic_lang_latin
 iconT9: ic_lang_pl
+# Character typed when a key is HELD, matching the number/symbol printed above each Compact QWERTY key.
+# Index:  0   1   2(QW) 3(ER) 4(TY) 5(UI) 6(OP) 7(AS) 8(DF) 9(GH) 10(JK) 11(L) 12(ZX) 13(CV) 14(BN) 15(M)
+numerals: [0,1,!,1,2,3,.,?,4,5,6,',@,7,8,9]
 layout:
   - [SPECIAL] # 0
   - [PUNCTUATION_DE] # 1
-  - [a, b, c, ą, ć] # 2
-  - [d, e, f, ę] # 3
-  - [g, h, i] # 4
-  - [j, k, l, ł] # 5
-  - [m, n, o, ó, ń] # 6
-  - [p, q, r, s, ś] # 7
-  - [t, u, v] # 8
-  - [w, x, y, z, ź, ż] # 9
+  - [q, w] # 2
+  - [e, r, ę] # 3
+  - [t, y] # 4
+  - [u, i] # 5
+  - [o, p, ó] # 6
+  - [a, s, ą, ś] # 7
+  - [d, f] # 8
+  - [g, h] # 9
+  - [j, k] # 10
+  - [l, ł] # 11
+  - [z, x, ź, ż] # 12
+  - [c, v, ć] # 13
+  - [b, n, ń] # 14
+  - [m] # 15

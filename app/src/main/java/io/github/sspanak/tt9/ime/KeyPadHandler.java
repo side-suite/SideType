@@ -21,6 +21,12 @@ abstract class KeyPadHandler extends UiHandler {
 	private int lastNumKeyCode = 0;
 	private int numKeyRepeatCounter = 0;
 
+	// Emoji layer (Sidephone): SYM (ALT) held acts as a modifier. Holding SYM and pressing a key
+	// types the emoji bound to that key. A lone SYM tap still shows the symbols page.
+	private boolean symHeld = false;
+	private boolean symUsedForEmoji = false;
+	private final io.github.sspanak.tt9.ui.EmojiPreview emojiPreview = new io.github.sspanak.tt9.ui.EmojiPreview();
+
 
 	/**
 	 * Main initialization of the input method component. Be sure to call to
@@ -54,6 +60,24 @@ abstract class KeyPadHandler extends UiHandler {
 
 		if (shouldBeOff()) {
 			return false;
+		}
+
+		// Emoji layer (Sidephone): SYM (ALT) is a modifier. Track its held state here; the tap action
+		// (show symbols) is decided on key up, so a lone SYM tap can be told apart from "hold SYM +
+		// press key". While SYM is held, a key press types that key's bound emoji instead of a letter.
+		if (keyCode == KeyEvent.KEYCODE_ALT_LEFT) {
+			symHeld = true;
+			symUsedForEmoji = false;
+			emojiPreview.show(mainView != null ? mainView.getView() : null, settings);
+			// fall through, so the hotkey system can still track the key for the tap action
+		} else if (symHeld && Key.isCompactQwertyLetter(keyCode)) {
+			symUsedForEmoji = true;
+			ignoreNextKeyUp = keyCode; // swallow the matching key-up so the letter is not also typed
+			String emoji = settings.getEmojiBind(Key.codeToNumber(settings, keyCode));
+			if (emoji != null && !emoji.isEmpty()) {
+				onText(emoji, false);
+			}
+			return true;
 		}
 
 //		Logger.d("onKeyDown", "Key: " + event + " repeat?: " + event.getRepeatCount() + " long-time: " + event.isLongPress());
@@ -150,6 +174,19 @@ abstract class KeyPadHandler extends UiHandler {
 
 		if (shouldBeOff()) {
 			return false;
+		}
+
+		// Emoji layer (Sidephone): releasing SYM (ALT). If it was used to type an emoji, swallow the
+		// key-up so the "show symbols" tap action does not also fire. Otherwise it was a lone tap and
+		// we let the hotkey system show the symbols page.
+		if (keyCode == KeyEvent.KEYCODE_ALT_LEFT) {
+			emojiPreview.hide();
+			boolean wasEmoji = symUsedForEmoji;
+			symHeld = false;
+			symUsedForEmoji = false;
+			if (wasEmoji) {
+				return true;
+			}
 		}
 
 //		Logger.d("onKeyUp", "Key: " + keyCode + " repeat?: " + event.getRepeatCount());

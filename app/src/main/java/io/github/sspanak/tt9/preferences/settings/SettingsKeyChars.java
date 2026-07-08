@@ -26,9 +26,24 @@ class SettingsKeyChars extends SettingsInput {
 	private final static char[] MANDATORY_CHARS_1_EU = new char[] {'\'', '"', '-'};
 	public final static char[] FORBIDDEN_CHARS_0 = new char[] {' ', '\n', '\t'};
 
+	// Sidephone emoji layer: an emoji (or any text) bound to a keypad key, typed by holding SYM and
+	// pressing the key. Stored per key index (see Key.codeToNumber). Empty string = no binding.
+	public final static String EMOJI_BIND_PREFIX = "emoji_key_bind_";
+
 
 	SettingsKeyChars(Context context) {
 		super(context);
+	}
+
+
+	/** The emoji (or text) bound to the given keypad key for the Sidephone emoji layer, or "" if none. */
+	@NonNull
+	public String getEmojiBind(int key) {
+		return prefs.getString(EMOJI_BIND_PREFIX + key, "");
+	}
+
+	public void setEmojiBind(int key, @Nullable String emoji) {
+		getPrefsEditor().putString(EMOJI_BIND_PREFIX + key, emoji == null ? "" : emoji).apply();
 	}
 
 

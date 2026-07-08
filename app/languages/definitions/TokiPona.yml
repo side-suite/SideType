@@ -3,14 +3,23 @@ dictionaryFile: tp-utf8.txt
 iconABC: ic_lang_latin
 iconT9: ic_lang_tp
 name: Toki Pona
+# Character typed when a key is HELD, matching the number/symbol printed above each Compact QWERTY key.
+# Index:  0   1   2(QW) 3(ER) 4(TY) 5(UI) 6(OP) 7(AS) 8(DF) 9(GH) 10(JK) 11(L) 12(ZX) 13(CV) 14(BN) 15(M)
+numerals: [0,1,!,1,2,3,.,?,4,5,6,',@,7,8,9]
 layout:
   - [SPECIAL] # 0
   - [PUNCTUATION, ·] # 1
-  - [a, b, c] # 2
-  - [d, e, f] # 3
-  - [g, h, i] # 4
-  - [j, k, l] # 5
-  - [m, n, o] # 6
-  - [p, q, r, s] # 7
-  - [t, u, v] # 8
-  - [w, x, y, z] # 9
+  - [q, w] # 2
+  - [e, r] # 3
+  - [t, y] # 4
+  - [u, i] # 5
+  - [o, p] # 6
+  - [a, s] # 7
+  - [d, f] # 8
+  - [g, h] # 9
+  - [j, k] # 10
+  - [l] # 11
+  - [z, x] # 12
+  - [c, v] # 13
+  - [b, n] # 14
+  - [m] # 15

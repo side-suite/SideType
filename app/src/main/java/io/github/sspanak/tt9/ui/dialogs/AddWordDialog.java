@@ -40,7 +40,10 @@ public class AddWordDialog extends PopupDialog {
 
 	public void show() {
 		if (word == null || word.isEmpty()) {
-			UI.toastLong(context, R.string.add_word_no_selection);
+			// No current word — open a dedicated screen to type one. It must be a real Activity (not a
+			// dialog shown from the IME), because multi-tap input does not work inside IME dialogs, and
+			// a brand-new word cannot be predicted.
+			UI.showAddWord(context);
 			close();
 			return;
 		}

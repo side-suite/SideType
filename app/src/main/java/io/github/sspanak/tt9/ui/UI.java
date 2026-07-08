@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 
 import java.util.HashMap;
 
+import io.github.sspanak.tt9.preferences.EmojiBindsActivity;
 import io.github.sspanak.tt9.preferences.PreferencesActivity;
 
 public class UI {
@@ -54,6 +55,22 @@ public class UI {
 		prefIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		prefIntent.putExtra("screen", screenName);
 		context.startActivity(prefIntent);
+	}
+
+
+	public static void showEmojiBinds(@NonNull Context context) {
+		Intent intent = new Intent(context, EmojiBindsActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		context.startActivity(intent);
+	}
+
+
+	public static void showAddWord(@NonNull Context context) {
+		Intent intent = new Intent(context, io.github.sspanak.tt9.preferences.AddWordActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		context.startActivity(intent);
 	}
 
 

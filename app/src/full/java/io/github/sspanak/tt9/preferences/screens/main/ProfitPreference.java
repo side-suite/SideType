@@ -58,8 +58,9 @@ public class ProfitPreference extends Preference {
 
 
 	public ProfitPreference populate(@NonNull PreferencesActivity activity, boolean isTT9On) {
-		boolean isVisible = isTT9On && !activity.getSettings().getDemoMode();
-		setVisible(isVisible);
+		// SideType does not solicit donations. The upstream Traditional T9 authors are credited in the
+		// About section instead of via a donation link.
+		setVisible(false);
 		setIconSpaceReserved(false);
 
 		return this;

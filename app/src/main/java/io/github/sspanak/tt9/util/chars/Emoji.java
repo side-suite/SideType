@@ -5,7 +5,7 @@ import android.graphics.Paint;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-class Emoji extends Punctuation {
+public class Emoji extends Punctuation {
 	final private static ArrayList<String> TextEmoticons = new ArrayList<>(Arrays.asList(
 		":)", ":D", ":P", ";)", "\\m/", ":-O", ":|", ":("
 	));

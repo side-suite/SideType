@@ -1,10 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	style="@style/TTheme.MainSmall.StatusBar.Wrapper"
+	android:orientation="horizontal"
+	android:gravity="center_vertical"
 	android:defaultFocusHighlightEnabled="false"
 	android:focusable="false"
 	android:focusableInTouchMode="false">
 
-	<include layout="@layout/panel_status_bar" />
+	<!-- Sidephone quick action (far left): open SideType settings. Balances the language chip on the right. -->
+	<ImageButton
+		android:id="@+id/sidephone_settings_key"
+		android:layout_width="34dp"
+		android:layout_height="34dp"
+		android:padding="7dp"
+		android:scaleType="fitCenter"
+		android:src="@drawable/ic_fn_settings"
+		android:background="?android:attr/selectableItemBackgroundBorderless"
+		android:tint="?attr/colorKeyboardText"
+		android:contentDescription="@string/function_show_settings" />
 
-</FrameLayout>
+	<!-- Sidephone quick action (left): add the current/typed word to the dictionary. -->
+	<ImageButton
+		android:id="@+id/sidephone_dict_key"
+		android:layout_width="34dp"
+		android:layout_height="34dp"
+		android:padding="7dp"
+		android:scaleType="fitCenter"
+		android:src="@drawable/ic_fn_add_word"
+		android:background="?android:attr/selectableItemBackgroundBorderless"
+		android:tint="?attr/colorKeyboardText"
+		android:contentDescription="@string/function_add_word" />
+
+	<FrameLayout
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="1">
+		<include layout="@layout/panel_status_bar" />
+	</FrameLayout>
+
+	<!-- Sidephone quick action (right): tap to switch the writing language (shows the current code,
+	     e.g. EN / FI / DE). Hidden when only one language is enabled. -->
+	<TextView
+		android:id="@+id/sidephone_language_key"
+		android:layout_width="wrap_content"
+		android:layout_height="34dp"
+		android:minWidth="34dp"
+		android:paddingStart="4dp"
+		android:paddingEnd="4dp"
+		android:gravity="center"
+		android:textSize="13sp"
+		android:textStyle="bold"
+		android:singleLine="true"
+		android:textColor="?attr/colorKeyboardText"
+		android:background="?android:attr/selectableItemBackgroundBorderless"
+		android:contentDescription="@string/function_next_language" />
+
+	<!-- Sidephone quick action (right): open the emoji key binds screen. -->
+	<ImageButton
+		android:id="@+id/sidephone_emoji_key"
+		android:layout_width="34dp"
+		android:layout_height="34dp"
+		android:padding="7dp"
+		android:scaleType="fitCenter"
+		android:src="@drawable/ic_fn_show_emojis"
+		android:background="?android:attr/selectableItemBackgroundBorderless"
+		android:tint="?attr/colorKeyboardText"
+		android:contentDescription="@string/pref_emoji_binds" />
+
+</LinearLayout>

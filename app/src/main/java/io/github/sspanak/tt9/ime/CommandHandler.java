@@ -133,6 +133,7 @@ abstract public class CommandHandler extends TextEditingHandler {
 		setStatusIcon(mInputMode, mLanguage);
 		statusBar.setText(mInputMode);
 		statusBar.setAccessibilityText(mInputMode);
+		refreshLanguageKey();
 		suggestionOps.setLanguage(mLanguage);
 		mainView.render();
 		if (settings.isMainLayoutStealth() && !settings.isStatusIconEnabled()) {

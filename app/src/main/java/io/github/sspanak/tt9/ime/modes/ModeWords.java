@@ -14,6 +14,7 @@ import io.github.sspanak.tt9.ime.helpers.TextField;
 import io.github.sspanak.tt9.ime.modes.helpers.AutoTextCase;
 import io.github.sspanak.tt9.ime.modes.helpers.Sequences;
 import io.github.sspanak.tt9.ime.modes.predictions.WordPredictions;
+import io.github.sspanak.tt9.languages.KeySequence;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageKind;
 import io.github.sspanak.tt9.languages.exceptions.InvalidLanguageCharactersException;
@@ -428,7 +429,7 @@ class ModeWords extends ModeCheonjiin {
 			return;
 		}
 
-		final String nextSequence = nextDigit >= 0 ? digitSequence + nextDigit : digitSequence;
+		final String nextSequence = nextDigit >= 0 ? digitSequence + KeySequence.keyToToken(nextDigit) : digitSequence;
 		textCase = autoTextCase.determineNextWordTextCase(language, textCase, textFieldTextCase, textField, nextSequence, beforeCursor);
 	}
 
@@ -516,7 +517,7 @@ class ModeWords extends ModeCheonjiin {
 		}
 
 		// when emojis are disabled, we just type punctuation marks on every key press
-		if (!settings.areEmojisEnabled() && seq.startsWithEmojiSequence(digitSequence + nextDigit)) {
+		if (!settings.areEmojisEnabled() && seq.startsWithEmojiSequence(digitSequence + KeySequence.keyToToken(nextDigit))) {
 			return true;
 		}
 

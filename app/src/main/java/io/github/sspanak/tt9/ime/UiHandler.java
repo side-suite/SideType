@@ -1,16 +1,23 @@
 package io.github.sspanak.tt9.ime;
 
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import io.github.sspanak.tt9.R;
+import io.github.sspanak.tt9.commands.CmdAddWord;
+import io.github.sspanak.tt9.commands.CmdNextLanguage;
+import io.github.sspanak.tt9.commands.CmdShowSettings;
 import io.github.sspanak.tt9.hacks.AppHacks;
 import io.github.sspanak.tt9.ime.modes.InputMode;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
 import io.github.sspanak.tt9.ui.StatusIcon;
+import io.github.sspanak.tt9.ui.UI;
 import io.github.sspanak.tt9.ui.main.MainView;
 import io.github.sspanak.tt9.ui.tray.StatusBar;
 import io.github.sspanak.tt9.util.Logger;
@@ -92,6 +99,67 @@ abstract class UiHandler extends AbstractHandler {
 		statusBar.setColorScheme();
 		createSuggestionBar();
 		getSuggestionOps().setColorScheme();
+		wireQuickActionKeys();
+	}
+
+
+	/**
+	 * Sidephone quick-action icons in the status bar: add the current word to the dictionary, and open
+	 * the emoji key binds screen. See panel_small_status_bar.xml.
+	 */
+	private void wireQuickActionKeys() {
+		View view = mainView.getView();
+		if (view == null) {
+			return;
+		}
+
+		View settingsKey = view.findViewById(R.id.sidephone_settings_key);
+		if (settingsKey != null) {
+			settingsKey.setOnClickListener(v -> new CmdShowSettings().run((TraditionalT9) this));
+		}
+
+		View dictKey = view.findViewById(R.id.sidephone_dict_key);
+		if (dictKey != null) {
+			dictKey.setOnClickListener(v -> new CmdAddWord().run((TraditionalT9) this));
+		}
+
+		View emojiKey = view.findViewById(R.id.sidephone_emoji_key);
+		if (emojiKey != null) {
+			emojiKey.setOnClickListener(v -> UI.showEmojiBinds(getFinalContext()));
+		}
+
+		View languageKey = view.findViewById(R.id.sidephone_language_key);
+		if (languageKey != null) {
+			languageKey.setOnClickListener(v -> {
+				new CmdNextLanguage().run((TraditionalT9) this);
+				refreshLanguageKey();
+			});
+		}
+		refreshLanguageKey();
+	}
+
+
+	/**
+	 * Updates the status-bar language chip to the current language's code (EN / FI / DE …). Hidden when
+	 * fewer than two languages are enabled, since there is then nothing to switch between.
+	 */
+	protected void refreshLanguageKey() {
+		View view = mainView.getView();
+		if (view == null) {
+			return;
+		}
+
+		TextView languageKey = view.findViewById(R.id.sidephone_language_key);
+		if (languageKey == null) {
+			return;
+		}
+
+		Language language = getFinalContext().getLanguage();
+		boolean show = language != null && settings.getEnabledLanguageIds().size() > 1;
+		languageKey.setVisibility(show ? View.VISIBLE : View.GONE);
+		if (show) {
+			languageKey.setText(language.getCode().toUpperCase(language.getLocale()));
+		}
 	}
 
 

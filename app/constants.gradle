@@ -1,5 +1,9 @@
 ext.APP_NAME = 'tt9'
 ext.PACKAGE_NAME = "io.github.sspanak.${APP_NAME}"
+// SideType (Sidephone Compact-QWERTY fork): distinct applicationId so it installs alongside
+// stock TT9 (T9-tile users). The Java package (namespace) stays PACKAGE_NAME — only the
+// installed package identity differs. Permanent/public id; do not change after release.
+ext.APPLICATION_ID = "fi.palonkorpi.sidetype"
 
 ext.LANGUAGES_DIR_NAME = 'languages'
 ext.DEFINITIONS_DIR_NAME = 'definitions'

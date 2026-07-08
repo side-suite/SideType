@@ -12,6 +12,7 @@ import java.util.HashMap;
 import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.commands.Command;
 import io.github.sspanak.tt9.commands.CommandCollection;
+import io.github.sspanak.tt9.languages.KeySequence;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
@@ -85,7 +86,25 @@ public class Key {
 	public static boolean isNumber(int keyCode) {
 		return
 			(keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9)
-			|| (keyCode >= KeyEvent.KEYCODE_NUMPAD_0 && keyCode <= KeyEvent.KEYCODE_NUMPAD_9);
+			|| (keyCode >= KeyEvent.KEYCODE_NUMPAD_0 && keyCode <= KeyEvent.KEYCODE_NUMPAD_9)
+			|| isCompactQwertyLetter(keyCode)
+			// Sidephone: the "0 SPACE" key IS the T9 zero key — tap = space, hold = "0".
+			|| keyCode == KeyEvent.KEYCODE_SPACE;
+	}
+
+
+	/**
+	 * The Sidephone Compact QWERTY tile sends the LEFT-glyph letter keycode for each of its 14 letter
+	 * buttons. These act as the ambiguous "typing keys" (like the 2-9 keys on a numpad), so they must
+	 * be treated as numbers by the input pipeline. See codeToNumber() for the key-index mapping.
+	 */
+	public static boolean isCompactQwertyLetter(int keyCode) {
+		return switch (keyCode) {
+			case KeyEvent.KEYCODE_Q, KeyEvent.KEYCODE_E, KeyEvent.KEYCODE_T, KeyEvent.KEYCODE_U, KeyEvent.KEYCODE_O,
+				KeyEvent.KEYCODE_A, KeyEvent.KEYCODE_D, KeyEvent.KEYCODE_G, KeyEvent.KEYCODE_J, KeyEvent.KEYCODE_L,
+				KeyEvent.KEYCODE_Z, KeyEvent.KEYCODE_C, KeyEvent.KEYCODE_B, KeyEvent.KEYCODE_M -> true;
+			default -> false;
+		};
 	}
 
 
@@ -120,7 +139,7 @@ public class Key {
 
 	public static int codeToNumber(SettingsStore settings, int keyCode) {
 		return switch (keyCode) {
-			case KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0 -> 0;
+			case KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0, KeyEvent.KEYCODE_SPACE -> 0;
 			case KeyEvent.KEYCODE_1, KeyEvent.KEYCODE_NUMPAD_1 -> settings.getUpsideDownKeys() ? 7 : 1;
 			case KeyEvent.KEYCODE_2, KeyEvent.KEYCODE_NUMPAD_2 -> settings.getUpsideDownKeys() ? 8 : 2;
 			case KeyEvent.KEYCODE_3, KeyEvent.KEYCODE_NUMPAD_3 -> settings.getUpsideDownKeys() ? 9 : 3;
@@ -130,6 +149,21 @@ public class Key {
 			case KeyEvent.KEYCODE_7, KeyEvent.KEYCODE_NUMPAD_7 -> settings.getUpsideDownKeys() ? 1 : 7;
 			case KeyEvent.KEYCODE_8, KeyEvent.KEYCODE_NUMPAD_8 -> settings.getUpsideDownKeys() ? 2 : 8;
 			case KeyEvent.KEYCODE_9, KeyEvent.KEYCODE_NUMPAD_9 -> settings.getUpsideDownKeys() ? 3 : 9;
+			// Sidephone Compact QWERTY letter keys -> key indices 2..15 (must match the language layout order)
+			case KeyEvent.KEYCODE_Q -> 2;
+			case KeyEvent.KEYCODE_E -> 3;
+			case KeyEvent.KEYCODE_T -> 4;
+			case KeyEvent.KEYCODE_U -> 5;
+			case KeyEvent.KEYCODE_O -> 6;
+			case KeyEvent.KEYCODE_A -> 7;
+			case KeyEvent.KEYCODE_D -> 8;
+			case KeyEvent.KEYCODE_G -> 9;
+			case KeyEvent.KEYCODE_J -> 10;
+			case KeyEvent.KEYCODE_L -> 11;
+			case KeyEvent.KEYCODE_Z -> 12;
+			case KeyEvent.KEYCODE_C -> 13;
+			case KeyEvent.KEYCODE_B -> 14;
+			case KeyEvent.KEYCODE_M -> 15;
 			default -> -1;
 		};
 	}
@@ -141,8 +175,21 @@ public class Key {
 
 
 	public static int numberToCode(@Nullable SettingsStore settings, int number) {
-		if (number < 0 || number > 9) {
+		if (number < 0 || number > KeySequence.MAX_KEY) {
 			return -1;
+		}
+
+		// Compact QWERTY letter keys (indices 10-15 have no numpad-digit equivalent).
+		if (number > 9) {
+			return switch (number) {
+				case 10 -> KeyEvent.KEYCODE_J;
+				case 11 -> KeyEvent.KEYCODE_L;
+				case 12 -> KeyEvent.KEYCODE_Z;
+				case 13 -> KeyEvent.KEYCODE_C;
+				case 14 -> KeyEvent.KEYCODE_B;
+				case 15 -> KeyEvent.KEYCODE_M;
+				default -> -1;
+			};
 		}
 
 		int code = KeyEvent.KEYCODE_0 + number;

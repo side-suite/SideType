@@ -391,6 +391,14 @@ public abstract class TypingHandler extends KeyPadHandler {
 			return InputMode.MODE_PASSTHROUGH;
 		}
 
+		// The "add a word to the dictionary" field must use multi-tap, since a new word is (by
+		// definition) not in the dictionary and cannot be predicted.
+		if (inputType.isOwnAddWordField()) {
+			allowedInputModes = new ArrayList<>();
+			allowedInputModes.add(InputMode.MODE_ABC);
+			return InputMode.MODE_ABC;
+		}
+
 		allowedInputModes = new ArrayList<>(inputType.determineInputModes(getApplicationContext()));
 		if (LanguageKind.isJapanese(mLanguage)) {
 			determineJapaneseInputModes();

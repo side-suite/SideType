@@ -11,7 +11,7 @@
 		app:title="Test Input">
 		<intent
 			android:action="android.intent.action.VIEW"
-			android:targetPackage="io.github.sspanak.tt9"
+			android:targetPackage="fi.palonkorpi.sidetype"
 			android:targetClass="io.github.sspanak.tt9.preferences.screens.debug.TestInputActivity" />
 	</Preference>
 
@@ -45,7 +45,7 @@
 			app:title="Recent Log Messages...">
 			<intent
 				android:action="android.intent.action.VIEW"
-				android:targetPackage="io.github.sspanak.tt9"
+				android:targetPackage="fi.palonkorpi.sidetype"
 				android:targetClass="io.github.sspanak.tt9.preferences.LogsActivity" />
 		</Preference>
 	</PreferenceCategory>

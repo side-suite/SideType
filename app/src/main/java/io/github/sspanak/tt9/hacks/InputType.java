@@ -13,10 +13,14 @@ import io.github.sspanak.tt9.util.sys.DeviceInfo;
 public class InputType extends StandardInputType {
 	public static final String OWN_SWITCH_PREVIEW_FIELD_FLAG = InputType.class.getCanonicalName() + ".OWN_PREVIEW_FIELD";
 	public static final String OWN_TEST_FIELD_TAG = InputType.class.getCanonicalName() + ".OWN_TEST_FIELD";
+	// The "type a word to add to the dictionary" field: a brand-new word won't be in the dictionary,
+	// so this field must use multi-tap (ABC) mode instead of prediction.
+	public static final String OWN_ADD_WORD_FIELD_TAG = InputType.class.getCanonicalName() + ".OWN_ADD_WORD";
 
 	private final boolean isUs;
 	private final boolean isOwnSwitchPreviewField;
 	private final boolean isOwnTestField;
+	private final boolean isOwnAddWordField;
 	private final String[] POPULAR_CHAT_APPS = new String[] {
 		"com.discord", // Discord
 		"com.google.android.apps.dynamite", // Google Chat
@@ -43,6 +47,12 @@ public class InputType extends StandardInputType {
 		isUs = ims != null && field != null && ims.getPackageName().equals(field.packageName);
 		isOwnSwitchPreviewField = isUs && OWN_SWITCH_PREVIEW_FIELD_FLAG.equals(field.privateImeOptions);
 		isOwnTestField = isUs && OWN_TEST_FIELD_TAG.equals(field.privateImeOptions);
+		isOwnAddWordField = isUs && OWN_ADD_WORD_FIELD_TAG.equals(field.privateImeOptions);
+	}
+
+
+	public boolean isOwnAddWordField() {
+		return isOwnAddWordField;
 	}
 
 

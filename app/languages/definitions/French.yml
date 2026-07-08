@@ -3,14 +3,23 @@ dictionaryFile: fr-utf8.csv
 ngramFile: fr-ngrams.zip
 iconABC: ic_lang_latin
 iconT9: ic_lang_fr
+# Character typed when a key is HELD, matching the number/symbol printed above each Compact QWERTY key.
+# Index:  0   1   2(QW) 3(ER) 4(TY) 5(UI) 6(OP) 7(AS) 8(DF) 9(GH) 10(JK) 11(L) 12(ZX) 13(CV) 14(BN) 15(M)
+numerals: [0,1,!,1,2,3,.,?,4,5,6,',@,7,8,9]
 layout:
   - [SPECIAL] # 0
   - [PUNCTUATION_FR] # 1
-  - [a, b, c, à, â, æ, ç] # 2
-  - [d, e, f, é, è, ê, ë] # 3
-  - [g, h, i, î, ï] # 4
-  - [j, k, l] # 5
-  - [m, n, o, ô, œ] # 6
-  - [p, q, r, s] # 7
-  - [t, u, v, ù, û, ü] # 8
-  - [w, x, y, z, ÿ] # 9
+  - [q, w] # 2
+  - [e, r, é, è, ê, ë] # 3
+  - [t, y, ÿ] # 4
+  - [u, i, ù, û, ü, î, ï] # 5
+  - [o, p, ô, œ] # 6
+  - [a, s, à, â, æ] # 7
+  - [d, f] # 8
+  - [g, h] # 9
+  - [j, k] # 10
+  - [l] # 11
+  - [z, x] # 12
+  - [c, v, ç] # 13
+  - [b, n] # 14
+  - [m] # 15

@@ -22,6 +22,14 @@ public class LanguageCollection {
 		languages = new HashMap<>();
 
 		for (LanguageDefinition definition : LanguageDefinition.getAll(context.getAssets())) {
+			// SideType only supports languages converted to the 16-key Compact QWERTY layout (keys 0-15).
+			// A converted layout has EXACTLY 16 rows; numpad definitions have 10, and CJK layouts (Korean,
+			// Japanese, Chinese) have far more. Anything that isn't exactly 16 can't be typed on the tile,
+			// so we hide it everywhere — most importantly from the "Enable Languages" list — until converted.
+			if (definition.layout.size() != 16) {
+				continue;
+			}
+
 			try {
 				NaturalLanguage lang = NaturalLanguage.fromDefinition(definition);
 				languages.put(lang.getId(), lang);

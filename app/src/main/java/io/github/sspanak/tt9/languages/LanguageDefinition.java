@@ -198,11 +198,13 @@ public class LanguageDefinition {
 
 	private void setNumerals(@NonNull String yamlList) {
 		ArrayList<String> numberList = parseList(yamlList);
-		if (numberList == null || numberList.size() != 10) {
+		// Accept either the classic 10-key numpad list or a wider list (e.g. the 16-key Compact QWERTY,
+		// where each entry is the character printed above the key and typed on hold: numbers + ! . ? @).
+		if (numberList == null || numberList.size() < 10) {
 			return;
 		}
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < numberList.size(); i++) {
 			numerals.put(i, numberList.get(i));
 		}
 	}

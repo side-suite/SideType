@@ -2,14 +2,23 @@ locale: ga-IE
 dictionaryFile: ga-utf8.csv
 iconABC: ic_lang_latin
 iconT9: ic_lang_ga
+# Character typed when a key is HELD, matching the number/symbol printed above each Compact QWERTY key.
+# Index:  0   1   2(QW) 3(ER) 4(TY) 5(UI) 6(OP) 7(AS) 8(DF) 9(GH) 10(JK) 11(L) 12(ZX) 13(CV) 14(BN) 15(M)
+numerals: [0,1,!,1,2,3,.,?,4,5,6,',@,7,8,9]
 layout:
   - [SPECIAL] # 0
   - [PUNCTUATION_IE] # 1
-  - [a, b, c, á] # 2
-  - [d, e, f, é] # 3
-  - [g, h, i, í] # 4
-  - [j, k, l] # 5
-  - [m, n, o, ó] # 6
-  - [p, q, r, s] # 7
-  - [t, u, v, ú] # 8
-  - [w, x, y, z] # 9
+  - [q, w] # 2
+  - [e, r, é] # 3
+  - [t, y] # 4
+  - [u, i, ú, í] # 5
+  - [o, p, ó] # 6
+  - [a, s, á] # 7
+  - [d, f] # 8
+  - [g, h] # 9
+  - [j, k] # 10
+  - [l] # 11
+  - [z, x] # 12
+  - [c, v] # 13
+  - [b, n] # 14
+  - [m] # 15

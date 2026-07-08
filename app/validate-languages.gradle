@@ -142,7 +142,7 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 		}
 
 		if (line.startsWith("numerals")) {
-			areNumeralsValid = line.matches("^numerals:\\s*\\[(.,\\s*?){9}.\\]")
+			areNumeralsValid = line.matches("^numerals:\\s*\\[(.,\\s*?){9,15}.\\]")
 		}
 
 		if (line.startsWith("layout")) {
@@ -163,10 +163,13 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 
 		alphabet += lineCharacters
 
-		// sounds, single letters or special characters that are treated as letters
+		// sounds, single letters or special characters that are treated as letters.
+		// The sequence token for a key is a single char: keys 0-9 -> '0'..'9', keys 10-15 -> ':'..'?'
+		// (matches KeySequence.keyToToken in the app). Using layoutKey.toString() would produce a
+		// two-char "10".."15" and corrupt sequences for wide keypads (e.g. Compact QWERTY).
 		if (lineCharacters) {
 			lineCharacters.each { letter ->
-				layoutSounds.put(letter, layoutKey.toString())
+				layoutSounds.put(letter, String.valueOf((char)((int)('0' as char) + layoutKey)))
 			}
 		}
 

@@ -22,6 +22,7 @@ import io.github.sspanak.tt9.db.entities.WordList;
 import io.github.sspanak.tt9.db.entities.WordPositionsStringBuilder;
 import io.github.sspanak.tt9.db.wordPairs.WordPair;
 import io.github.sspanak.tt9.db.words.SlowQueryStats;
+import io.github.sspanak.tt9.languages.KeySequence;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
 import io.github.sspanak.tt9.util.Logger;
@@ -305,23 +306,22 @@ public class ReadOps {
 			.append(" FROM ").append(Tables.getWordPositions(language.getId()))
 			.append(" WHERE ");
 
-		if (generations >= 0 && generations < 10) {
-			sql.append(" sequence IN('").append(sequence);
-
-			int lastChild = (int)Math.pow(10, generations) - 1;
-
-			for (int seqEnd = 1; seqEnd <= lastChild; seqEnd++) {
-				if (seqEnd % 10 != 0) {
-					sql.append("','").append(sequence).append(seqEnd);
-				}
+		// Match the exact sequence plus its "children" (sequences having `sequence` as a prefix).
+		// Sequence tokens are contiguous chars '0'..MAX_TOKEN (see KeySequence), so the children are
+		// exactly the rows in the lexical half-open range [sequence, sequence + RANGE_UPPER_BOUND),
+		// where RANGE_UPPER_BOUND is one char past the highest token. `generations` (when 1-9) caps
+		// how many extra keys deep to look, via a LENGTH bound.
+		sql.append(" sequence = '").append(sequence).append("'");
+		if (generations != 0) {
+			sql.append(" OR (sequence > '").append(sequence)
+				.append("' AND sequence < '").append(sequence).append(KeySequence.RANGE_UPPER_BOUND).append("'");
+			if (generations > 0 && generations < 10) {
+				sql.append(" AND LENGTH(sequence) <= ").append(sequence.length() + generations);
 			}
+			sql.append(")");
+		}
 
-			sql.append("')");
-		} else {
-			String rangeEnd = generations == 10 ? "9" : "999999";
-			sql.append(" sequence = '")
-				.append(sequence)
-				.append("' OR sequence BETWEEN '").append(sequence).append("0' AND '").append(sequence).append(rangeEnd).append("'");
+		if (generations < 0 || generations >= 10) {
 			sql.append(" ORDER BY `start` ");
 			sql.append(" LIMIT ").append(SettingsStore.SUGGESTIONS_MAX);
 		}
@@ -341,13 +341,14 @@ public class ReadOps {
 		String sql = "SELECT -id as `start`, -id as `end`, LENGTH(`sequence`) = " + sequence.length() + " as `exact` " +
 			" FROM " + Tables.CUSTOM_WORDS +
 			" WHERE langId = " + language.getId() +
-			" AND (sequence = " + sequence;
+			" AND (sequence = '" + sequence + "'";
 
-		if (generations > 0) {
-			sql += " OR sequence BETWEEN " + sequence + "0 AND " + sequence + "999999)";
-		} else {
-			sql += ")";
+		// Sequences are quoted TEXT and matched by lexical prefix range (see getFactoryWordPositionsQuery).
+		// Quoting also fixes the old integer-comparison bug for sequences beginning with '0'.
+		if (generations != 0) {
+			sql += " OR (sequence > '" + sequence + "' AND sequence < '" + sequence + KeySequence.RANGE_UPPER_BOUND + "')";
 		}
+		sql += ")";
 
 		Logger.v(LOG_TAG, "Custom words SQL: " + sql);
 		return sql;
