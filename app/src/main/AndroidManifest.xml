@@ -4,6 +4,7 @@
 	android:versionName="0.0"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 
+	<uses-permission android:name="android.permission.INTERNET"/> <!-- allows downloading on-demand dictionaries -->
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/> <!-- allows displaying notifications on Android >= 13 -->
 	<uses-permission android:name="android.permission.RECORD_AUDIO"/> <!-- allows voice input -->
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" /> <!-- allows words exporting on Android < 10 -->

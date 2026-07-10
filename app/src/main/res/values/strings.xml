@@ -3,7 +3,7 @@
 	<string name="app_name" translatable="false">SideType</string>
 	<string name="app_name_short" translatable="false">SideType</string>
 	<string name="keyboard_name" translatable="false">SideType</string>
-	<string name="dictionary_url" translatable="false">https://raw.githubusercontent.com/sspanak/tt9/%1$s/downloads/%2$s</string>
+	<string name="dictionary_url" translatable="false">https://raw.githubusercontent.com/oliverpalonkorp/SideType/master/downloads/%2$s</string>
 	<string name="system_night_mode" translatable="false">n</string>
 
 	<string name="app_settings">SideType Settings</string>

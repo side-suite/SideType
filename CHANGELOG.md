@@ -5,6 +5,15 @@ Notable changes to SideType. SideType is a fork of
 Compact QWERTY tile. Versions follow the signed APKs on the
 [Releases page](https://github.com/oliverpalonkorp/SideType/releases).
 
+## [1.1.1] — 2026-07-10
+
+### Fixed
+- **On-demand dictionaries now download.** After the 1.1 slim-down, any language
+  that isn't one of the eight bundled dictionaries (Dutch, Italian, Polish, …)
+  failed to load with a `SecurityException`: the app was missing the `INTERNET`
+  permission, and the download URL pointed at a stale location. Both are fixed.
+  Bundled languages such as English were never affected.
+
 ## [1.1] — 2026-07-10
 
 ### Added
