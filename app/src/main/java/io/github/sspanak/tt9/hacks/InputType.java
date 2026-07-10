@@ -210,8 +210,14 @@ public class InputType extends StandardInputType {
 	 * Determines whether to disable the MindReader for the current field. The likely candidates are
 	 * fields that require no "learning", multiline text fields, that do not have TYPE_TEXT_FLAG_NO_SUGGESTIONS,
 	 * password or numeric fields, and others where predictions make no sense.
+	 *
+	 * SideType: upstream TT9 only allows mind-reading in multiline (or URL) fields, which suppresses it in
+	 * most single-line inputs like chat and search boxes. When {@code allowSingleLineText} is true (the
+	 * experimental "Predict in Single-Line Fields" setting), we drop that final restriction so ordinary
+	 * single-line text fields also qualify. All the sensitive-field exclusions above it (password, email,
+	 * numeric, person name, no-personalized-learning) still apply regardless.
 	 */
-	public boolean notMindReadableText() {
+	public boolean notMindReadableText(boolean allowSingleLineText) {
 		if (field == null) {
 			return true;
 		}
@@ -229,7 +235,7 @@ public class InputType extends StandardInputType {
 		|| isNumeric()
 		|| isPassword()
 		|| isPersonName()
-		|| (!isMultilineText() && !isUri()); // allow in URL fields, because they are often used for search
+		|| (!allowSingleLineText && !isMultilineText() && !isUri()); // allow in URL fields, because they are often used for search
 	}
 
 

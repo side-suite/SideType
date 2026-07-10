@@ -30,6 +30,7 @@ produce.
 - [Everyday tips](#-everyday-tips)
 - [For developers: build from source](#-for-developers-build-from-source)
 - [How it's built (under the hood)](#-how-its-built-under-the-hood)
+- [What's new](#-whats-new)
 - [Found a bug?](#-found-a-bug)
 - [Credits & attribution](#-credits--attribution)
 - [License](#-license)
@@ -347,6 +348,15 @@ word lists and frequencies themselves are untouched). The full technical backgro
 design notes in [`docs/sidephone/`](docs/sidephone):
 [`PRD.md`](docs/sidephone/PRD.md), [`COMPACT_QWERTY_KEYMAP.md`](docs/sidephone/COMPACT_QWERTY_KEYMAP.md),
 and [`M1-DESIGN.md`](docs/sidephone/M1-DESIGN.md).
+
+---
+
+## 📝 What's new
+
+The latest release is **v1.1** — an emoji & symbol drawer, bindable symbol keys, and a download
+that's ~7× smaller (219 MB → 32 MB) with languages fetched on demand. Full history in
+[`CHANGELOG.md`](CHANGELOG.md); signed APKs on the
+[Releases page](https://github.com/oliverpalonkorp/SideType/releases).
 
 ---
 

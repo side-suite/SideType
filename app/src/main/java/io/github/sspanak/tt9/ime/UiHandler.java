@@ -38,6 +38,9 @@ abstract class UiHandler extends AbstractHandler {
 	protected MainView mainView = null;
 	protected StatusBar statusBar = null;
 
+	// Sidephone: on-screen Emoji | Symbols drawer, opened from the status-bar emoji button.
+	private final io.github.sspanak.tt9.ui.EmojiDrawer emojiDrawer = new io.github.sspanak.tt9.ui.EmojiDrawer();
+
 
 	protected void cleanUp() {
 		if (foldDetector != null) {
@@ -125,7 +128,7 @@ abstract class UiHandler extends AbstractHandler {
 
 		View emojiKey = view.findViewById(R.id.sidephone_emoji_key);
 		if (emojiKey != null) {
-			emojiKey.setOnClickListener(v -> UI.showEmojiBinds(getFinalContext()));
+			emojiKey.setOnClickListener(v -> toggleEmojiDrawer());
 		}
 
 		View languageKey = view.findViewById(R.id.sidephone_language_key);
@@ -136,6 +139,41 @@ abstract class UiHandler extends AbstractHandler {
 			});
 		}
 		refreshLanguageKey();
+	}
+
+
+	/**
+	 * Open (or close, if already open) the on-screen Emoji | Symbols drawer. Picking a glyph types it
+	 * straight into the focused field via onText and keeps the drawer open; the ⚙ corner opens the
+	 * key-binds editor. The drawer keeps the text field focused, so typing works while it is up.
+	 */
+	private void toggleEmojiDrawer() {
+		if (emojiDrawer.isShowing()) {
+			emojiDrawer.hide();
+			return;
+		}
+		View anchor = mainView != null ? mainView.getView() : null;
+		emojiDrawer.show(
+			anchor,
+			settings,
+			glyph -> onText(glyph, false),
+			() -> UI.showEmojiBinds(getFinalContext()),
+			this::getDrawerPreviewText
+		);
+	}
+
+
+	protected void hideEmojiDrawer() {
+		emojiDrawer.hide();
+	}
+
+
+	/**
+	 * Text around the cursor for the emoji drawer's preview bar. Overridden where the text field is
+	 * available (TypingHandler); the base returns nothing so the drawer simply shows an empty bar.
+	 */
+	protected String getDrawerPreviewText() {
+		return "";
 	}
 
 

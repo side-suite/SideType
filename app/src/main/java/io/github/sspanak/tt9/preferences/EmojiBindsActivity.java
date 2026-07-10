@@ -1,6 +1,5 @@
 package io.github.sspanak.tt9.preferences;
 
-import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -118,7 +117,23 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 		LinearLayout container = new LinearLayout(this);
 		container.setOrientation(LinearLayout.VERTICAL);
 
-		// Category tab strip.
+		// Emoji | Symbols mode toggle: you can bind either a picked emoji or a symbol to a key.
+		LinearLayout modeRow = new LinearLayout(this);
+		modeRow.setOrientation(LinearLayout.HORIZONTAL);
+		final TextView emojiMode = new TextView(this);
+		final TextView symbolMode = new TextView(this);
+		for (TextView t : new TextView[]{emojiMode, symbolMode}) {
+			t.setTextSize(15);
+			t.setGravity(Gravity.CENTER);
+			t.setPadding(dp(14), dp(8), dp(14), dp(8));
+		}
+		emojiMode.setText(R.string.emoji_binds_mode_emoji);
+		symbolMode.setText(R.string.emoji_binds_mode_symbols);
+		modeRow.addView(emojiMode);
+		modeRow.addView(symbolMode);
+		container.addView(modeRow);
+
+		// Category tab strip (emoji mode only).
 		LinearLayout tabRow = new LinearLayout(this);
 		tabRow.setOrientation(LinearLayout.HORIZONTAL);
 		HorizontalScrollView tabScroll = new HorizontalScrollView(this);
@@ -134,10 +149,10 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 		container.addView(gridScroll);
 
 		final ArrayList<TextView> tabs = new ArrayList<>();
-		for (int i = 0; i < CATEGORIES.length; i++) {
+		for (int i = 0; i < io.github.sspanak.tt9.ui.EmojiData.CATEGORIES.length; i++) {
 			final int catIndex = i;
 			TextView tab = new TextView(this);
-			tab.setText((String) CATEGORIES[i][0]);
+			tab.setText((String) io.github.sspanak.tt9.ui.EmojiData.CATEGORIES[i][0]);
 			tab.setTextSize(20);
 			tab.setGravity(Gravity.CENTER);
 			tab.setPadding(dp(10), dp(6), dp(10), dp(6));
@@ -150,6 +165,25 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 			tabRow.addView(tab);
 		}
 
+		emojiMode.setOnClickListener(v -> {
+			tabScroll.setVisibility(View.VISIBLE);
+			emojiMode.setAlpha(1f);
+			symbolMode.setAlpha(0.5f);
+			populateGrid(grid, 0, cellSize, keyIndex);
+			highlightTab(tabs, 0);
+			gridScroll.scrollTo(0, 0);
+		});
+		symbolMode.setOnClickListener(v -> {
+			tabScroll.setVisibility(View.GONE);
+			emojiMode.setAlpha(0.5f);
+			symbolMode.setAlpha(1f);
+			populateSymbolGrid(grid, cellSize, keyIndex);
+			gridScroll.scrollTo(0, 0);
+		});
+
+		// Default mode: Emoji.
+		emojiMode.setAlpha(1f);
+		symbolMode.setAlpha(0.5f);
 		populateGrid(grid, 0, cellSize, keyIndex);
 		highlightTab(tabs, 0);
 
@@ -166,21 +200,33 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 
 	private void populateGrid(GridLayout grid, int catIndex, int cellSize, int keyIndex) {
 		grid.removeAllViews();
-		for (String emoji : getEmojiForCategory(catIndex)) {
-			TextView cell = new TextView(this);
-			cell.setText(emoji);
-			cell.setTextSize(22);
-			cell.setGravity(Gravity.CENTER);
-			cell.setOnClickListener(v -> {
-				settings.setEmojiBind(keyIndex, emoji);
-				refreshKeys();
-				if (currentDialog != null) currentDialog.dismiss();
-			});
-			GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
-			lp.width = cellSize;
-			lp.height = cellSize;
-			grid.addView(cell, lp);
+		for (String emoji : io.github.sspanak.tt9.ui.EmojiData.getEmojiForCategory(catIndex)) {
+			grid.addView(makeBindCell(emoji, 22, cellSize, keyIndex));
 		}
+	}
+
+	private void populateSymbolGrid(GridLayout grid, int cellSize, int keyIndex) {
+		grid.removeAllViews();
+		for (String symbol : io.github.sspanak.tt9.ui.EmojiData.SYMBOLS) {
+			grid.addView(makeBindCell(symbol, 20, cellSize, keyIndex));
+		}
+	}
+
+	private TextView makeBindCell(String glyph, int textSize, int cellSize, int keyIndex) {
+		TextView cell = new TextView(this);
+		cell.setText(glyph);
+		cell.setTextSize(textSize);
+		cell.setGravity(Gravity.CENTER);
+		cell.setOnClickListener(v -> {
+			settings.setEmojiBind(keyIndex, glyph);
+			refreshKeys();
+			if (currentDialog != null) currentDialog.dismiss();
+		});
+		GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
+		lp.width = cellSize;
+		lp.height = cellSize;
+		cell.setLayoutParams(lp);
+		return cell;
 	}
 
 	private void highlightTab(ArrayList<TextView> tabs, int activeIndex) {
@@ -198,44 +244,6 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 	}
 
 	private AlertDialog currentDialog;
-
-	// Emoji categories, each a representative icon (tab label) + the Unicode code-point ranges that
-	// mostly fall under it. Android exposes no categorized emoji API, so the ranges are curated here.
-	// Ranges are disjoint to avoid duplicates; hasGlyph() filters out anything the device can't draw.
-	private static final Object[][] CATEGORIES = {
-		// smileys (faces only)
-		{"😀", new int[][]{{0x1F600, 0x1F644}, {0x1F910, 0x1F917}, {0x1F920, 0x1F92F}, {0x1F970, 0x1F97A}, {0x1F9D0, 0x1F9D0}}},
-		// people, hands & gestures — thumbs up/down (1F44D/E), 🙏🙌 (1F64C/F), 🤝🤙 (1F918-1F91F), ✊✋✌ (270A-270D)
-		{"👍", new int[][]{{0x1F440, 0x1F450}, {0x1F466, 0x1F487}, {0x1F595, 0x1F596}, {0x1F645, 0x1F64F}, {0x1F918, 0x1F91F}, {0x1F930, 0x1F93A}, {0x1F9B5, 0x1F9BB}, {0x1F9D1, 0x1F9DD}, {0x261D, 0x261D}, {0x270A, 0x270D}}},
-		// animals & nature
-		{"🐻", new int[][]{{0x1F400, 0x1F43F}, {0x1F980, 0x1F9AE}, {0x1F330, 0x1F344}}},
-		// food & drink
-		{"🍔", new int[][]{{0x1F345, 0x1F37F}, {0x1F32D, 0x1F32F}, {0x1F950, 0x1F96F}, {0x1F9C0, 0x1F9CB}}},
-		// activity & sport
-		{"⚽", new int[][]{{0x1F380, 0x1F3D3}, {0x1F3C0, 0x1F3C9}, {0x1F93C, 0x1F93F}, {0x26BD, 0x26BE}}},
-		// travel & places
-		{"🚗", new int[][]{{0x1F680, 0x1F6FF}, {0x1F3E0, 0x1F3F0}, {0x1F30D, 0x1F320}, {0x1F5FB, 0x1F5FF}}},
-		// objects & clothing
-		{"👕", new int[][]{{0x1F451, 0x1F465}, {0x1F4A0, 0x1F4FF}, {0x1F510, 0x1F5FA}, {0x1F9F0, 0x1F9FF}}},
-		// symbols (dingbats/weather; hands 270A-270D excluded — they live under People)
-		{"❤", new int[][]{{0x2600, 0x2638}, {0x263A, 0x26FF}, {0x2700, 0x2709}, {0x270E, 0x27BF}, {0x1F500, 0x1F50F}}},
-	};
-
-	private ArrayList<String> getEmojiForCategory(int catIndex) {
-		// Enumerate the category's code point ranges and keep the ones the device's font can draw.
-		Paint paint = new Paint();
-		ArrayList<String> all = new ArrayList<>();
-		int[][] ranges = (int[][]) CATEGORIES[catIndex][1];
-		for (int[] range : ranges) {
-			for (int cp = range[0]; cp <= range[1]; cp++) {
-				String emoji = new String(Character.toChars(cp));
-				if (paint.hasGlyph(emoji)) {
-					all.add(emoji);
-				}
-			}
-		}
-		return all;
-	}
 
 	private int dp(int value) {
 		return Math.round(value * getResources().getDisplayMetrics().density);

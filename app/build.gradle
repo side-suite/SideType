@@ -46,9 +46,19 @@ tasks.register('buildDictionaryDownloads') {
 }
 
 
+// SideType: languages bundled offline in the APK (work out of the box on a Latin QWERTY tile). Every
+// other language stays in the picker but its dictionary/ngrams download on demand from the pinned
+// upstream revision (see each .props.yml). This is the main APK-size lever — keep it small.
+ext.BUNDLED_LANGUAGES = ['en', 'fi', 'sv', 'nb', 'da', 'de', 'fr', 'es']
+def bundledDictZips = BUNDLED_LANGUAGES.collect { "**/${it}-utf8.zip".toString() }
+def bundledNgramZips = BUNDLED_LANGUAGES.collect { "**/${it}-ngrams.zip".toString() }
+
+
 tasks.register('copyDownloadsToAssets', Copy) {
 	from DICTIONARIES_DOWNLOAD_DIR
-	include '**/*.zip'
+	// Only the bundled set ships offline; the rest download on demand. Non-bundled zips are excluded
+	// from the APK by this filter (their .props.yml still ships in main assets, carrying the download URL).
+	include bundledDictZips
 	exclude '**/*ngrams.zip'
 	into DICTIONARIES_OUTPUT_DIR
 	dependsOn buildDictionaryDownloads
@@ -71,7 +81,10 @@ tasks.register('generateNgramsMeta') {
 
 tasks.register('copyNgramsToAssets', Copy) {
 	from NGRAMS_INPUT_DIR
-	include '**/*ngrams.zip'
+	// Bundle ngrams (for Mind Reading) only for the offline set; the rest download alongside their
+	// dictionary. NB: this globs the source dir directly, so without the filter it would re-bundle
+	// every language's ngrams even after they are dropped from definitions.
+	include bundledNgramZips
 	into NGRAMS_OUTPUT_DIR
 	dependsOn generateNgramsMeta
 	mustRunAfter generateNgramsMeta

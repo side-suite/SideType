@@ -24,8 +24,20 @@ abstract class KeyPadHandler extends UiHandler {
 	// Emoji layer (Sidephone): SYM (ALT) held acts as a modifier. Holding SYM and pressing a key
 	// types the emoji bound to that key. A lone SYM tap still shows the symbols page.
 	private boolean symHeld = false;
-	private boolean symUsedForEmoji = false;
+	private boolean symUsedAsModifier = false;
 	private final io.github.sspanak.tt9.ui.EmojiPreview emojiPreview = new io.github.sspanak.tt9.ui.EmojiPreview();
+	// The emoji preview grid only makes sense when SYM is truly HELD (to type an emoji). A quick SYM
+	// tap means "cycle symbols" and must NOT flash the grid, so showing it is deferred behind a hold
+	// threshold and canceled on an early key-up. See scheduleSymPreview()/cancelSymPreview().
+	private static final long SYM_PREVIEW_HOLD_MS = 280;
+	private final android.os.Handler symPreviewHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+	private final Runnable symPreviewRunnable = () -> {
+		try {
+			emojiPreview.show(mainView != null ? mainView.getView() : null, settings);
+		} catch (Throwable t) {
+			resetSymState();
+		}
+	};
 
 
 	/**
@@ -65,19 +77,33 @@ abstract class KeyPadHandler extends UiHandler {
 		// Emoji layer (Sidephone): SYM (ALT) is a modifier. Track its held state here; the tap action
 		// (show symbols) is decided on key up, so a lone SYM tap can be told apart from "hold SYM +
 		// press key". While SYM is held, a key press types that key's bound emoji instead of a letter.
-		if (keyCode == KeyEvent.KEYCODE_ALT_LEFT) {
-			symHeld = true;
-			symUsedForEmoji = false;
-			emojiPreview.show(mainView != null ? mainView.getView() : null, settings);
-			// fall through, so the hotkey system can still track the key for the tap action
-		} else if (symHeld && Key.isCompactQwertyLetter(keyCode)) {
-			symUsedForEmoji = true;
-			ignoreNextKeyUp = keyCode; // swallow the matching key-up so the letter is not also typed
-			String emoji = settings.getEmojiBind(Key.codeToNumber(settings, keyCode));
-			if (emoji != null && !emoji.isEmpty()) {
-				onText(emoji, false);
+		// The emoji layer must NEVER take down the whole IME. A crash here previously left the keyboard
+		// "broken" for reporters, recoverable only by reinstalling. Any failure resets to a clean state
+		// and falls through to normal typing instead of propagating.
+		try {
+			if (keyCode == KeyEvent.KEYCODE_ALT_LEFT) {
+				// Only arm the preview on the FIRST down; ALT auto-repeats while held and re-arming would
+				// keep pushing the show-time forward so it never appears.
+				if (!symHeld) {
+					symHeld = true;
+					symUsedAsModifier = false;
+					scheduleSymPreview();
+				}
+				// fall through, so the hotkey system can still track the key for the tap action
+			} else if (symHeld && Key.isCompactQwertyLetter(keyCode)) {
+				symUsedAsModifier = true; // SYM acted as a modifier this press → don't also show symbols on release
+				cancelSymPreview(); // pressing a key resolves the hold; the grid (if pending) is now moot
+				String emoji = settings.getEmojiBind(Key.codeToNumber(settings, keyCode));
+				if (emoji != null && !emoji.isEmpty()) {
+					ignoreNextKeyUp = keyCode; // swallow the matching key-up so the letter is not also typed
+					onText(emoji, false);
+					return true;
+				}
+				// No emoji bound: do NOT swallow the key. Fall through so it types its normal letter rather
+				// than silently vanishing — the silent swallow is what read as a "broken" keyboard.
 			}
-			return true;
+		} catch (Throwable t) {
+			resetSymState();
 		}
 
 //		Logger.d("onKeyDown", "Key: " + event + " repeat?: " + event.getRepeatCount() + " long-time: " + event.isLongPress());
@@ -115,6 +141,34 @@ abstract class KeyPadHandler extends UiHandler {
 			|| handleHotkey(keyCode, false, keyRepeatCounter + 1 > 0, true) // press a hotkey, handled in onKeyUp()
 			|| Key.isPoundOrStar(keyCode) && onText(String.valueOf((char) event.getUnicodeChar()), true)
 			|| super.onKeyDown(keyCode, event); // let the system handle the keys we don't care about (usually, the touch "buttons")
+	}
+
+
+	private void scheduleSymPreview() {
+		symPreviewHandler.removeCallbacks(symPreviewRunnable);
+		symPreviewHandler.postDelayed(symPreviewRunnable, SYM_PREVIEW_HOLD_MS);
+	}
+
+
+	private void cancelSymPreview() {
+		symPreviewHandler.removeCallbacks(symPreviewRunnable);
+	}
+
+
+	/**
+	 * Return the SYM/emoji layer to a clean resting state. Called on any emoji-layer exception and when
+	 * input focus changes, so a SYM key-up that never arrives (focus stolen mid-hold, IME restart) can
+	 * never leave the modifier stuck "on" and route every later key through the emoji layer.
+	 */
+	protected void resetSymState() {
+		cancelSymPreview();
+		try {
+			emojiPreview.hide();
+		} catch (Throwable ignored) {
+			// hiding is best-effort; never let cleanup itself throw
+		}
+		symHeld = false;
+		symUsedAsModifier = false;
 	}
 
 
@@ -180,11 +234,18 @@ abstract class KeyPadHandler extends UiHandler {
 		// key-up so the "show symbols" tap action does not also fire. Otherwise it was a lone tap and
 		// we let the hotkey system show the symbols page.
 		if (keyCode == KeyEvent.KEYCODE_ALT_LEFT) {
-			emojiPreview.hide();
-			boolean wasEmoji = symUsedForEmoji;
+			boolean wasModifier;
+			try {
+				cancelSymPreview(); // if released before the hold threshold, the grid must never appear
+				emojiPreview.hide();
+				wasModifier = symUsedAsModifier;
+			} catch (Throwable t) {
+				resetSymState();
+				return true;
+			}
 			symHeld = false;
-			symUsedForEmoji = false;
-			if (wasEmoji) {
+			symUsedAsModifier = false;
+			if (wasModifier) {
 				return true;
 			}
 		}

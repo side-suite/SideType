@@ -35,4 +35,10 @@ public class SettingsMindReading extends SettingsKeyChars {
 	public boolean getMindReadingSortPredictionsLast() {
 		return getMindReadingComplete() && prefs.getBoolean("auto_mind_reading_sort_predictions_last", true);
 	}
+
+	// SideType experimental flag: also run mind-reading in single-line text fields (chat, search boxes),
+	// not just multiline/URL fields. Default off; sensitive fields (password/email/numeric/name) stay excluded.
+	public boolean getMindReadingSingleLine() {
+		return prefs.getBoolean("auto_mind_reading_single_line", false);
+	}
 }

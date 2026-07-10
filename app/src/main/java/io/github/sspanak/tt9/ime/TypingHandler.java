@@ -145,7 +145,27 @@ public abstract class TypingHandler extends KeyPadHandler {
 	}
 
 
+	@Override
+	protected String getDrawerPreviewText() {
+		String before = textField.getStringBeforeCursor(40);
+		String after = textField.getStringAfterCursor(10);
+		if (before.equals(InputConnectionAsync.TIMEOUT_SENTINEL)) {
+			before = "";
+		}
+		if (after.equals(InputConnectionAsync.TIMEOUT_SENTINEL)) {
+			after = "";
+		}
+		return before + "│" + after; // │ marks the cursor position
+	}
+
+
 	protected void onFinishTyping(boolean willExitInput) {
+		// Sidephone: clear the SYM/emoji modifier when focus leaves the field, so a SYM key-up that never
+		// arrives (focus stolen mid-hold) can't leave the modifier stuck on across inputs. Also dismiss
+		// the emoji drawer so it can't outlive the field it types into.
+		resetSymState();
+		hideEmojiDrawer();
+
 		if (shiftStateDebounceHandler != null) {
 			shiftStateDebounceHandler.removeCallbacksAndMessages(null);
 			shiftStateDebounceHandler = null;
