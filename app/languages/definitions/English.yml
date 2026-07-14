@@ -1,5 +1,13 @@
 locale: en
 dictionaryFile: en-utf8.csv
+# Extra whole-word contractions merged in at build time (base en-utf8.csv is never edited). See SID-6.
+supplementFile: en-contractions.csv
+# Characters dropped when generating a word's key sequence, but kept in the displayed/committed word.
+# Makes the apostrophe "transparent" so contractions match from their plain-letter sequence
+# (e.g. "that's" is reachable by typing t-h-a-t-s). Consumed by BOTH encoders (build + runtime).
+# Keep these to caseless characters only: the build encoder matches after upper-casing the word while
+# the runtime matches after lower-casing, so an alphabetic entry here would make the two disagree.
+transparentChars: '
 ngramFile: en-ngrams.zip
 iconABC: ic_lang_latin
 iconT9: ic_lang_en

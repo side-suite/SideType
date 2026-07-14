@@ -12,13 +12,13 @@ ext.convertDictionaries = { definitionsInputDir, dictionariesInputDir, dictionar
 			return ""
 		}
 
-		def (_, sounds, prependSoundsToWords, noSyllables, locale, dictionaryFile, ignore, langFileErrorCount, langFileErrorMsg) = parseLanguageDefintion(definition, dictionariesInputDir, iconsDir, ngramsInputDir)
+		def (_, sounds, prependSoundsToWords, noSyllables, locale, dictionaryFile, ignore, langFileErrorCount, langFileErrorMsg, transparentChars, supplementFile) = parseLanguageDefintion(definition, dictionariesInputDir, iconsDir, ngramsInputDir)
 		errorCount += langFileErrorCount
 		if (!langFileErrorMsg.isEmpty()) {
 			return langFileErrorMsg
 		}
 
-		def (conversionErrorCount, conversionErrorMessages) = convertDictionary(definition, dictionaryFile, dictionariesOutputDir, dictionariesMetaDir, DICTIONARY_OUTPUT_EXTENSION, sounds, prependSoundsToWords, noSyllables, locale, MAX_ERRORS, CSV_DELIMITER)
+		def (conversionErrorCount, conversionErrorMessages) = convertDictionary(definition, dictionaryFile, supplementFile, transparentChars, dictionariesOutputDir, dictionariesMetaDir, DICTIONARY_OUTPUT_EXTENSION, sounds, prependSoundsToWords, noSyllables, locale, MAX_ERRORS, CSV_DELIMITER)
 		errorCount += conversionErrorCount
 		if (!conversionErrorMessages.isEmpty()) {
 			return conversionErrorMessages
@@ -35,9 +35,9 @@ ext.convertDictionaries = { definitionsInputDir, dictionariesInputDir, dictionar
 
 
 // this cannot be static, because DictionaryTools will not be visible
-def convertDictionary(File definition, File csvDictionary, String dictionariesOutputDir, String dictionariesMetaDir, String outputDictionaryExtension, HashMap<String, String> sounds, boolean prependSoundsToWords, boolean noSyllables, Locale locale, int maxErrors, String csvDelimiter) {
+def convertDictionary(File definition, File csvDictionary, File supplementFile, String transparentChars, String dictionariesOutputDir, String dictionariesMetaDir, String outputDictionaryExtension, HashMap<String, String> sounds, boolean prependSoundsToWords, boolean noSyllables, Locale locale, int maxErrors, String csvDelimiter) {
 	try {
-		if (isDictionaryUpToDate(definition, csvDictionary, dictionariesMetaDir)) {
+		if (isDictionaryUpToDate(definition, csvDictionary, supplementFile, dictionariesMetaDir)) {
 			return [0, ""]
 		}
 	} catch (Exception e) { // not sure why this crashes sometimes...
@@ -48,7 +48,7 @@ def convertDictionary(File definition, File csvDictionary, String dictionariesOu
 	int errorCount = 0
 	String errorMsg = ''
 
-	List<String> fileContents = csvDictionary.readLines()
+	List<String> fileContents = DictionaryTools.readDictionaryLines(csvDictionary, supplementFile, transparentChars)
 	LinkedHashMap<String, ArrayList<String>> outputDictionary = new LinkedHashMap<>()
 	int wordCount = 0
 
@@ -60,7 +60,7 @@ def convertDictionary(File definition, File csvDictionary, String dictionariesOu
 		String digitSequence = ""
 		try {
 			def transcribedWord = transcription.isEmpty() ? word : transcription
-			digitSequence = DictionaryTools.wordToDigitSequence(locale, transcribedWord, sounds, !transcription.isEmpty())
+			digitSequence = DictionaryTools.wordToDigitSequence(locale, transcribedWord, sounds, !transcription.isEmpty(), transparentChars)
 		} catch (IllegalArgumentException e) {
 			errorCount++
 			errorMsg += "Dictionary '${csvDictionary.name}' is invalid. Failed generating digit sequence for word '${word}' on line ${lineNumber}. ${e.message}\n"
@@ -84,7 +84,7 @@ def convertDictionary(File definition, File csvDictionary, String dictionariesOu
 		errorMsg += assetError
 	}
 
-	def propertiesError = writeDictionaryProperties(definition, csvDictionary, zippedDictionary, dictionariesMetaDir, wordCount)
+	def propertiesError = writeDictionaryProperties(definition, csvDictionary, supplementFile, zippedDictionary, dictionariesMetaDir, wordCount)
 	if (propertiesError) {
 		errorCount++
 		errorMsg += propertiesError
@@ -118,7 +118,7 @@ static byte[] compressDictionaryLine(String digitSequence, List<String> words, b
 }
 
 
-def isDictionaryUpToDate(File definition, File csvDictionary, String dictionaryPropertiesDir) {
+def isDictionaryUpToDate(File definition, File csvDictionary, File supplementFile, String dictionaryPropertiesDir) {
 	def dictionaryProperties = new File(dictionaryPropertiesDir, getPropertyFileName(csvDictionary))
 	if (!dictionaryProperties.exists()) {
 		return false
@@ -127,7 +127,7 @@ def isDictionaryUpToDate(File definition, File csvDictionary, String dictionaryP
 	Properties props = new Properties()
 	dictionaryProperties.withInputStream { stream -> props.load(stream) }
 
-	return props.getProperty("hash", "") == DictionaryTools.getLanguageHash(definition, csvDictionary)
+	return props.getProperty("hash", "") == DictionaryTools.getLanguageHash(definition, csvDictionary, supplementFile)
 }
 
 
@@ -194,11 +194,11 @@ static def writeZippedDictionary(dictionariesOutputDir, csvDictionaryFile, outpu
 
 
 // this cannot be static, because it requires access to exec() and DictionaryTools
-def writeDictionaryProperties(File definition, File csvDictionary, File zipDictionary, outputDir, int words) {
+def writeDictionaryProperties(File definition, File csvDictionary, File supplementFile, File zipDictionary, outputDir, int words) {
 	def name = getPropertyFileName(csvDictionary)
 
 	try {
-		def hash = DictionaryTools.getLanguageHash(definition, csvDictionary)
+		def hash = DictionaryTools.getLanguageHash(definition, csvDictionary, supplementFile)
 		def revision = zipDictionary.exists() ? exec("git log --pretty=tformat:%H -n 1 ${zipDictionary}") : ""
 		def size = zipDictionary.exists() ? zipDictionary.length() : 0
 

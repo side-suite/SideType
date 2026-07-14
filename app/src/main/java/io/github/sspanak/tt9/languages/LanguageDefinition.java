@@ -36,6 +36,10 @@ public class LanguageDefinition {
 	public String name = "";
 	public String ngramFile = "";
 	@NonNull public final HashMap<Integer, String> numerals = new HashMap<>();
+	// Characters dropped when generating a word's key sequence, but kept in the word itself (e.g. the
+	// apostrophe, so "that's" is reachable by typing t-h-a-t-s). Declared once per language and consumed
+	// by both encoders — the build-time Groovy one and NaturalLanguage.getDigitSequenceForWord. See SID-6.
+	public String transparentChars = "";
 
 	private boolean inLayout = false;
 
@@ -171,6 +175,9 @@ public class LanguageDefinition {
 				return;
 			case "ngramFile":
 				ngramFile = value;
+				return;
+			case "transparentChars":
+				transparentChars = value;
 				return;
 		}
 	}

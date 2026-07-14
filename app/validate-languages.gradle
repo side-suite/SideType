@@ -13,9 +13,9 @@ ext.validateLanguageFiles = { definitionsDir, dictionariesDir, validationDir, ic
 			return "Too many errors! Skipping: ${definition}\n"
 		}
 
-		def (alphabet, sounds, _, isAlphabeticLanguage, locale, dictionaryFile, ignore, langFileErrorCount, langFileErrorMsg) = parseLanguageDefintion(definition, dictionariesDir, iconsDir, ngramsDir)
+		def (alphabet, sounds, _, isAlphabeticLanguage, locale, dictionaryFile, ignore, langFileErrorCount, langFileErrorMsg, transparentChars, supplementFile) = parseLanguageDefintion(definition, dictionariesDir, iconsDir, ngramsDir)
 
-		def languageHash = DictionaryTools.getLanguageHash(definition, dictionaryFile)
+		def languageHash = DictionaryTools.getLanguageHash(definition, dictionaryFile, supplementFile)
 		def validationFile = new File("${validationDir}/${definition.name.replace(".yml", "")}.txt")
 
 		errorCount += langFileErrorCount
@@ -28,7 +28,7 @@ ext.validateLanguageFiles = { definitionsDir, dictionariesDir, validationDir, ic
 			return ""
 		}
 
-		def (dictionaryErrorCount, dictionaryErrorMesages) = validateDictionary(dictionaryFile, alphabet, sounds, isAlphabeticLanguage, locale, MAX_ERRORS, CSV_DELIMITER, MAX_WORD_FREQUENCY)
+		def (dictionaryErrorCount, dictionaryErrorMesages) = validateDictionary(dictionaryFile, supplementFile, transparentChars, alphabet, sounds, isAlphabeticLanguage, locale, MAX_ERRORS, CSV_DELIMITER, MAX_WORD_FREQUENCY)
 		errorCount += dictionaryErrorCount
 		if (!dictionaryErrorMesages.isEmpty()) {
 			validationFile.text = "${languageHash} INVALID"
@@ -69,6 +69,8 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 	String localeString = ""
 	String dictionaryFileName = ""
 	String ngramFileName = ""
+	String supplementFileName = ""
+	String transparentChars = ""
 
 	final String INVALID_FILE = "Language '${languageFile.name}' is invalid."
 
@@ -89,6 +91,8 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 			&& !rawLine.startsWith("name")
 			&& !rawLine.startsWith("numerals")
 			&& !rawLine.startsWith("sounds")
+			&& !rawLine.startsWith("supplementFile")
+			&& !rawLine.startsWith("transparentChars")
 
 		) {
 			def parts = rawLine.split(":")
@@ -139,6 +143,14 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 
 		if (line.startsWith("ngramFile")) {
 			ngramFileName = line.replace("ngramFile:", "").trim()
+		}
+
+		if (line.startsWith("supplementFile")) {
+			supplementFileName = line.replace("supplementFile:", "").trim()
+		}
+
+		if (line.startsWith("transparentChars")) {
+			transparentChars = line.replaceFirst("^transparentChars:", "").trim()
 		}
 
 		if (line.startsWith("numerals")) {
@@ -242,6 +254,15 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 		errorMsg += "Could not find dictionary file: '${dictionaryFileName}' in: '${dictionariesDir}'. Make sure 'dictionaryFile' is set correctly in: '${languageFile.name}'.\n"
 	}
 
+	File supplementFile = null
+	if (!supplementFileName.isEmpty()) {
+		supplementFile = new File("$dictionariesDir/${supplementFileName}")
+		if (!supplementFile.exists()) {
+			errorCount++
+			errorMsg += "Could not find supplement file: '${supplementFileName}' in: '${dictionariesDir}'. Make sure 'supplementFile' is set correctly in: '${languageFile.name}'.\n"
+		}
+	}
+
 	if (!ngramFileName.isEmpty()) {
 		ngramFile = new File("$ngramsDir/${ngramFileName}")
 		if (!ngramFile.exists()) {
@@ -259,12 +280,14 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 		}
 	}
 
-	return [alphabet, sounds, filterBySounds, !hasSounds, locale, dictionaryFile, ngramFile, errorCount, errorMsg]
+	// NB: transparentChars and supplementFile are appended at the END so existing positional
+	// destructures (which take the first 9 elements) keep working. See SID-6.
+	return [alphabet, sounds, filterBySounds, !hasSounds, locale, dictionaryFile, ngramFile, errorCount, errorMsg, transparentChars, supplementFile]
 }
 
 
 // this cannot be static, because DictionaryTools will not be visible
-def validateDictionary(File dictionaryFile, String alphabet, HashMap<String, String> sounds, boolean isAlphabeticLanguage, Locale locale, int maxErrors, String csvDelimiter, int maxWordFrequency) {
+def validateDictionary(File dictionaryFile, File supplementFile, String transparentChars, String alphabet, HashMap<String, String> sounds, boolean isAlphabeticLanguage, Locale locale, int maxErrors, String csvDelimiter, int maxWordFrequency) {
 	String regexSafeAlphabet = alphabet.replaceAll("([\\[\\]\\-\\.])", "")
 	final VALID_CHARS = alphabet.toUpperCase(locale) == alphabet ? "^[${regexSafeAlphabet}\\.\\-]+\$" : "^[${regexSafeAlphabet}${regexSafeAlphabet.toUpperCase(locale)}\\.\\-]+\$"
 
@@ -272,7 +295,7 @@ def validateDictionary(File dictionaryFile, String alphabet, HashMap<String, Str
 	String errorMsg = ''
 	Set<String> uniqueWords = new HashSet<>()
 
-	List<String> fileContents = dictionaryFile.readLines()
+	List<String> fileContents = DictionaryTools.readDictionaryLines(dictionaryFile, supplementFile, transparentChars)
 	for (int lineNumber = 1; lineNumber <= fileContents.size() && errorCount < maxErrors; lineNumber++) {
 		String line = fileContents.get(lineNumber - 1)
 		boolean lineHasErrors = false
@@ -315,7 +338,7 @@ def validateDictionary(File dictionaryFile, String alphabet, HashMap<String, Str
 
 		try {
 			def transcribedWord = transcription.isEmpty() ? word : transcription
-			DictionaryTools.wordToDigitSequence(locale, transcribedWord, sounds, !transcription.isEmpty())
+			DictionaryTools.wordToDigitSequence(locale, transcribedWord, sounds, !transcription.isEmpty(), transparentChars)
 		} catch (IllegalArgumentException e) {
 			errorCount++
 			errorMsg += "Dictionary '${dictionaryFile.name}' is invalid. Failed generating digit sequence for word '${word}' on line ${lineNumber}. ${e.message}\n"

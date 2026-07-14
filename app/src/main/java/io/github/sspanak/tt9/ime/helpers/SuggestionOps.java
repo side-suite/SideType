@@ -263,11 +263,40 @@ public class SuggestionOps {
 		}
 
 		Text text = new Text(language, getCurrent());
-		if (maxLength > 0 && !text.isEmpty() && text.codePointLength() > maxLength) {
+		if (maxLength < 0 || text.isEmpty() || text.codePointLength() <= maxLength) {
+			return text.toString();
+		}
+
+		// maxLength is the count of key presses. Transparent characters (e.g. the apostrophe in "you're")
+		// occupy a display position but were typed with no key of their own, so they must not count against
+		// it — otherwise the composing text is cut one character short per apostrophe ("you're" -> "you'r").
+		// Keep the prefix up to and including the maxLength-th non-transparent character. See SID-6.
+		final String transparentChars = language != null ? language.getTransparentChars() : "";
+		if (transparentChars.isEmpty()) {
 			return text.substringCodePoints(0, maxLength);
 		}
 
-		return text.toString();
+		final String word = text.toString();
+		int typed = 0;
+		int end = 0;
+		for (int i = 0; i < word.length(); ) {
+			final int codePoint = word.codePointAt(i);
+			final int charCount = Character.charCount(codePoint);
+			final boolean transparent = transparentChars.indexOf(codePoint) >= 0;
+
+			if (!transparent && ++typed > maxLength) {
+				break;
+			}
+
+			end = i + charCount;
+			i = end;
+
+			if (!transparent && typed == maxLength) {
+				break; // stop right after the maxLength-th typed character, not at a trailing transparent one
+			}
+		}
+
+		return word.substring(0, end);
 	}
 
 

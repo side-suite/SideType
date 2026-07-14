@@ -66,6 +66,14 @@ abstract public class Language {
 		return name;
 	}
 
+	/**
+	 * Characters that are kept in a word but skipped when generating its key sequence (e.g. the
+	 * apostrophe in contractions). Empty for languages that do not use transparency. See SID-6.
+	 */
+	@NonNull public String getTransparentChars() {
+		return "";
+	}
+
 	@NonNull public String getNgramsFile() {
 		return ngramsFile;
 	}

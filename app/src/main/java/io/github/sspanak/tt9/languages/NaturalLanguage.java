@@ -20,6 +20,10 @@ public class NaturalLanguage extends TranscribedLanguage {
 	protected ArrayList<ArrayList<String>> factoryLayout = new ArrayList<>();
 	private final HashMap<Character, String> characterKeyMap = new HashMap<>();
 	@NonNull private HashMap<Integer, String> numerals = new HashMap<>();
+	// Characters kept in the word but skipped when generating its key sequence (e.g. the apostrophe).
+	// The single source of truth is the language definition's "transparentChars"; the build-time encoder
+	// reads the same declaration, so the two cannot structurally diverge. See SID-6.
+	@NonNull private String transparentChars = "";
 
 
 	public static NaturalLanguage fromDefinition(LanguageDefinition definition) throws Exception {
@@ -41,6 +45,7 @@ public class NaturalLanguage extends TranscribedLanguage {
 		lang.name = definition.name.isEmpty() ? lang.name : definition.name;
 		lang.ngramsFile = definition.getNgramsFile();
 		lang.numerals = definition.numerals;
+		lang.transparentChars = definition.transparentChars;
 		lang.setLocale(definition);
 		lang.setLayout(definition);
 
@@ -230,12 +235,24 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 
 	@NonNull
+	@Override
+	public String getTransparentChars() {
+		return transparentChars;
+	}
+
+
+	@NonNull
 	public String getDigitSequenceForWord(String word) throws InvalidLanguageCharactersException {
 		StringBuilder sequence = new StringBuilder();
 		String lowerCaseWord = word.toLowerCase(locale);
 
 		for (int i = 0; i < lowerCaseWord.length(); i++) {
 			char letter = lowerCaseWord.charAt(i);
+			// Transparent characters (e.g. the apostrophe in a contraction) stay in the word but produce
+			// no key token, so "that's" encodes to the same sequence as "thats". See SID-6.
+			if (transparentChars.indexOf(letter) >= 0) {
+				continue;
+			}
 			if (!characterKeyMap.containsKey(letter)) {
 				throw new InvalidLanguageCharactersException(this, "Failed generating digit sequence for word: '" + word);
 			}
@@ -244,6 +261,28 @@ public class NaturalLanguage extends TranscribedLanguage {
 		}
 
 		return sequence.toString();
+	}
+
+
+	/**
+	 * Removes this language's transparent characters (e.g. the apostrophe) from a word. Used to test
+	 * whether a word carries "real" punctuation once the transparent characters — which are allowed
+	 * inside words such as contractions — are set aside.
+	 */
+	@NonNull
+	public String stripTransparentChars(@NonNull String word) {
+		if (transparentChars.isEmpty()) {
+			return word;
+		}
+
+		StringBuilder stripped = new StringBuilder(word.length());
+		for (int i = 0; i < word.length(); i++) {
+			char c = word.charAt(i);
+			if (transparentChars.indexOf(c) < 0) {
+				stripped.append(c);
+			}
+		}
+		return stripped.toString();
 	}
 
 

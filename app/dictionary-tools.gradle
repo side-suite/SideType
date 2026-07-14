@@ -16,7 +16,7 @@ class Wrapper {
 	}
 
 
-	static def wordToDigitSequence(Locale locale, String word, HashMap<String, String> sounds, boolean isTranscribed) {
+	static def wordToDigitSequence(Locale locale, String word, HashMap<String, String> sounds, boolean isTranscribed, String transparentChars = "") {
 		def sequence = new StringBuilder()
 
 		final String normalizedWord = isTranscribed ? word : word.toUpperCase(locale)
@@ -24,6 +24,15 @@ class Wrapper {
 
 		for (int i = 0, end = normalizedWord.length() - 1; i <= end; i++) {
 			char currentChar = normalizedWord.charAt(i)
+
+			// Transparent characters (e.g. the apostrophe in a contraction) stay in the word but produce
+			// no key token, so "that's" encodes to the same sequence as "thats". The runtime encoder,
+			// NaturalLanguage.getDigitSequenceForWord, reads the same declaration and skips the same
+			// characters, so the two encoders cannot structurally diverge. See SID-6.
+			if (transparentChars.indexOf((int) currentChar) >= 0) {
+				continue
+			}
+
 			char nextChar = i < end ? normalizedWord.charAt(i + 1) : 0
 			int nextCharType = Character.getType(nextChar)
 
@@ -55,10 +64,34 @@ class Wrapper {
 	}
 
 
-	static def getLanguageHash(File definitionFile, File dictionaryFile) {
+	static def getLanguageHash(File definitionFile, File dictionaryFile, File supplementFile = null) {
 		def definitionHash = definitionFile != null && definitionFile.exists() ? sha256(definitionFile.path) : ""
 		def dictionaryHash = dictionaryFile != null && dictionaryFile.exists() ? sha256(dictionaryFile.path) : ""
-		return definitionHash + dictionaryHash
+		// Fold the optional supplement into the freshness hash, so editing it triggers a rebuild and a
+		// bumped .props.yml hash (which force-refreshes the dictionary for existing users). See SID-6.
+		def supplementHash = supplementFile != null && supplementFile.exists() ? sha256(supplementFile.path) : ""
+		return definitionHash + dictionaryHash + supplementHash
+	}
+
+
+	/**
+	 * Reads a dictionary's word/frequency lines, appends an optional supplement file's lines, and — for
+	 * languages that opted into transparency — filters out any entry whose FIRST character is transparent.
+	 * That leading-transparent filter removes the suffix fragments (e.g. "'s", "'ll") that would otherwise
+	 * become bare junk ("s", "ll") once the apostrophe is dropped from the sequence. Languages with no
+	 * transparentChars (the default) are returned untouched, so their apostrophe-initial words — e.g. the
+	 * ~127 Turkish clitic forms — are preserved. Both encoders (validate + convert) read through this so
+	 * they process identical content. See SID-6.
+	 */
+	static List<String> readDictionaryLines(File dictionaryFile, File supplementFile, String transparentChars = "") {
+		List<String> lines = new ArrayList<>(dictionaryFile.readLines())
+		if (supplementFile != null && supplementFile.exists()) {
+			lines.addAll(supplementFile.readLines())
+		}
+		if (transparentChars.isEmpty()) {
+			return lines
+		}
+		return lines.findAll { line -> line.isEmpty() || transparentChars.indexOf((int) line.charAt(0)) < 0 }
 	}
 
 
