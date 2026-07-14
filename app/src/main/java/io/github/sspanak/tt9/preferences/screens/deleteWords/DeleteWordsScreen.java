@@ -25,7 +25,7 @@ public class DeleteWordsScreen extends BaseScreenFragment {
 			return;
 		}
 
-		DeletableWordsList searchResultsList = new DeletableWordsList(activity.getSettings(), getPreferenceScreen());
+		DeletableWordsList searchResultsList = new DeletableWordsList(activity, getPreferenceScreen());
 		searchResultsList.setTotalWords(0);
 		searchResultsList.setResult("", null);
 
@@ -33,6 +33,7 @@ public class DeleteWordsScreen extends BaseScreenFragment {
 		if (searchWords != null) {
 			searchWords.setOnWordsHandler(activity, (words) -> searchResultsList.setResult(searchWords.getLastSearchTerm(), words));
 			searchWords.setOnTotalWordsHandler(activity, searchResultsList::setTotalWords);
+			searchResultsList.setOnWordAdded(() -> searchWords.search(searchWords.getLastSearchTerm()));
 			searchWords.search("");
 		}
 

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal"
+	android:gravity="center_vertical"
+	android:paddingHorizontal="@dimen/pref_custom_spacing_horizontal"
+	android:paddingVertical="@dimen/pref_custom_spacing_vertical">
+
+	<TextView
+		android:id="@android:id/title"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="1"
+		android:textColor="?attr/colorPrimary"
+		android:textStyle="bold"
+		android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.TextView"
+		tools:text="English" />
+
+	<TextView
+		android:id="@+id/add_word_button"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:background="?android:attr/selectableItemBackgroundBorderless"
+		android:clickable="true"
+		android:focusable="true"
+		android:contentDescription="@string/add_word_add"
+		android:gravity="center"
+		android:minWidth="48dp"
+		android:minHeight="48dp"
+		android:paddingHorizontal="12dp"
+		android:text="＋"
+		android:textColor="?attr/colorPrimary"
+		android:textSize="24sp"
+		android:textStyle="bold"
+		tools:ignore="HardcodedText" />
+</LinearLayout>
