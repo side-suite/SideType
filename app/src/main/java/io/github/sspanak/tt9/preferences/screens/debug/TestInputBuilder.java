@@ -12,6 +12,9 @@ import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 
+import io.github.sspanak.tt9.BuildConfig;
+import io.github.sspanak.tt9.ui.tray.HostTrayTheme;
+
 class TestInputBuilder {
 	@NonNull private final LinearLayout root;
 	final ArrayList<EditText> fields = new ArrayList<>();
@@ -47,11 +50,20 @@ class TestInputBuilder {
 		addField(activity, "Text (password)", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 		addField(activity, "Text (url)", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
 
+		// SID-17: a field carrying a sample host color hint, so the tray tint + revert can be eyeballed
+		// on-device before the SideHome sender (SID-18) exists. Debug builds only — the hint is honored
+		// from our own package solely in debug (see HostTrayTheme.isTrusted). It reuses the plain text
+		// field, only swapping the usual OWN_TEST_FIELD_TAG for the color hint the receiver parses.
+		if (BuildConfig.DEBUG) {
+			EditText themed = addField(activity, "Text (SideHome ambient theme hint)", InputType.TYPE_CLASS_TEXT);
+			themed.setPrivateImeOptions(HostTrayTheme.debugSampleHint());
+		}
+
 		return scrollView;
 	}
 
 
-	private void addField(@NonNull Activity activity, @NonNull String label, int inputType) {
+	private EditText addField(@NonNull Activity activity, @NonNull String label, int inputType) {
 		TextView textView = new TextView(activity);
 		textView.setText(label);
 
@@ -71,5 +83,7 @@ class TestInputBuilder {
 		root.addView(textView);
 		root.addView(editText);
 		fields.add(editText);
+
+		return editText;
 	}
 }

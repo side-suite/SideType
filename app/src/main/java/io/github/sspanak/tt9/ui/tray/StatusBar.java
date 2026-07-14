@@ -1,6 +1,7 @@
 package io.github.sspanak.tt9.ui.tray;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.view.MotionEvent;
@@ -92,10 +93,40 @@ public class StatusBar {
 
 
 	public StatusBar setColorScheme() {
+		final HostTrayTheme host = HostTrayTheme.getInstance();
+
 		if (statusView != null) {
-			statusView.setTextColor(settings.getKeyboardTextColor());
+			// SID-17: status text shares the tray foreground channel so it stays readable on a host tint.
+			statusView.setTextColor(host.barForeground(settings.getKeyboardTextColor()));
 		}
+
+		// SID-17: when a trusted host supplies a tray background, tint the whole strip (quick-action icons
+		// + status/suggestion rows) so the host color reads as one coherent surface. With no host override
+		// this clears back to transparent, letting the strip show SideType's normal keyboard background.
+		// The strip's container differs by layout — tray_wrapper on the SP-01 Tray/Small strip, or the
+		// stock status_bar_container on the Classic/Numpad top bars — so tint whichever the layout has.
+		final View trayContainer = findTrayContainer();
+		if (trayContainer != null) {
+			trayContainer.setBackgroundColor(host.barBackground(Color.TRANSPARENT));
+		}
+
 		return this;
+	}
+
+
+	/**
+	 * SID-17: the whole-tray container to tint, resolved per layout — {@code tray_wrapper} on the SP-01
+	 * Tray/Small strip, or the stock {@code status_bar_container} on the Classic/Numpad top bars.
+	 */
+	@Nullable
+	private View findTrayContainer() {
+		final View root = mainView.getView();
+		if (root == null) {
+			return null;
+		}
+
+		final View wrapper = root.findViewById(R.id.tray_wrapper);
+		return wrapper != null ? wrapper : root.findViewById(R.id.status_bar_container);
 	}
 
 

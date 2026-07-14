@@ -9,12 +9,14 @@ import android.view.inputmethod.InputMethodManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.ColorUtils;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import java.util.Locale;
 
 import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
+import io.github.sspanak.tt9.ui.tray.HostTrayTheme;
 
 
 public class SystemSettings {
@@ -92,13 +94,22 @@ public class SystemSettings {
 		window.setNavigationBarContrastEnforced(!enableBlending);
 
 		if (enableBlending) {
+			// SID-17: the nav bar tracks the effective tray background — a trusted host's barBg when
+			// present, else the keyboard background — for both its color and its light/dark icon contrast,
+			// so a light host tint still gets readable (dark) nav-bar icons.
+			final int navBarColor = HostTrayTheme.getInstance().barBackground(settings.getKeyboardBackground());
+			final boolean navBarDark = ColorUtils.calculateLuminance(navBarColor) < 0.5;
+
 			// See: <a href="https://stackoverflow.com/a/77240330">the only working solution for the insets</a>.
 			WindowInsetsControllerCompat insetsController = new WindowInsetsControllerCompat(window, window.getDecorView());
-			insetsController.setAppearanceLightNavigationBars(!settings.getDarkTheme());
+			insetsController.setAppearanceLightNavigationBars(!navBarDark);
 
 			if (DeviceInfo.AT_LEAST_ANDROID_12 && !DeviceInfo.AT_LEAST_ANDROID_15) { // Android 12-14
 				originalNavigationBarColor = originalNavigationBarColor == null ? window.getNavigationBarColor() : originalNavigationBarColor;
-				window.setNavigationBarColor(settings.getKeyboardBackground());
+				// Extend the host tint onto the OS navigation bar the IME paints, so the strip below the
+				// tray doesn't stay a jarring default-colored seam. (No-op on Android 15+, where
+				// setNavigationBarColor is deprecated and the bar is system-driven.)
+				window.setNavigationBarColor(navBarColor);
 			}
 		} else if (originalNavigationBarColor != null) {
 			window.setNavigationBarColor(originalNavigationBarColor); // Android 12-14

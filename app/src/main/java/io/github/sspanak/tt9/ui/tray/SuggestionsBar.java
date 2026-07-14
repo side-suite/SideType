@@ -129,7 +129,8 @@ public class SuggestionsBar {
 			return;
 		}
 
-		suggestionSeparatorColor = settings.getSuggestionSeparatorColor();
+		// SID-17: a trusted host may recolor the divider; fall back to SideType's default otherwise.
+		suggestionSeparatorColor = HostTrayTheme.getInstance().separator(settings.getSuggestionSeparatorColor());
 		// Extra XML is required instead of a ColorDrawable object, because setting the highlight color
 		// erases the borders defined using the ColorDrawable.
 		Drawable separatorDrawable = ContextCompat.getDrawable(context, R.drawable.suggestion_separator);
@@ -497,11 +498,13 @@ public class SuggestionsBar {
 			return;
 		}
 
-		defaultBackgroundColor = settings.getKeyboardBackground();
-		mSuggestionsAdapter.setColorDefault(settings.getKeyboardTextColor());
-		mSuggestionsAdapter.setColorHighlight(settings.getSuggestionSelectedColor());
-		mSuggestionsAdapter.setBackgroundHighlight(settings.getSuggestionSelectedBackground());
-		suggestionSeparatorColor = settings.getSuggestionSeparatorColor();
+		// SID-17: each channel resolves to the trusted host's override when present, else SideType's own
+		// default. The separator is applied by initSeparator() below (which consults the override too).
+		final HostTrayTheme host = HostTrayTheme.getInstance();
+		defaultBackgroundColor = host.barBackground(settings.getKeyboardBackground());
+		mSuggestionsAdapter.setColorDefault(host.barForeground(settings.getKeyboardTextColor()));
+		mSuggestionsAdapter.setColorHighlight(host.selectedText(settings.getSuggestionSelectedColor()));
+		mSuggestionsAdapter.setBackgroundHighlight(host.selectedBackground(settings.getSuggestionSelectedBackground()));
 		initSeparator(mView.getContext());
 
 		setBackground(true);

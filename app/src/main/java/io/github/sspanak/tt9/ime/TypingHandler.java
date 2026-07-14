@@ -28,6 +28,7 @@ import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.languages.LanguageKind;
 import io.github.sspanak.tt9.languages.NaturalLanguage;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
+import io.github.sspanak.tt9.ui.tray.HostTrayTheme;
 import io.github.sspanak.tt9.util.Text;
 import io.github.sspanak.tt9.util.chars.Characters;
 
@@ -130,6 +131,11 @@ public abstract class TypingHandler extends KeyPadHandler {
 		inputType = new InputType(context, field);
 		textField = new TextField(context, settings, field);
 		textSelection = new TextSelection(context, inputType);
+
+		// SID-17: re-derive the host tray-color override for the new field (cleared when the field is
+		// null), before initUi repaints the tray. A trusted host's ambient colors are picked up for free,
+		// and a stale tint from a previous field or a non-host app never sticks.
+		HostTrayTheme.getInstance().update(field, getPackageName());
 
 		// changing the TextField and notifying all interested classes is an atomic operation
 		appHacks.setDependencies(inputType, textField, textSelection);
