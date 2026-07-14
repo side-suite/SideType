@@ -13,7 +13,7 @@ public class DeleteWordsScreen extends BaseScreenFragment {
 	public DeleteWordsScreen(@Nullable PreferencesActivity activity) { super(activity); }
 
 	@Override public String getName() { return NAME; }
-	@Override protected int getTitle() { return R.string.pref_category_delete_words; }
+	@Override protected int getTitle() { return R.string.pref_manage_added_words; }
 	@Override protected int getXml() { return R.xml.prefs_screen_delete_words; }
 
 	@Override protected void onCreate() {

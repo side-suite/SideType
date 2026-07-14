@@ -56,6 +56,7 @@
 	<string name="pref_category_geometry">Geometry</string>
 	<string name="pref_category_debug_options" translatable="false">Debug Options</string>
 	<string name="pref_category_delete_words">Delete Added Words</string>
+	<string name="pref_manage_added_words">Manage added words</string>
 	<string name="pref_category_function_keys">Select Hotkeys</string>
 	<string name="pref_category_fn_key_order">Function Key Order</string>
 	<string name="pref_category_hacks">Compatibility</string>
@@ -222,7 +223,7 @@
 	<string name="dictionary_import_raise_import_limits">Increase Import Limit</string>
 	<string name="dictionary_import_raise_import_limits_summary">Increase the maximum words per file from %1$d to %2$d, and the total word count from %3$d to %4$d.\nWarning! Importing too many words may cause typing lag.</string>
 
-	<string name="delete_words_link_summary">Find and delete misspelled or unneeded words.</string>
+	<string name="delete_words_link_summary">View, search, and remove words you\'ve added.</string>
 	<string name="delete_words_deleted_confirm_deletion_title">Confirm Deletion</string>
 	<string name="delete_words_deleted_confirm_deletion_question">Are you sure you want to delete \"%1$s\"?</string>
 	<string name="delete_words_deleted_x">\"%1$s\" was deleted.</string>

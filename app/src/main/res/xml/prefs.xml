@@ -23,6 +23,11 @@
 		app:title="@string/pref_choose_languages" />
 
 	<Preference
+		app:fragment="io.github.sspanak.tt9.preferences.DeleteWordsScreen"
+		app:key="screen_manage_added_words"
+		app:title="@string/pref_manage_added_words" />
+
+	<Preference
 		app:fragment="io.github.sspanak.tt9.preferences.KeyPadScreen"
 		app:key="screen_keypad"
 		app:title="@string/pref_category_keypad" />
