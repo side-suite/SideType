@@ -13,6 +13,10 @@
 		<intent>
 			<action android:name="android.speech.RecognitionService" /> <!-- allows voice input on Android >= 11 -->
 		</intent>
+		<intent> <!-- SID-19: enumerate launchable apps to bias prediction in host app-launcher search fields -->
+			<action android:name="android.intent.action.MAIN" />
+			<category android:name="android.intent.category.LAUNCHER" />
+		</intent>
 	</queries>
 
 	<application

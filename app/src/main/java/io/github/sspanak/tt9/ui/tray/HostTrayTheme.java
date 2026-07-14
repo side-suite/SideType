@@ -2,10 +2,9 @@ package io.github.sspanak.tt9.ui.tray;
 
 import android.view.inputmethod.EditorInfo;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import io.github.sspanak.tt9.BuildConfig;
+import java.util.Map;
 
 /**
  * SID-17 — Candidate-bar theming handshake (the receiving half).
@@ -31,14 +30,7 @@ import io.github.sspanak.tt9.BuildConfig;
  * input session at a time on the main thread, so no synchronization is needed.
  */
 public class HostTrayTheme {
-	/**
-	 * The one host SideType trusts to recolor its tray. The public contract is host-agnostic — any app
-	 * could present these options — but for v1 SideType honors them only from SideHome. Any other
-	 * package is ignored entirely and gets the default theme.
-	 */
-	private static final String SIDEHOME_PACKAGE = "fi.palonkorpi.sidehome";
-
-	private static final String NS = "fi.palonkorpi.sidetype.";
+	private static final String NS = HostImeOptions.NS;
 	private static final String KEY_BAR_BG = NS + "barBg";
 	private static final String KEY_BAR_FG = NS + "barFg";
 	private static final String KEY_SELECTED_BG = NS + "selectedBg";
@@ -75,29 +67,19 @@ public class HostTrayTheme {
 	public void update(@Nullable EditorInfo field, @Nullable String ownPackageName) {
 		barBg = barFg = selectedBg = selectedText = separator = null;
 
-		if (field == null || field.privateImeOptions == null || field.privateImeOptions.isEmpty() || !isTrusted(field, ownPackageName)) {
-			return;
-		}
-
-		for (String token : field.privateImeOptions.split(",")) {
-			final int eq = token.indexOf('=');
-			if (eq < 1) {
-				continue;
-			}
-
-			final String key = token.substring(0, eq).trim();
-			final Integer color = parseArgb(token.substring(eq + 1).trim());
+		for (Map.Entry<String, String> token : HostImeOptions.parseTrusted(field, ownPackageName).entrySet()) {
+			final Integer color = parseArgb(token.getValue());
 			if (color == null) {
 				continue;
 			}
 
-			switch (key) {
+			switch (token.getKey()) {
 				case KEY_BAR_BG -> barBg = color;
 				case KEY_BAR_FG -> barFg = color;
 				case KEY_SELECTED_BG -> selectedBg = color;
 				case KEY_SELECTED_TEXT -> selectedText = color;
 				case KEY_SEPARATOR -> separator = color;
-				default -> { /* an unrelated private option from some other app — ignore it */ }
+				default -> { /* an unrelated private option (e.g. SID-19's appDict) — ignore it here */ }
 			}
 		}
 	}
@@ -129,20 +111,6 @@ public class HostTrayTheme {
 	}
 
 
-	private static boolean isTrusted(@NonNull EditorInfo field, @Nullable String ownPackageName) {
-		if (field.packageName == null) {
-			return false;
-		}
-		if (SIDEHOME_PACKAGE.equals(field.packageName)) {
-			return true;
-		}
-		// Debug affordance: the on-device test field lives inside SideType, so it can only ever present
-		// our own package, never SideHome's. Trusting our own package in debug builds lets the receiver
-		// be eyeballed before the SideHome sender (SID-18) exists. Never trusted in release builds.
-		return BuildConfig.DEBUG && ownPackageName != null && ownPackageName.equals(field.packageName);
-	}
-
-
 	/**
 	 * Parses one 8-digit ARGB hex value (upper or lower case). Returns {@code null} — leaving the channel
 	 * at its default — for anything that is not exactly 8 hex digits, so a malformed value never throws.
@@ -167,7 +135,7 @@ public class HostTrayTheme {
 
 	/**
 	 * A sample 5-color hint for the debug-only on-device test field, so the tint and its revert can be
-	 * verified without the SideHome sender. Only honored in debug builds (see {@link #isTrusted}).
+	 * verified without the SideHome sender. Only honored in debug builds (see {@link HostImeOptions}).
 	 */
 	public static String debugSampleHint() {
 		return KEY_BAR_BG + "=FF1A1B2E,"

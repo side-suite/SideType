@@ -28,6 +28,7 @@ import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.languages.LanguageKind;
 import io.github.sspanak.tt9.languages.NaturalLanguage;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
+import io.github.sspanak.tt9.ui.tray.HostAppDictionary;
 import io.github.sspanak.tt9.ui.tray.HostTrayTheme;
 import io.github.sspanak.tt9.util.Text;
 import io.github.sspanak.tt9.util.chars.Characters;
@@ -136,6 +137,11 @@ public abstract class TypingHandler extends KeyPadHandler {
 		// null), before initUi repaints the tray. A trusted host's ambient colors are picked up for free,
 		// and a stale tint from a previous field or a non-host app never sticks.
 		HostTrayTheme.getInstance().update(field, getPackageName());
+
+		// SID-19: re-derive the session app-name dictionary for the new field. When a trusted host marks
+		// this field as an app-launcher search, installed app names bias the predictions; cleared here
+		// when the field is null (input finishing) or lacks the flag, so app names never leak elsewhere.
+		HostAppDictionary.getInstance().update(field, getPackageName(), context);
 
 		// changing the TextField and notifying all interested classes is an atomic operation
 		appHacks.setDependencies(inputType, textField, textSelection);

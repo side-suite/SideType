@@ -9,6 +9,7 @@ import io.github.sspanak.tt9.languages.KeySequence;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageKind;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
+import io.github.sspanak.tt9.ui.tray.HostAppDictionary;
 import io.github.sspanak.tt9.util.TextTools;
 import io.github.sspanak.tt9.util.chars.Characters;
 
@@ -117,9 +118,34 @@ public class WordPredictions extends Predictions {
 		if (digitSequence.length() == 1 && digitSequence.charAt(0) >= '2' && digitSequence.charAt(0) <= KeySequence.MAX_TOKEN) {
 			suggestMissingWords(settings.getOrderedKeyChars(language, digitSequence.charAt(0) - '0'), newWords);
 		}
-		words = insertPunctuationCompletions(newWords);
+		words = prependHostAppNames(insertPunctuationCompletions(newWords));
 
 		onWordsChanged.run();
+	}
+
+
+	/**
+	 * prependHostAppNames
+	 * SID-19: when a trusted host has marked the field as an app-launcher search, put matching installed
+	 * app names at the front of the suggestions, so predictive typing lands on brand nouns (Revolut,
+	 * Aegis, ...) before dictionary words. When the session app dictionary is inactive (the normal case,
+	 * and any app but the flagged host search), this is a no-op and the list is returned unchanged.
+	 */
+	private ArrayList<String> prependHostAppNames(ArrayList<String> dbWords) {
+		final HostAppDictionary appDictionary = HostAppDictionary.getInstance();
+		if (!appDictionary.isActive()) {
+			return dbWords;
+		}
+
+		final ArrayList<String> appNames = appDictionary.getMatches(language, digitSequence, stem, maxWords);
+		if (appNames.isEmpty()) {
+			return dbWords;
+		}
+
+		// App names lead; the dictionary/generated words follow, minus any the app names already cover.
+		containsGeneratedWords = true;
+		suggestMissingWords(dbWords, appNames);
+		return appNames;
 	}
 
 

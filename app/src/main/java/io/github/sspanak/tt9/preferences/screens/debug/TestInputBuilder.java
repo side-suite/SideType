@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 
 import io.github.sspanak.tt9.BuildConfig;
+import io.github.sspanak.tt9.ui.tray.HostAppDictionary;
 import io.github.sspanak.tt9.ui.tray.HostTrayTheme;
 
 class TestInputBuilder {
@@ -57,6 +58,11 @@ class TestInputBuilder {
 		if (BuildConfig.DEBUG) {
 			EditText themed = addField(activity, "Text (SideHome ambient theme hint)", InputType.TYPE_CLASS_TEXT);
 			themed.setPrivateImeOptions(HostTrayTheme.debugSampleHint());
+
+			// SID-19: a field flagged as a host app-launcher search, so the app-name prediction bias can be
+			// eyeballed on-device before the SideHome sender exists. Debug builds only (see HostImeOptions).
+			EditText appSearch = addField(activity, "Text (SideHome app-launcher search)", InputType.TYPE_CLASS_TEXT);
+			appSearch.setPrivateImeOptions(HostAppDictionary.debugFlag());
 		}
 
 		return scrollView;
