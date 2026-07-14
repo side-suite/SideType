@@ -2,8 +2,4 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" android:orderingFromXml="true">
 	<io.github.sspanak.tt9.preferences.screens.deleteWords.PreferenceSearchWords
 		android:key="dictionary_delete_words_search" />
-
-	<PreferenceCategory
-		android:key="delete_words_list"
-		android:title="@string/search_results" />
 </PreferenceScreen>

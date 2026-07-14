@@ -25,12 +25,12 @@ public class DeleteWordsScreen extends BaseScreenFragment {
 			return;
 		}
 
-		DeletableWordsList searchResultsList = new DeletableWordsList(activity.getSettings(), findPreference(DeletableWordsList.NAME));
+		DeletableWordsList searchResultsList = new DeletableWordsList(activity.getSettings(), getPreferenceScreen());
 		searchResultsList.setTotalWords(0);
 		searchResultsList.setResult("", null);
 
 		PreferenceSearchWords searchWords = findPreference(PreferenceSearchWords.NAME);
-		if (activity != null && searchWords != null) {
+		if (searchWords != null) {
 			searchWords.setOnWordsHandler(activity, (words) -> searchResultsList.setResult(searchWords.getLastSearchTerm(), words));
 			searchWords.setOnTotalWordsHandler(activity, searchResultsList::setTotalWords);
 			searchWords.search("");

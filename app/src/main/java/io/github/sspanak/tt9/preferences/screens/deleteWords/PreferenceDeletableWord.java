@@ -43,9 +43,8 @@ public class PreferenceDeletableWord extends ScreenPreference {
 	void setWord(CustomWord word) {
 		this.word = word.word;
 		this.language = word.language;
-		setTitle(
-			Logger.isDebugLevel() ? word.word + " / " + word.sequence + " / " + word.language.getName() : word.word + " / " + word.language.getName()
-		);
+		// the language is shown by the surrounding per-language category header, so the row only needs the word
+		setTitle(Logger.isDebugLevel() ? word.word + " / " + word.sequence : word.word);
 	}
 
 
