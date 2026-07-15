@@ -49,7 +49,10 @@ tasks.register('buildDictionaryDownloads') {
 // SideType: languages bundled offline in the APK (work out of the box on a Latin QWERTY tile). Every
 // other language stays in the picker but its dictionary/ngrams download on demand from the pinned
 // upstream revision (see each .props.yml). This is the main APK-size lever — keep it small.
-ext.BUNDLED_LANGUAGES = ['en', 'fi', 'sv', 'nb', 'da', 'de', 'fr', 'es']
+// en-GB is bundled alongside en: English is the tile's primary language, so a British user should not
+// need a network round-trip to type. It costs ~1.2 MB and has no ngrams of its own — EnglishUK.yml
+// reuses en-ngrams.zip, so the en-GB entry in bundledNgramZips below matches nothing, harmlessly.
+ext.BUNDLED_LANGUAGES = ['en', 'en-GB', 'fi', 'sv', 'nb', 'da', 'de', 'fr', 'es']
 def bundledDictZips = BUNDLED_LANGUAGES.collect { "**/${it}-utf8.zip".toString() }
 def bundledNgramZips = BUNDLED_LANGUAGES.collect { "**/${it}-ngrams.zip".toString() }
 
