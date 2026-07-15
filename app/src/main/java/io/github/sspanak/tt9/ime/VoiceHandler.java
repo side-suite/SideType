@@ -76,7 +76,7 @@ abstract class VoiceHandler extends SuggestionHandler {
 
 
 	public void toggleVoiceInput() {
-		if (voiceInputOps.isListening() || !voiceInputOps.isAvailable()) {
+		if (voiceInputOps.isListening() || !VoiceInputOps.isAvailable(mLanguage)) {
 			stopVoiceInput();
 			return;
 		}
@@ -130,13 +130,10 @@ abstract class VoiceHandler extends SuggestionHandler {
 
 
 	private void onVoiceInputError(VoiceInputError error) {
-		if (error.isStartTimeout()) {
-			Logger.i(LOG_TAG, "Google SpeechRecognizer timed out. Enforcing alternative listening mode for the current session.");
-			voiceInputOps.forceAlternativeInput(true).listen(mLanguage);
-		} else if (error.isLanguageMissing() && voiceInputOps.enableOfflineMode(mLanguage, false)) {
-			Logger.i(LOG_TAG, "Voice input package for language '" + mLanguage.getName() + "' is missing. Enforcing online mode for the current session.");
-			voiceInputOps.listen(mLanguage);
-		} else if (error.isIrrelevantToUser()) {
+		// There is no fallback engine to escalate to any more: recognition is Vosk or nothing. The
+		// branches that used to force an alternative recognizer or drop to Google's online mode went
+		// with the platform SpeechRecognizer in SID-53 — see docs/adr/0002.
+		if (error.isIrrelevantToUser()) {
 			Logger.i(LOG_TAG, "Ignoring voice input. " + error.debugMessage);
 			resetStatus(); // re-enable the function keys
 		} else {

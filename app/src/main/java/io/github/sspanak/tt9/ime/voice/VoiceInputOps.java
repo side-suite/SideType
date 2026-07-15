@@ -1,35 +1,36 @@
 package io.github.sspanak.tt9.ime.voice;
 
 import android.content.Context;
-import android.content.Intent;
-import android.os.Handler;
-import android.os.Looper;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.function.Consumer;
 
 import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.util.Logger;
-import io.github.sspanak.tt9.util.sys.DeviceInfo;
 
+/**
+ * Voice input, backed exclusively by the offline Vosk engine.
+ * <p>
+ * The platform {@link android.speech.SpeechRecognizer} path this class used to wrap is gone. The
+ * SP-01 ships a minimal AOSP with no Google speech service, so all of it — the online/offline
+ * probes, the third-party recognizer picker, the Android 13+ support checks — was dead code on the
+ * only device SideType targets. See docs/adr/0002-voice-input-lives-in-sidetype.md.
+ * <p>
+ * Callbacks keep the shape {@link io.github.sspanak.tt9.ime.VoiceHandler} already expected, so the
+ * mic-permission flow and the composing-text/commit path are reused unchanged.
+ */
 public class VoiceInputOps {
 	private final static String LOG_TAG = VoiceInputOps.class.getSimpleName();
 
 	@NonNull private final Context ims;
-	@NonNull private final HashMap<Integer, Boolean> isOfflineModeDisabled;
-	private boolean forceAlternativeInput = false;
 	@Nullable private Language language;
-	@NonNull private final VoiceListener listener;
-	@NonNull private final SpeechRecognizerSupportLegacy recognizerSupport;
-	@Nullable private SpeechRecognizer speechRecognizer;
+	@NonNull private final VoskModelManager modelManager;
+	@Nullable private VoskSpeechRecognizer recognizer;
 
+	@NonNull private final Runnable onStartListening;
 	@NonNull private final Consumer<String> onStopListening;
 	@NonNull private final Consumer<String> onPartialResult;
 	@NonNull private final Consumer<VoiceInputError> onListeningError;
@@ -42,179 +43,98 @@ public class VoiceInputOps {
 		@Nullable Consumer<String> onPartial,
 		@Nullable Consumer<VoiceInputError> onError
 	) {
-		isOfflineModeDisabled = new HashMap<>();
-		listener = new VoiceListener(ims, onStart, this::onStop, this::onPartial, this::onError);
-		recognizerSupport = DeviceInfo.AT_LEAST_ANDROID_13 ? new SpeechRecognizerSupportModern(ims) : new SpeechRecognizerSupportLegacy();
+		this.ims = ims;
+		modelManager = new VoskModelManager(ims);
 
+		onStartListening = onStart != null ? onStart : () -> {};
 		onStopListening = onStop != null ? onStop : result -> {};
 		onPartialResult = onPartial != null ? onPartial : result -> {};
 		onListeningError = onError != null ? onError : error -> {};
-
-		this.ims = ims;
 	}
 
 
-	static String getLocale(@NonNull Language lang) {
-		return lang.getLocale().toString().replace("_", "-");
-	}
-
-
-	static Intent createIntent(@Nullable String locale) {
-		Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-		intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-		if (locale != null) {
-			intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale);
-		}
-		return intent;
-	}
-
-
-	private void createGoogleRecognizer(@Nullable Language language) {
-		boolean isLanguageAllowedOffline = language != null && !Boolean.TRUE.equals(isOfflineModeDisabled.get(language.getId()));
-
-		if (isLanguageAllowedOffline && DeviceInfo.AT_LEAST_ANDROID_13 && recognizerSupport.isLanguageSupportedOffline(ims, language)) {
-			Logger.d(LOG_TAG, "Creating offline SpeechRecognizer...");
-			speechRecognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(ims);
-		} else if (recognizerSupport.isGoogleOnlineRecognitionAvailable(ims)) {
-			Logger.d(LOG_TAG, "Creating online SpeechRecognizer...");
-			speechRecognizer = SpeechRecognizer.createSpeechRecognizer(ims);
-		} else {
-			Logger.d(LOG_TAG, "Cannot create SpeechRecognizer, recognition not available.");
-			speechRecognizer = null;
-			return;
-		}
-
-		speechRecognizer.setRecognitionListener(listener);
-	}
-
-
-	public boolean isAvailable() {
-		return
-			recognizerSupport.isAlternativeAvailable(ims)
-			|| recognizerSupport.isGoogleOnlineRecognitionAvailable(ims)
-			|| recognizerSupport.isGoogleOfflineRecognitionAvailable(ims);
+	/**
+	 * Whether voice input could work for this language at all — i.e. whether Vosk publishes a model
+	 * for it. Deliberately <b>not</b> "is a model downloaded": models arrive on demand, and gating
+	 * visibility on the disk state deadlocks (no model → the control hides → the download that would
+	 * unhide it can never be triggered). Static because it is a question about the catalog, not about
+	 * any particular instance.
+	 */
+	public static boolean isAvailable(@Nullable Language language) {
+		return VoskModelCatalog.isSupported(language);
 	}
 
 
 	public boolean isListening() {
-		return listener.isListening() && speechRecognizer != null;
+		return recognizer != null && recognizer.isListening();
+	}
+
+
+	/** Whether the model for this language still needs downloading before {@link #listen} can work. */
+	public boolean isModelMissing(@Nullable Language language) {
+		VoskModelCatalog.Entry model = VoskModelCatalog.getModel(language);
+		return model != null && !modelManager.isModelReady(model);
+	}
+
+
+	@Nullable
+	public VoskModelCatalog.Entry getModel(@Nullable Language language) {
+		return VoskModelCatalog.getModel(language);
 	}
 
 
 	public void listen(@Nullable Language language) {
 		this.language = language;
-		if (forceAlternativeInput || recognizerSupport.isAlternativeAvailable(ims)) {
-			ims.startActivity(VoiceInputPickerActivity.generateShowIntent(ims));
-		} else {
-			recognizerSupport.setLanguage(language).checkOfflineSupport(
-				ims,
-				() -> new Handler(Looper.getMainLooper()).post(this::listen)
-			);
-		}
-	}
 
-
-	private void listen() {
 		if (language == null) {
 			onListeningError.accept(new VoiceInputError(ims, VoiceInputError.ERROR_INVALID_LANGUAGE));
 			return;
 		}
 
 		if (isListening()) {
-			onListeningError.accept(new VoiceInputError(ims, SpeechRecognizer.ERROR_RECOGNIZER_BUSY));
+			onListeningError.accept(new VoiceInputError(ims, android.speech.SpeechRecognizer.ERROR_RECOGNIZER_BUSY));
 			return;
 		}
 
-		createGoogleRecognizer(language);
-		if (speechRecognizer == null) {
-			onListeningError.accept(new VoiceInputError(ims, VoiceInputError.ERROR_NOT_AVAILABLE));
+		final VoskModelCatalog.Entry model = VoskModelCatalog.getModel(language);
+		if (model == null) {
+			// Finnish, Norwegian and Danish land here, permanently — Vosk has no model for them at any
+			// size. Not a failure to handle, a limitation to state. See docs/adr/0001.
+			Logger.i(LOG_TAG, "No Vosk model exists for language: " + language.getName());
+			onListeningError.accept(new VoiceInputError(ims, VoiceInputError.ERROR_NO_MODEL_FOR_LANGUAGE));
 			return;
 		}
 
-		String locale = getLocale(language);
-
-		try {
-			listener.onBeforeStart();
-			speechRecognizer.startListening(createIntent(locale));
-			Logger.d(LOG_TAG, "SpeechRecognizer started for locale: " + locale);
-		} catch (SecurityException e) {
-			Logger.e(LOG_TAG, "SpeechRecognizer start failed due to a SecurityException. " + e.getMessage());
-			onError(new VoiceInputError(ims, VoiceInputError.ERROR_CANNOT_BIND_TO_VOICE_SERVICE));
+		if (!modelManager.isModelReady(model)) {
+			// Downloading ~40 MB requires the user's explicit consent first, which needs an Activity —
+			// an IME cannot show a dialog. Until SID-55 wires that up, refuse rather than surprise them.
+			Logger.i(LOG_TAG, "Vosk model not downloaded for: " + language.getName());
+			onListeningError.accept(new VoiceInputError(ims, VoiceInputError.ERROR_MODEL_NOT_DOWNLOADED));
+			return;
 		}
+
+		recognizer = new VoskSpeechRecognizer(ims, onStartListening, this::onStop, onPartialResult, this::onError);
+		recognizer.start(modelManager.getModelDir(model).getAbsolutePath(), language);
 	}
 
 
 	public void stop() {
-		this.language = null;
-		if (speechRecognizer != null && isListening()) {
-			speechRecognizer.stopListening();
+		if (recognizer != null && isListening()) {
+			recognizer.stop();
 		}
 	}
 
 
-	private void destroy() {
-		this.language = null;
-
-		// We try this multiple times, because it can fail due to a bug in the Android SDK
-		// https://github.com/sspanak/tt9/issues/593
-		for (int i = 0; i < 3 && speechRecognizer != null; i++) {
-			try {
-				speechRecognizer.destroy();
-			} catch (IllegalArgumentException e) {
-				if (i < 2) {
-					Logger.e(LOG_TAG, "SpeechRecognizer destroy failed. " + e.getMessage() + ". Retrying...");
-					continue;
-				} else {
-					Logger.e(LOG_TAG, "SpeechRecognizer destroy failed. " + e.getMessage() + ". Giving up and just nulling the reference.");
-				}
-			}
-
-			speechRecognizer = null;
-			Logger.d(LOG_TAG, "SpeechRecognizer destroyed");
-		}
+	private void onStop(@Nullable String result) {
+		language = null;
+		recognizer = null;
+		onStopListening.accept(result);
 	}
 
 
-	public boolean enableOfflineMode(@NonNull Language language, boolean yes) {
-		boolean isCurrentlyAllowed = !Boolean.TRUE.equals(isOfflineModeDisabled.get(language.getId()));
-
-		if (yes != isCurrentlyAllowed) {
-			isOfflineModeDisabled.put(language.getId(), !yes);
-		}
-
-		return isCurrentlyAllowed != yes;
-	}
-
-
-	public void enableOfflineMode() {
-		isOfflineModeDisabled.replaceAll((i, v) -> false);
-
-		Logger.d(LOG_TAG, "Re-enabled offline voice input for all languages");
-	}
-
-
-	public VoiceInputOps forceAlternativeInput(boolean yes) {
-		forceAlternativeInput = yes;
-		return this;
-	}
-
-
-	private void onStop(@NonNull ArrayList<String> results) {
-		destroy();
-		onStopListening.accept(results.isEmpty() ? null : results.get(0));
-	}
-
-
-	private void onPartial(@NonNull ArrayList<String> results) {
-		if (!results.isEmpty()) {
-			onPartialResult.accept(results.get(0));
-		}
-	}
-
-
-	private void onError(VoiceInputError error) {
-		destroy();
+	private void onError(@NonNull VoiceInputError error) {
+		language = null;
+		recognizer = null;
 		onListeningError.accept(error);
 	}
 

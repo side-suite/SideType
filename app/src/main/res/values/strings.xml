@@ -369,12 +369,18 @@
 	<string name="voice_input_listening">Speak</string>
 	<string name="voice_input_stopping">Turning off the microphone…</string>
 	<string name="voice_input_mic_permission_is_needed">You must allow the microphone permission to use voice input.</string>
-	<string name="voice_input_error_incompatible_voice_service">Incompatible voice assistant</string>
 	<string name="voice_input_error_generic">Voice input error</string>
 	<string name="voice_input_error_no_permissions">No microphone permission</string>
-	<string name="voice_input_error_language_not_supported">Language not supported</string>
-	<string name="voice_input_error_language_missing">Language missing from device</string>
-	<string name="voice_input_error_network_failed">Network connection failed</string>
-	<string name="voice_input_error_no_network">No Internet connection</string>
 	<string name="voice_input_error_not_available">Voice input is not available</string>
+
+	<!-- SID-53: voice input runs entirely on-device via Vosk. The strings for network/server failures
+	     and for picking a third-party voice assistant went with the platform recognizer — there is no
+	     cloud and no other engine to fall back to. See docs/adr/0002. -->
+	<string name="voice_input_error_no_model_for_language">No voice model for this language</string>
+	<string name="voice_input_error_model_not_downloaded">Voice model not downloaded</string>
+	<string name="voice_input_error_model_download_failed">Voice model download failed</string>
+	<string name="voice_input_error_model_load_failed">Could not load the voice model</string>
+	<!-- Where the on-demand voice models are fetched from. %1$s is the model's zip filename, pinned in
+	     VoskModelCatalog. Mirrors R.string.dictionary_url. See docs/adr/0003. -->
+	<string name="vosk_model_url" translatable="false">https://alphacephei.com/vosk/models/%1$s</string>
 </resources>

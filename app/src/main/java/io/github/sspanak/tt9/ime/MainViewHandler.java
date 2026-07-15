@@ -167,7 +167,7 @@ abstract public class MainViewHandler extends HotkeyHandler {
 
 
 	public boolean isVoiceInputMissing() {
-		return !voiceInputOps.isAvailable();
+		return !VoiceInputOps.isAvailable(mLanguage);
 	}
 
 

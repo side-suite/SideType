@@ -343,7 +343,9 @@ public class TraditionalT9 extends PremiumHandler {
 	private void runBackgroundTasks() {
 		SupremeExecutor.submit(() -> {
 			mindReader.persist();
-			voiceInputOps.forceAlternativeInput(false).enableOfflineMode();
+			// Nothing to reset for voice any more: forceAlternativeInput/enableOfflineMode were
+			// per-session workarounds for Google's recognizer, which SID-53 removed. Vosk is offline
+			// and stateless between utterances.
 			if (!DictionaryLoader.isRunning()) {
 				DataStore.saveWordPairs();
 				DataStore.normalizeNext();
