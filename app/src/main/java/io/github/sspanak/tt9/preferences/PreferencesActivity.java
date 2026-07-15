@@ -35,6 +35,7 @@ import io.github.sspanak.tt9.preferences.screens.mindReading.MindReadingScreen;
 import io.github.sspanak.tt9.preferences.screens.modeAbc.ModeAbcScreen;
 import io.github.sspanak.tt9.preferences.screens.modePredictive.ModePredictiveScreen;
 import io.github.sspanak.tt9.preferences.screens.setup.SetupScreen;
+import io.github.sspanak.tt9.preferences.screens.voice.VoiceInputScreen;
 import io.github.sspanak.tt9.ui.PremiumPreferencesActivity;
 import io.github.sspanak.tt9.util.Logger;
 import io.github.sspanak.tt9.util.sys.SystemSettings;
@@ -165,6 +166,7 @@ public class PreferencesActivity extends PremiumPreferencesActivity implements P
 			case ModeAbcScreen.NAME -> new ModeAbcScreen(this);
 			case SetupScreen.NAME -> new SetupScreen(this);
 			case UsageStatsScreen.NAME -> new UsageStatsScreen(this);
+			case VoiceInputScreen.NAME -> new VoiceInputScreen(this);
 			default -> new MainSettingsScreen(this);
 		};
 	}

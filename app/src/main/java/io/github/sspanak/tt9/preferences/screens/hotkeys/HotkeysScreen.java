@@ -55,6 +55,12 @@ public class HotkeysScreen extends BaseScreenFragment {
 		}
 
 		for (Command cmd : CommandCollection.getHotkeyCommands()) {
+			// The voice hotkey lives on the Voice input screen instead, next to the model manager, so
+			// that everything voice has exactly one home and one definition. See SID-57.
+			if (CmdVoiceInput.ID.equals(cmd.getId())) {
+				continue;
+			}
+
 			Preference old = cmd.getId() != null ? findPreference(cmd.getId()) : null;
 			if (old instanceof PreferenceHotkey) {
 				hotkeys.put(cmd.getId(), (PreferenceHotkey) old);
@@ -63,7 +69,6 @@ public class HotkeysScreen extends BaseScreenFragment {
 
 			PreferenceHotkey hotkeyItem = switch (cmd.getId()) {
 				case CmdBackspace.ID -> new PreferenceBackspaceHotkey(activity, activity.getSettings(), cmd);
-				case CmdVoiceInput.ID -> new PreferenceVoiceInputHotkey(activity, activity.getSettings(), cmd);
 				default -> new PreferenceHotkey(activity, activity.getSettings(), cmd);
 			};
 

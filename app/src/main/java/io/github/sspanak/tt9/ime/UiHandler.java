@@ -1,8 +1,11 @@
 package io.github.sspanak.tt9.ime;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,8 +15,10 @@ import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.commands.CmdAddWord;
 import io.github.sspanak.tt9.commands.CmdNextLanguage;
 import io.github.sspanak.tt9.commands.CmdShowSettings;
+import io.github.sspanak.tt9.commands.CmdVoiceInput;
 import io.github.sspanak.tt9.hacks.AppHacks;
 import io.github.sspanak.tt9.ime.modes.InputMode;
+import io.github.sspanak.tt9.ime.voice.VoiceInputOps;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
 import io.github.sspanak.tt9.ui.StatusIcon;
@@ -37,6 +42,10 @@ abstract class UiHandler extends AbstractHandler {
 	protected boolean isMainViewShown = false;
 	protected MainView mainView = null;
 	protected StatusBar statusBar = null;
+
+	// Sidephone: the "listening" pulse on the tray mic button. Held so it can be cancelled — an
+	// infinite animator left running on a detached view keeps it alive.
+	@Nullable private ObjectAnimator voiceKeyPulse = null;
 
 	// Sidephone: on-screen Emoji | Symbols drawer, opened from the status-bar emoji button.
 	private final io.github.sspanak.tt9.ui.EmojiDrawer emojiDrawer = new io.github.sspanak.tt9.ui.EmojiDrawer();
@@ -136,9 +145,89 @@ abstract class UiHandler extends AbstractHandler {
 			languageKey.setOnClickListener(v -> {
 				new CmdNextLanguage().run((TraditionalT9) this);
 				refreshLanguageKey();
+				refreshVoiceKey();
 			});
 		}
 		refreshLanguageKey();
+
+		View voiceKey = view.findViewById(R.id.sidephone_voice_key);
+		if (voiceKey != null) {
+			voiceKey.setOnClickListener(v -> new CmdVoiceInput().run((TraditionalT9) this));
+		}
+		refreshVoiceKey();
+	}
+
+
+	/**
+	 * Shows the mic only for languages Vosk can actually transcribe, and swaps the icon while
+	 * listening so the button doubles as the stop control.
+	 * <p>
+	 * Hiding it for the rest is not cosmetic. The tray is ~376dp and the four other quick actions
+	 * already spend 176dp of it, so a fifth costs ~22% of the suggestion strip. Finnish, Norwegian and
+	 * Danish have no model and never will (docs/adr/0001), so their users would be paying that for a
+	 * button that could never do anything.
+	 * <p>
+	 * The test is "does a model exist for this language", never "is one downloaded" — the download is
+	 * triggered by pressing this very button, so gating on the disk state would hide the only way to
+	 * get one. See VoskModelCatalog.isSupported().
+	 */
+	protected void refreshVoiceKey() {
+		View view = mainView.getView();
+		if (view == null) {
+			return;
+		}
+
+		ImageView voiceKey = view.findViewById(R.id.sidephone_voice_key);
+		if (voiceKey == null) {
+			return;
+		}
+
+		Language language = getFinalContext().getLanguage();
+		boolean show = VoiceInputOps.isAvailable(language);
+		voiceKey.setVisibility(show ? View.VISIBLE : View.GONE);
+
+		if (!show) {
+			stopVoiceKeyPulse(voiceKey);
+			return;
+		}
+
+		CmdVoiceInput voiceInput = new CmdVoiceInput();
+		boolean active = voiceInput.isActive((TraditionalT9) this);
+		voiceKey.setImageResource(active ? voiceInput.getIconOff() : voiceInput.getIcon());
+
+		if (active) {
+			startVoiceKeyPulse(voiceKey);
+		} else {
+			stopVoiceKeyPulse(voiceKey);
+		}
+	}
+
+
+	/**
+	 * Pulses the mic while listening. Vosk exposes no amplitude — its RecognitionListener has no
+	 * equivalent of the platform recognizer's onRmsChanged, and SpeechService keeps its AudioRecord
+	 * private — so this is a fixed pulse meaning "listening", not a level meter. The real feedback is
+	 * the partial text appearing live in the editor. See SID-56.
+	 */
+	private void startVoiceKeyPulse(@NonNull View voiceKey) {
+		if (voiceKeyPulse != null && voiceKeyPulse.isRunning()) {
+			return;
+		}
+
+		voiceKeyPulse = ObjectAnimator.ofFloat(voiceKey, View.ALPHA, 1f, 0.35f);
+		voiceKeyPulse.setDuration(600);
+		voiceKeyPulse.setRepeatMode(ValueAnimator.REVERSE);
+		voiceKeyPulse.setRepeatCount(ValueAnimator.INFINITE);
+		voiceKeyPulse.start();
+	}
+
+
+	private void stopVoiceKeyPulse(@NonNull View voiceKey) {
+		if (voiceKeyPulse != null) {
+			voiceKeyPulse.cancel();
+			voiceKeyPulse = null;
+		}
+		voiceKey.setAlpha(1f);
 	}
 
 

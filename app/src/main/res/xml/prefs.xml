@@ -33,6 +33,11 @@
 		app:title="@string/pref_category_keypad" />
 
 	<Preference
+		app:fragment="io.github.sspanak.tt9.preferences.VoiceInputScreen"
+		app:key="screen_voice_input"
+		app:title="@string/pref_voice_input" />
+
+	<Preference
 		app:key="screen_emoji_binds"
 		app:title="@string/pref_emoji_binds">
 		<intent

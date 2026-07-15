@@ -77,4 +77,23 @@
 		android:tint="?attr/colorKeyboardText"
 		android:contentDescription="@string/pref_emoji_binds" />
 
+	<!-- Sidephone quick action (far right): offline voice input. This is the ONLY way to reach voice on
+	     the SP-01 — the Tray layout renders no soft keys, so SoftKeyVoiceInput never appears, and the
+	     voice hotkey is unassigned by default. Starts hidden and is shown by StatusBar.refreshVoiceKey()
+	     only for languages that have a Vosk model, so Finnish keeps the full suggestion width. See SID-56. -->
+	<ImageButton
+		android:id="@+id/sidephone_voice_key"
+		android:layout_width="44dp"
+		android:layout_height="34dp"
+		android:paddingStart="12dp"
+		android:paddingEnd="12dp"
+		android:paddingTop="7dp"
+		android:paddingBottom="7dp"
+		android:scaleType="fitCenter"
+		android:src="@drawable/ic_fn_voice"
+		android:background="?android:attr/selectableItemBackgroundBorderless"
+		android:tint="?attr/colorKeyboardText"
+		android:visibility="gone"
+		android:contentDescription="@string/function_voice_input" />
+
 </LinearLayout>

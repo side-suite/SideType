@@ -178,13 +178,8 @@
 	<string name="virtual_key_space_korean">Spazio</string>
 	<string name="voice_input_listening">Parli</string>
 	<string name="voice_input_mic_permission_is_needed">Devi concedere l\'autorizzazione al microfono per utilizzare l\'input vocale.</string>
-	<string name="voice_input_error_incompatible_voice_service">Assistente vocale incompatibile</string>
 	<string name="voice_input_error_generic">Errore di input vocale</string>
 	<string name="voice_input_error_no_permissions">Nessuna autorizzazione per il microfono</string>
-	<string name="voice_input_error_language_not_supported">Lingua non supportata</string>
-	<string name="voice_input_error_language_missing">Lingua mancante sul dispositivo</string>
-	<string name="voice_input_error_network_failed">Connessione di rete fallita</string>
-	<string name="voice_input_error_no_network">Nessuna connessione Internet</string>
 	<string name="voice_input_error_not_available">L\'input vocale non è disponibile</string>
 	<string name="voice_input_stopping">Spegnimento del microfono…</string>
 	<string name="pref_haptic_feedback">Vibrazione</string>

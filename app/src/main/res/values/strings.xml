@@ -379,7 +379,28 @@
 	<string name="voice_input_error_no_model_for_language">No voice model for this language</string>
 	<string name="voice_input_error_model_not_downloaded">Voice model not downloaded</string>
 	<string name="voice_input_error_model_download_failed">Voice model download failed</string>
+	<string name="voice_input_error_model_corrupted">Voice model was damaged in transit</string>
 	<string name="voice_input_error_model_load_failed">Could not load the voice model</string>
+
+	<!-- SID-55: consent before a ~40 MB download. %1$s is the language, %2$s the real size from the
+	     pinned catalog (e.g. "42.8 MB") — never a hard-coded number. -->
+	<string name="voice_model_download_title">Download voice model</string>
+	<string name="voice_model_download_message">Voice input for %1$s needs a %2$s download. It runs entirely on your phone afterwards — nothing you say is sent anywhere.</string>
+	<string name="voice_model_download_confirm">Download</string>
+	<string name="voice_model_downloading">Downloading %1$s voice model… %2$d%%</string>
+	<string name="voice_model_unpacking">Installing %1$s voice model…</string>
+
+	<!-- SID-57: Settings > Voice input. Sizes are always formatted from the pinned catalog. -->
+	<string name="pref_voice_input">Voice input</string>
+	<string name="pref_voice_hotkey">Hotkey</string>
+	<string name="pref_voice_models">Models</string>
+	<string name="pref_voice_models_summary">Voice input works offline. Each language needs a one-off download, and nothing you say leaves the phone.</string>
+	<string name="voice_model_state_downloaded">Downloaded · %1$s · tap to delete</string>
+	<string name="voice_model_state_available">%1$s · tap to download</string>
+	<string name="voice_model_state_unsupported">No offline model available for this language</string>
+	<string name="voice_model_downloading_short">Downloading… %1$s%%</string>
+	<string name="voice_model_deleted">Deleted the %1$s voice model</string>
+	<string name="voice_model_ready">%1$s voice model ready</string>
 	<!-- Where the on-demand voice models are fetched from. %1$s is the model's zip filename, pinned in
 	     VoskModelCatalog. Mirrors R.string.dictionary_url. See docs/adr/0003. -->
 	<string name="vosk_model_url" translatable="false">https://alphacephei.com/vosk/models/%1$s</string>

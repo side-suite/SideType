@@ -59,11 +59,18 @@ Swedish fits) — the licences permit redistribution with attribution. The repo'
 `downloads/` directory is **not** an option: GitHub caps files at 100 MB, which
 Swedish alone exceeds.
 
-**Consent before any download**, via an Activity — an IME cannot show a dialog,
-and `RequestPermissionDialog` is the working precedent for exactly this. The
-first mic press prompts with the real size; subsequent presses go straight to
-listening. A Voice settings panel surfaces per-language size, state, download and
-delete.
+**Consent before any download.** The first mic press for a language prompts with
+the real size; subsequent presses go straight to listening. A Voice settings
+panel surfaces per-language size, state, download and delete — there, the tap on
+a row that already shows the size *is* the consent.
+
+The prompt is an ordinary IME-attached dialog (`PopupBuilder.showFromIme`), not
+an Activity. An earlier draft of this ADR specified an Activity on the reasoning
+that an IME cannot show a dialog. That is false — `AddWordDialog` and
+`ChangeLanguageDialog` both do, by borrowing the main view's window token.
+`RequestPermissionDialog` is an Activity because *requesting a runtime permission*
+requires one, which is an unrelated constraint. Staying a dialog keeps the input
+connection alive, so there is no composing-text round trip to get wrong.
 
 ## Consequences
 

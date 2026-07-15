@@ -134,7 +134,7 @@ public class StatusBar {
 			return;
 		}
 
-		for (int id : new int[]{R.id.sidephone_settings_key, R.id.sidephone_dict_key, R.id.sidephone_emoji_key}) {
+		for (int id : new int[]{R.id.sidephone_settings_key, R.id.sidephone_dict_key, R.id.sidephone_emoji_key, R.id.sidephone_voice_key}) {
 			final ImageView icon = root.findViewById(id);
 			if (icon != null) {
 				icon.setImageTintList(ColorStateList.valueOf(foreground));

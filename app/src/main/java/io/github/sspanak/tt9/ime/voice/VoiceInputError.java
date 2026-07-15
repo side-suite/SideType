@@ -19,6 +19,8 @@ public class VoiceInputError {
 	public final static int ERROR_MODEL_DOWNLOAD_FAILED = 106;
 	public final static int ERROR_MODEL_LOAD_FAILED = 107;
 	public final static int ERROR_MODEL_NOT_DOWNLOADED = 108;
+	/** The bytes arrived but are not what the catalog pinned. Not a network failure — see SID-54. */
+	public final static int ERROR_MODEL_CORRUPTED = 109;
 
 	public final int code;
 	public final String message;
@@ -80,6 +82,8 @@ public class VoiceInputError {
 				-> context.getString(R.string.voice_input_error_model_not_downloaded);
 			case ERROR_MODEL_DOWNLOAD_FAILED
 				-> context.getString(R.string.voice_input_error_model_download_failed);
+			case ERROR_MODEL_CORRUPTED
+				-> context.getString(R.string.voice_input_error_model_corrupted);
 			case ERROR_MODEL_LOAD_FAILED
 				-> context.getString(R.string.voice_input_error_model_load_failed);
 			default -> context.getString(R.string.voice_input_error_generic);
@@ -112,6 +116,7 @@ public class VoiceInputError {
 			case ERROR_NO_MODEL_FOR_LANGUAGE -> "No voice model exists for this language.";
 			case ERROR_MODEL_NOT_DOWNLOADED -> "The voice model for this language has not been downloaded.";
 			case ERROR_MODEL_DOWNLOAD_FAILED -> "Voice model download failed.";
+			case ERROR_MODEL_CORRUPTED -> "Voice model failed its size/md5 check and was discarded.";
 			case ERROR_MODEL_LOAD_FAILED -> "Could not load the voice model. If this is a release build, suspect the R8 keep rules for org.vosk/com.sun.jna.";
 			default -> null;
 		};

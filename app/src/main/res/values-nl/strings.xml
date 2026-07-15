@@ -179,13 +179,8 @@
 	<string name="virtual_key_space_korean">Spatie</string>
 	<string name="voice_input_listening">Spreek</string>
 	<string name="voice_input_mic_permission_is_needed">U moet de microfoon toestemming geven om spraakopvoer te gebruiken.</string>
-	<string name="voice_input_error_incompatible_voice_service">Onverenigbare spraakassistent</string>
 	<string name="voice_input_error_generic">Fout bij spraakopvoer</string>
 	<string name="voice_input_error_no_permissions">Geen microfoontoestemming</string>
-	<string name="voice_input_error_language_not_supported">Taal niet ondersteund</string>
-	<string name="voice_input_error_language_missing">Taal ontbreekt op het apparaat</string>
-	<string name="voice_input_error_network_failed">Netwerkverbinding mislukt</string>
-	<string name="voice_input_error_no_network">Geen internetverbinding</string>
 	<string name="voice_input_error_not_available">Spraakopvoer is niet beschikbaar</string>
 	<string name="voice_input_stopping">Microfoon uitschakelen…</string>
 	<string name="pref_haptic_feedback">Trilling</string>

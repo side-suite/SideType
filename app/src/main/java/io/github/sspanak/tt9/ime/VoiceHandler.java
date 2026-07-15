@@ -11,7 +11,9 @@ import io.github.sspanak.tt9.ime.modes.helpers.AutoTextCase;
 import io.github.sspanak.tt9.ime.modes.helpers.Sequences;
 import io.github.sspanak.tt9.ime.voice.VoiceInputError;
 import io.github.sspanak.tt9.ime.voice.VoiceInputOps;
+import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.ui.dialogs.RequestPermissionDialog;
+import io.github.sspanak.tt9.ui.dialogs.VoiceModelDownloadDialog;
 import io.github.sspanak.tt9.util.Logger;
 import io.github.sspanak.tt9.util.Ternary;
 
@@ -76,17 +78,56 @@ abstract class VoiceHandler extends SuggestionHandler {
 
 
 	public void toggleVoiceInput() {
-		if (voiceInputOps.isListening() || !VoiceInputOps.isAvailable(mLanguage)) {
+		if (voiceInputOps.isListening() || voiceInputOps.isDownloadingModel() || !VoiceInputOps.isAvailable(mLanguage)) {
 			stopVoiceInput();
 			return;
 		}
 
+		// The model arrives on demand and is tens of megabytes, so the first press for a language asks
+		// before fetching anything. Consent is a dialog, not an Activity, so the input connection and
+		// the composing text survive it untouched. See VoiceModelDownloadDialog.
+		if (VoiceModelDownloadDialog.showIfModelMissing((TraditionalT9) this, mLanguage)) {
+			return;
+		}
+
+		startListening();
+	}
+
+
+	private void startListening() {
 		statusBar.setText(R.string.loading);
 		suggestionOps.cancelDelayedAccept();
 		mInputMode.onAcceptSuggestion(suggestionOps.acceptIncomplete());
 		autoTextCase = new AutoTextCase(settings, new Sequences(), inputType);
 		beforeSpeech = textField.getStringBeforeCursor();
 		voiceInputOps.listen(mLanguage);
+	}
+
+
+	/**
+	 * Downloads the model the user just consented to, then starts listening. Progress goes to the
+	 * status bar — the tray is the only surface guaranteed to be on screen throughout.
+	 */
+	public void downloadVoiceModelAndListen(@NonNull Language language) {
+		statusBar.setText(getString(R.string.voice_model_downloading, language.getName(), 0));
+
+		voiceInputOps.downloadModel(
+			language,
+			() -> {
+				// Only start listening if the user is still on the language they consented for.
+				if (language.equals(mLanguage)) {
+					startListening();
+				} else {
+					resetStatus();
+				}
+			},
+			percent -> statusBar.setText(
+				percent >= 100
+					? getString(R.string.voice_model_unpacking, language.getName())
+					: getString(R.string.voice_model_downloading, language.getName(), percent)
+			),
+			this::onVoiceInputError
+		);
 	}
 
 
@@ -102,6 +143,7 @@ abstract class VoiceHandler extends SuggestionHandler {
 		if (!mainView.isCommandPaletteShown()) {
 			mainView.render(); // disable the function keys
 		}
+		refreshVoiceKey(); // swap the tray mic to its "stop" icon
 		statusBar.setText(voiceInputOps);
 	}
 
@@ -118,6 +160,7 @@ abstract class VoiceHandler extends SuggestionHandler {
 	private void onVoiceInputStopped(String text) {
 		onText(autoCapitalize(text), false);
 		resetStatus();
+		refreshVoiceKey();
 		 if (!mainView.isCommandPaletteShown()) {
 			 mainView.render(); // re-enable the function keys
 		 }
@@ -144,6 +187,7 @@ abstract class VoiceHandler extends SuggestionHandler {
 			}
 		}
 
+		refreshVoiceKey();
 		 if (!mainView.isCommandPaletteShown()) {
 			 mainView.render(); // re-enable the function keys
 		 }

@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import io.github.sspanak.tt9.languages.Language;
@@ -40,6 +41,15 @@ public final class VoskModelCatalog {
 			this.unpackedDirName = unpackedDirName;
 			this.sizeBytes = sizeBytes;
 			this.md5 = md5;
+		}
+
+		/**
+		 * The size as shown to the user before they consent to the download, e.g. "42.8 MB". Derived
+		 * from the pinned byte count — never write a size literal anywhere else.
+		 */
+		@NonNull
+		public String getFormattedSize() {
+			return String.format(Locale.ROOT, "%.1f MB", sizeBytes / 1_000_000f);
 		}
 	}
 

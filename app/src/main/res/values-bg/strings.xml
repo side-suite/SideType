@@ -190,14 +190,9 @@
 	<string name="virtual_key_space_korean">Интервал</string>
 	<string name="voice_input_listening">Говорете</string>
 	<string name="voice_input_mic_permission_is_needed">Трябва да разрешите достъпа до микрофона, за да използвате гласовото въвеждане.</string>
-	<string name="voice_input_error_incompatible_voice_service">Несъвместим гласов асистент</string>
 	<string name="voice_input_error_generic">Неуспешно гласово въвеждане</string>
 	<string name="voice_input_error_no_permissions">Няма достъп до микрофона</string>
-	<string name="voice_input_error_language_not_supported">Езикът не се поддържа</string>
 	<string name="voice_input_error_not_available">Не е налично въвеждане с глас</string>
-	<string name="voice_input_error_no_network">Няма връзка с интернет</string>
-	<string name="voice_input_error_language_missing">Езикът липсва на устройството</string>
-	<string name="voice_input_error_network_failed">Проблем с мрежовата връзка</string>
 	<string name="voice_input_stopping">Изключване на микрофона…</string>
 	<string name="pref_haptic_feedback_summary">Вибрация при натискане на виртуален клавиш. (Не е възможно на всички устройства)</string>
 	<string name="pref_haptic_feedback">Вибрация</string>

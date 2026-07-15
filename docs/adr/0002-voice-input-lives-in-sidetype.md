@@ -36,10 +36,11 @@ new release pipeline, an Obtainium entry, an IPC boundary, and a
 `RecognitionService` written from scratch (the spike had none). SideType targets
 one device; it does not need to serve other keyboards.
 
-The consent prompt also failed to distinguish the options. A ~40 MB download
-needs explicit consent, and **an IME cannot show a dialog** — the existing
-`RequestPermissionDialog` is an `AppCompatActivity` launched by Intent. A bound
-`RecognitionService` is *worse* placed to prompt than SideType is.
+The consent prompt cuts the same way. A ~40 MB download needs explicit consent,
+and SideType can ask for it directly: `PopupBuilder.showFromIme` attaches a
+dialog to the IME's own window token, as `AddWordDialog` already does. A
+`RecognitionService` bound from another process has no such window, so it could
+only prompt by throwing an Activity over whatever app the user is typing in.
 
 ## Decision
 

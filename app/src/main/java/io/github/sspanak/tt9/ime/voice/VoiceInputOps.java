@@ -83,6 +83,46 @@ public class VoiceInputOps {
 	}
 
 
+	/** Whether the model for this language is downloaded and usable. */
+	public boolean isModelReady(@Nullable Language language) {
+		VoskModelCatalog.Entry model = VoskModelCatalog.getModel(language);
+		return model != null && modelManager.isModelReady(model);
+	}
+
+
+	public boolean isDownloadingModel() {
+		return modelManager.isDownloading();
+	}
+
+
+	/**
+	 * Downloads, verifies and unpacks the model for this language. <b>Callers must have obtained the
+	 * user's explicit consent first</b> — this is tens of megabytes and must never be triggered by a
+	 * keypress alone. {@code onProgress} receives 0..100.
+	 */
+	public void downloadModel(
+		@Nullable Language language,
+		@NonNull Runnable onReady,
+		@Nullable Consumer<Integer> onProgress,
+		@NonNull Consumer<VoiceInputError> onError
+	) {
+		VoskModelCatalog.Entry model = VoskModelCatalog.getModel(language);
+		if (model == null) {
+			onError.accept(new VoiceInputError(ims, VoiceInputError.ERROR_NO_MODEL_FOR_LANGUAGE));
+			return;
+		}
+
+		modelManager.ensureModel(model, onReady, onProgress, code -> onError.accept(new VoiceInputError(ims, code)));
+	}
+
+
+	/** Deletes the downloaded model for this language, freeing its tens of megabytes. */
+	public boolean deleteModel(@Nullable Language language) {
+		VoskModelCatalog.Entry model = VoskModelCatalog.getModel(language);
+		return model != null && modelManager.deleteModel(model);
+	}
+
+
 	public void listen(@Nullable Language language) {
 		this.language = language;
 

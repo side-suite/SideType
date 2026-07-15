@@ -194,13 +194,8 @@
 	<string name="virtual_key_space_korean">Espacio</string>
 	<string name="voice_input_listening">Hable</string>
 	<string name="voice_input_mic_permission_is_needed">Debe otorgar permiso al micrófono para usar la entrada de voz.</string>
-	<string name="voice_input_error_incompatible_voice_service">Asistente de voz incompatible</string>
 	<string name="voice_input_error_generic">Error de entrada de voz</string>
 	<string name="voice_input_error_no_permissions">Sin permiso para el micrófono</string>
-	<string name="voice_input_error_language_not_supported">Idioma no compatible</string>
-	<string name="voice_input_error_language_missing">Idioma ausente en el dispositivo</string>
-	<string name="voice_input_error_network_failed">Conexión de red fallida</string>
-	<string name="voice_input_error_no_network">Sin conexión a Internet</string>
 	<string name="voice_input_error_not_available">La entrada de voz no está disponible</string>
 	<string name="voice_input_stopping">Apagando el micrófono…</string>
 	<string name="pref_haptic_feedback">Vibración</string>
