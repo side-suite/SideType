@@ -25,6 +25,7 @@ produce.
 - [How the typing works (the important idea)](#-how-the-typing-works-the-important-idea)
 - [The keys, explained](#-the-keys-explained)
 - [Languages](#-languages)
+- [Voice input](#-voice-input)
 - [Install it](#-install-it)
 - [First-time setup](#-first-time-setup)
 - [Everyday tips](#-everyday-tips)
@@ -72,6 +73,9 @@ but in your language, with your accents, for free, and open for anyone to inspec
   on the nearest normal letter (see below).
 - **30+ languages**, switchable in the app — every Latin-script language TT9 supports. Finnish,
   Swedish, German, French, Spanish, Italian, Estonian, Polish, Turkish, Czech, Hungarian, and many more.
+- **Offline voice input.** Press 🎤 and talk. It runs entirely on the phone — nothing you say leaves
+  it, and it works with no signal. English (US/UK), German, French and Spanish; each needs a one-off
+  ~40 MB download you have to approve first. ([Not Finnish](#-voice-input) — see below.)
 - **Case control** — cycle a word between `abc`, `Abc`, and `ABC` with one key.
 - **Numbers & symbols** — press-and-hold any letter key for its number or symbol; a dedicated symbols
   page and an emoji page are one keypress away.
@@ -79,12 +83,13 @@ but in your language, with your accents, for free, and open for anyone to inspec
   instantly.
 - **A personal dictionary.** Teach it words it doesn't know (names, slang, brand names) and it
   remembers them.
-- **Completely private.** No tracking, no ads, no accounts, works fully offline. Nothing you type
-  ever leaves the phone.
+- **Completely private.** No tracking, no ads, no accounts, works fully offline. Nothing you type —
+  or say — ever leaves the phone. The only thing SideType ever downloads is a dictionary or a voice
+  model, and only when you ask it to.
 
-<!-- SCREENSHOT STUB: the on-screen suggestion strip with the "+" (add word) and 🙂 (emoji) buttons.
-     Save as screenshots/sidephone/status-bar.png -->
-<p align="center"><img src="screenshots/sidephone/status-bar.png" alt="SideType's on-screen strip: settings, add-word, current language, language switcher, emoji" width="440"></p>
+<!-- SCREENSHOT STUB: the on-screen suggestion strip with the 🙂 (emoji), "+" (add word), language
+     chip and 🎤 (voice) buttons. Save as screenshots/sidephone/status-bar.png -->
+<p align="center"><img src="screenshots/sidephone/status-bar.png" alt="SideType's on-screen strip: emoji, add-word, suggestions, language switcher, voice" width="440"></p>
 
 ---
 
@@ -192,7 +197,43 @@ bespoke layout) aren't converted yet, so they don't appear in the list. The dict
 ready — each just needs a key layout drawn up. Contributions very welcome.
 
 You switch languages right from the keyboard: enable several, then tap the language chip (`EN` / `FI` …)
-on the on-screen strip to hop between them.
+on the on-screen strip to hop between them. **Long-press that same chip to open Settings.**
+
+---
+
+## 🎤 Voice input
+
+Press 🎤 on the on-screen strip and talk — words appear as you speak. It runs **entirely on the
+phone**: nothing you say is uploaded, there's no account, and it works in a tunnel. It's powered by
+[Vosk](https://alphacephei.com/vosk/), an open-source speech engine.
+
+Each language needs a **one-off voice model** (~40 MB), downloaded only after you approve it — the
+real size is shown before anything is fetched. Manage them under **Settings → Voice input**: download,
+see what's on disk, delete what you don't want.
+
+| Language | Voice model |
+| --- | --- |
+| English (US) | ✅ 41 MB |
+| English (UK) | ✅ 43 MB |
+| German | ✅ 46 MB |
+| French | ✅ 42 MB |
+| Spanish | ✅ 40 MB |
+| **Finnish, Norwegian, Danish** | ❌ **not possible** — no model exists |
+| Swedish | ⏳ on hold — see below |
+
+> ⚠️ **Finnish has no voice input, and this isn't something I can fix.** Vosk publishes no Finnish
+> model at any size. I looked hard at the alternatives — Whisper, Parakeet, Meta's Omnilingual ASR —
+> and they all cover Finnish but need far more phone than the SP-01 has: the one I measured took
+> **15 seconds to load and 783 MB of RAM** on this hardware. It's genuinely painful, since I write
+> Finnish every day and it's why SideType exists at all. The realistic path is a second engine later.
+> The full reasoning, with measurements, is in [`docs/adr/0001`](docs/adr/0001-on-device-asr-engine.md).
+>
+> **Swedish** is on hold rather than ruled out: its only model is **303 MB** — seven times the others —
+> with accuracy its authors list as "TBD". It needs testing on real hardware before I ship a download
+> that big.
+
+The mic button only appears for languages that have a model, so it won't take up space on the strip
+if you type Finnish.
 
 ---
 
@@ -232,15 +273,17 @@ The first time you use SideType:
 
 1. **Pick your language** and let it load the dictionary. (You'll see a short "Loading…" message the
    first time a language is used — it's preparing the word list. This only happens once per language.)
-2. **Enable a second language** (optional) if you write in more than one — a small **language chip**
-   (e.g. `EN` / `FI`) then appears on the on-screen strip.
+2. **Enable a second language** (optional) if you write in more than one — the **language chip**
+   (e.g. `EN` / `FI`) on the on-screen strip then switches between them.
 3. **Start typing.** Tap the keys for your word and watch the suggestion bar.
 4. Learn the handy buttons on the on-screen strip:
-   - **⚙** (far left) — open SideType settings.
+   - **🙂** (far left) — open the emoji screen, where you can also **pin emoji to keys**.
    - **+** (left) — add the word you just typed to your personal dictionary, or type in a brand-new
      word to teach it.
-   - **EN / FI …** (right, when 2+ languages are enabled) — **tap to switch writing language.**
-   - **🙂** (far right) — open the emoji screen, where you can also **pin emoji to keys**.
+   - **EN / FI …** (right) — **tap to switch writing language**, and **long-press to open
+     Settings.** (The old ⚙ button gave up its spot to the mic; this is where Settings lives now.)
+   - **🎤** (far right) — **offline voice input**: press and talk. Only appears for languages that
+     have a voice model.
 
 <!-- SCREENSHOT STUB: settings screen where a language is selected/loaded.
      Save as screenshots/sidephone/language-setup.png -->
@@ -353,8 +396,10 @@ and [`M1-DESIGN.md`](docs/sidephone/M1-DESIGN.md).
 
 ## 📝 What's new
 
-The latest release is **v1.1** — an emoji & symbol drawer, bindable symbol keys, and a download
-that's ~7× smaller (219 MB → 32 MB) with languages fetched on demand. Full history in
+The latest release is **v2.0** — **offline voice input** (press 🎤 and talk; nothing leaves the
+phone), a **British English** dictionary, contractions that type naturally (`thats` → *that's*), and a
+rearranged on-screen strip. ⚠️ **This release is arm64-only** — fine for the SP-01, but it won't
+install on 32-bit devices any more; v1.1.1 is the last version that will. Full history in
 [`CHANGELOG.md`](CHANGELOG.md); signed APKs on the
 [Releases page](https://github.com/oliverpalonkorp/SideType/releases).
 
@@ -387,6 +432,16 @@ SideType stands entirely on the shoulders of **[Traditional T9](https://github.c
 [original Traditional T9](https://github.com/Clam-/TraditionalT9) by Clam-. All of the prediction
 engine, the language dictionaries, and the keyboard framework are their work. SideType only adapts it
 to the Sidephone Compact QWERTY tile. **Huge thanks** to those projects and their contributors.
+
+Voice input is powered by **[Vosk](https://alphacephei.com/vosk/)** (Apache-2.0) by Alpha Cephei —
+the speech engine and the acoustic models both. The models are downloaded from
+[alphacephei.com](https://alphacephei.com/vosk/models) and stay under their own licences (Apache-2.0
+for the English, German, French and Spanish small models). SideType doesn't redistribute them; it
+fetches the exact published file and checks its md5 before use.
+
+The British spellings in **English (UK)** are paired using
+**[VarCon](http://wordlist.aspell.net/varcon/)** by Kevin Atkinson, the variant dataset that
+accompanies SCOWL — the same source the English word list came from.
 
 If you want to improve the underlying engine, dictionaries, or add words to a language, the upstream
 [Traditional T9 contribution guide](CONTRIBUTING.md) is the place — improvements there flow back to

@@ -5,6 +5,65 @@ Notable changes to SideType. SideType is a fork of
 Compact QWERTY tile. Versions follow the signed APKs on the
 [Releases page](https://github.com/oliverpalonkorp/SideType/releases).
 
+## [2.0] — 2026-07-15
+
+### Added
+- **Offline voice input.** Press the 🎤 on the on-screen strip and talk — words
+  appear as you speak. It runs entirely on the phone: **nothing you say is sent
+  anywhere**, and it works with no signal at all. Powered by
+  [Vosk](https://alphacephei.com/vosk/) (Apache-2.0).
+
+  Each language needs a one-off **~40 MB voice model**, downloaded only after you
+  say yes, with the real size shown up front. Manage them under **Settings →
+  Voice input** — download, see what's on disk, delete what you don't want.
+
+  Available for **English (US), English (UK), German, French and Spanish.**
+  **Finnish, Norwegian and Danish are not supported** — Vosk publishes no model
+  for them at any size, so there is nothing to ship. This is a real limitation,
+  not an oversight; see `docs/adr/0001-on-device-asr-engine.md`. Swedish is on
+  hold: its only model is 303 MB, seven times the others, with accuracy its
+  authors haven't measured.
+- **English (UK) dictionary.** Selectable alongside English, with British
+  spellings ranked above their American twins, so mid-word prediction offers
+  *colour*, *organise* and *centre* instead of quietly steering you American.
+  American spellings still resolve as fallbacks. Marked `[beta]`.
+- **Contractions type naturally.** Type `thats`, `dont`, `youre` and get
+  *that's*, *don't*, *you're*. The apostrophe is now transparent to prediction,
+  so you no longer need the hold-L detour. Holding L still types a literal `'`
+  when you want one.
+- **Manage added words** is now a top-level Settings entry, grouped by language,
+  with a per-language **+** to add a word without leaving the screen.
+
+### Changed
+- **The keyboard is now arm64-only.** ⚠️ **Breaking.** This is what keeps the
+  voice engine's native libraries from tripling the download — one architecture
+  costs ~9 MB, all four cost ~35 MB. The SP-01 is arm64, so nothing changes for
+  it, but SideType will **no longer install on 32-bit devices**. If you were
+  running it on some other phone, 1.1.1 is the last version that will fit.
+- **Download is ~44 MB**, up from ~32 MB — the voice engine's cost. The voice
+  *models* are not bundled and never will be; they arrive only if you ask.
+- **The on-screen strip has been rearranged** to make room for 🎤 without
+  squeezing your suggestions. Emoji moved to the far left, and **the gear is
+  gone — long-press the language chip (`EN` / `FI`) to open Settings.** The
+  language chip now always shows, even with one language enabled. Suggestions
+  keep exactly as much room as they had before voice existed.
+- **The voice hotkey stays unbound** by default; every physical key on the tile
+  already does something. Bind one under Settings → Voice input if you want it.
+
+### Removed
+- **The old cloud/Google voice path.** SideType used to be a thin wrapper around
+  whatever speech service the phone provided — which, on the SP-01's minimal
+  AOSP, is none, so the feature silently did nothing. It's replaced wholesale by
+  the offline engine above. Voice input is now on-device or not at all.
+
+### Fixed
+- **Typing certain words could wipe the whole field.** On English, a word whose
+  prefix was itself a dictionary word (the original report: typing `Cla` in a
+  search box) could clear everything you'd typed. A stem was left pointing at a
+  row that was never added, so the keyboard committed an empty string over your
+  text. Inherited from upstream TT9.
+- Suggestions are now ordered by how many keys you actually pressed.
+
 ## [1.1.1] — 2026-07-10
 
 ### Fixed
