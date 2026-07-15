@@ -12,7 +12,7 @@ import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.preferences.PreferencesActivity;
 import io.github.sspanak.tt9.preferences.screens.BaseScreenFragment;
-import io.github.sspanak.tt9.preferences.screens.hotkeys.PreferenceVoiceInputHotkey;
+import io.github.sspanak.tt9.preferences.screens.hotkeys.PreferenceHotkey;
 import io.github.sspanak.tt9.util.Logger;
 
 /**
@@ -62,6 +62,16 @@ public class VoiceInputScreen extends BaseScreenFragment {
 		}
 	}
 
+	/**
+	 * The hotkey row is added only when at least one enabled language has a model — binding a key to
+	 * something that can never fire is worse than not offering it.
+	 * <p>
+	 * That decision is made <b>here</b>, not inside a Preference subclass that overrides populate().
+	 * PreferenceHotkey's constructor calls populate(), so an override reading a subclass field runs
+	 * before that field is assigned and dereferences null. A PreferenceVoiceInputHotkey doing exactly
+	 * that crashed this screen on open; the class is gone rather than patched, since the screen was
+	 * always the better place to ask the question.
+	 */
 	private void createHotkey() {
 		if (activity == null) {
 			return;
@@ -74,12 +84,26 @@ public class VoiceInputScreen extends BaseScreenFragment {
 		}
 
 		Command voiceInput = CommandCollection.getById(CommandCollection.COLLECTION_HOTKEYS, CmdVoiceInput.ID);
-		if (voiceInput == null) {
+		if (voiceInput == null || !isVoiceInputPossible()) {
+			category.setVisible(false);
 			return;
 		}
 
-		PreferenceVoiceInputHotkey hotkey = new PreferenceVoiceInputHotkey(activity, activity.getSettings(), voiceInput);
-		category.addPreference(hotkey);
-		hotkey.populate();
+		category.addPreference(new PreferenceHotkey(activity, activity.getSettings(), voiceInput));
+	}
+
+
+	/** Whether any enabled language has a model at all. Asks the catalog, never the disk. */
+	private boolean isVoiceInputPossible() {
+		if (activity == null) {
+			return false;
+		}
+
+		for (int languageId : activity.getSettings().getEnabledLanguageIds()) {
+			if (VoiceInputOps.isAvailable(LanguageCollection.getLanguage(languageId))) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

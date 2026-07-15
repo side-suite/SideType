@@ -83,6 +83,13 @@ abstract class VoiceHandler extends SuggestionHandler {
 			return;
 		}
 
+		// Commit the word in progress and clear the tray BEFORE anything else, including the consent
+		// prompt. The status bar only renders while the suggestion list is empty
+		// (SuggestionOps.setVisibility -> statusBar.setShown), so a download that starts with
+		// suggestions still on screen writes its progress into a hidden view and looks like nothing
+		// is happening.
+		prepareForSpeech();
+
 		// The model arrives on demand and is tens of megabytes, so the first press for a language asks
 		// before fetching anything. Consent is a dialog, not an Activity, so the input connection and
 		// the composing text survive it untouched. See VoiceModelDownloadDialog.
@@ -94,12 +101,21 @@ abstract class VoiceHandler extends SuggestionHandler {
 	}
 
 
-	private void startListening() {
-		statusBar.setText(R.string.loading);
+	/**
+	 * Accepts the in-progress word and captures the surrounding text for auto-casing. Pressing the mic
+	 * already means "I am done typing this word", so this is the same commit the old flow did — it
+	 * just happens before the consent prompt now, rather than after.
+	 */
+	private void prepareForSpeech() {
 		suggestionOps.cancelDelayedAccept();
 		mInputMode.onAcceptSuggestion(suggestionOps.acceptIncomplete());
 		autoTextCase = new AutoTextCase(settings, new Sequences(), inputType);
 		beforeSpeech = textField.getStringBeforeCursor();
+	}
+
+
+	private void startListening() {
+		statusBar.setText(R.string.loading);
 		voiceInputOps.listen(mLanguage);
 	}
 

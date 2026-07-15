@@ -125,11 +125,6 @@ abstract class UiHandler extends AbstractHandler {
 			return;
 		}
 
-		View settingsKey = view.findViewById(R.id.sidephone_settings_key);
-		if (settingsKey != null) {
-			settingsKey.setOnClickListener(v -> new CmdShowSettings().run((TraditionalT9) this));
-		}
-
 		View dictKey = view.findViewById(R.id.sidephone_dict_key);
 		if (dictKey != null) {
 			dictKey.setOnClickListener(v -> new CmdAddWord().run((TraditionalT9) this));
@@ -140,12 +135,20 @@ abstract class UiHandler extends AbstractHandler {
 			emojiKey.setOnClickListener(v -> toggleEmojiDrawer());
 		}
 
+		// The language chip is also the Settings affordance: tap cycles the language, long-press opens
+		// Settings. The dedicated gear button was dropped when the voice mic arrived — five 44dp
+		// buttons left only 156dp of a 376dp tray for suggestions, and Settings is the one action
+		// nobody needs mid-sentence.
 		View languageKey = view.findViewById(R.id.sidephone_language_key);
 		if (languageKey != null) {
 			languageKey.setOnClickListener(v -> {
 				new CmdNextLanguage().run((TraditionalT9) this);
 				refreshLanguageKey();
 				refreshVoiceKey();
+			});
+			languageKey.setOnLongClickListener(v -> {
+				new CmdShowSettings().run((TraditionalT9) this);
+				return true;
 			});
 		}
 		refreshLanguageKey();
@@ -281,10 +284,13 @@ abstract class UiHandler extends AbstractHandler {
 			return;
 		}
 
+		// Shown whenever there is a language at all, even if it is the only one. It used to hide unless
+		// two or more were enabled, but it now carries the long-press to Settings — and a settings
+		// affordance that disappears for single-language users is no affordance. Tapping it simply does
+		// nothing when there is nowhere to cycle to.
 		Language language = getFinalContext().getLanguage();
-		boolean show = language != null && settings.getEnabledLanguageIds().size() > 1;
-		languageKey.setVisibility(show ? View.VISIBLE : View.GONE);
-		if (show) {
+		languageKey.setVisibility(language != null ? View.VISIBLE : View.GONE);
+		if (language != null) {
 			languageKey.setText(language.getCode().toUpperCase(language.getLocale()));
 		}
 	}
