@@ -1,5 +1,12 @@
 locale: en-GB
 dictionaryFile: en-GB-utf8.csv
+# en-GB inherits SID-6 on the same terms as `en` — see English.yml for what these two keys do.
+# The supplement is shared deliberately: contractions are not spelling variants, so VarCon never
+# rewrites them, and every plain twin the cap depends on (were/well/its/ill) carries an identical
+# frequency in both dictionaries. Without these keys en-GB silently loses contraction support and
+# keeps the leading-apostrophe fragments ('s, 'll, …) that the transparency filter drops from `en`.
+supplementFile: en-contractions.csv
+transparentChars: '
 ngramFile: en-ngrams.zip
 iconABC: ic_lang_latin
 iconT9: ic_lang_en

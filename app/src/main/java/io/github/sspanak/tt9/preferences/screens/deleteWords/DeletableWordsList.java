@@ -79,7 +79,7 @@ class DeletableWordsList {
 
 	private PreferencePlainText newPlainText() {
 		PreferencePlainText pref = new PreferencePlainText(screen.getContext());
-		pref.setLayoutResource(largeFont ? R.layout.pref_plain_text_large : R.layout.pref_plain_text);
+		pref.setLayoutResource(largeFont ? pref.getLargeLayout() : pref.getDefaultLayout());
 		return pref;
 	}
 
@@ -121,6 +121,10 @@ class DeletableWordsList {
 	}
 
 	void addWords(ArrayList<CustomWord> words) {
+		if (screen == null) {
+			return;
+		}
+
 		// group the (already word-sorted) results by language, then order the groups by language name
 		LinkedHashMap<NaturalLanguage, ArrayList<CustomWord>> byLanguage = new LinkedHashMap<>();
 		for (CustomWord word : words) {
