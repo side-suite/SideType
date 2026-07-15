@@ -1,8 +1,8 @@
 package io.github.sspanak.tt9.ui.tray;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -138,7 +138,13 @@ public class SuggestionsBar {
 			return;
 		}
 
-		separatorDrawable.setColorFilter(suggestionSeparatorColor, PorterDuff.Mode.SRC_ATOP);
+		// Tint rather than SRC_ATOP color-filter, so a translucent color keeps its alpha. SRC_ATOP takes
+		// its alpha from the destination, so a host divider like 38FBF8F2 (22% alpha) came out fully
+		// opaque and blended toward the old default color instead of reading as a faint rule. SRC_IN
+		// (the setTint default) multiplies the alphas, so the divider composites over the tray as sent.
+		// mutate() first: the drawable comes from a shared constant-state cache. See SID-17.
+		separatorDrawable = separatorDrawable.mutate();
+		separatorDrawable.setTintList(ColorStateList.valueOf(suggestionSeparatorColor));
 
 		DividerItemDecoration separator = new DividerItemDecoration(mView.getContext(), RecyclerView.HORIZONTAL);
 		separator.setDrawable(separatorDrawable);

@@ -372,13 +372,39 @@ public class ReadOps {
 
 		sql.append(" ORDER BY ");
 		if (orderByLength) {
-			sql.append("LENGTH(word), ");
+			sql.append("LENGTH(").append(typedLengthExpression(language)).append("), ");
 		}
 		sql.append("frequency DESC");
 
 		String wordsSql = sql.toString();
 		Logger.v(LOG_TAG, "Words SQL: " + wordsSql);
 		return wordsSql;
+	}
+
+
+	/**
+	 * The expression to measure a word by, for length ordering: the word with its transparent characters
+	 * removed, so it is measured in key presses rather than characters.
+	 * <p>
+	 * A transparent character (the apostrophe in English) is displayed but typed with no key of its own,
+	 * so counting it makes every contraction sort as if it were a key longer than it was. At sequence
+	 * "i,d" that put "I'd" (3 chars) behind "if" and "ID" (2 chars) despite all three being two key
+	 * presses. Languages without transparent characters produce plain LENGTH(word) and are unaffected.
+	 * See SID-6.
+	 */
+	@NonNull private String typedLengthExpression(@NonNull Language language) {
+		final String transparentChars = language.getTransparentChars();
+		StringBuilder expression = new StringBuilder("word");
+
+		for (int i = 0; i < transparentChars.length(); ) {
+			final int codePoint = transparentChars.codePointAt(i);
+			final String character = new String(Character.toChars(codePoint));
+			i += Character.charCount(codePoint);
+
+			expression.insert(0, "REPLACE(").append(", '").append(character.replace("'", "''")).append("', '')");
+		}
+
+		return expression.toString();
 	}
 
 

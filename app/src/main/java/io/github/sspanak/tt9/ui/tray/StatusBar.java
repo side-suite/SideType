@@ -1,15 +1,18 @@
 package io.github.sspanak.tt9.ui.tray;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.ime.modes.InputMode;
@@ -94,10 +97,11 @@ public class StatusBar {
 
 	public StatusBar setColorScheme() {
 		final HostTrayTheme host = HostTrayTheme.getInstance();
+		final int foreground = host.barForeground(settings.getKeyboardTextColor());
 
 		if (statusView != null) {
 			// SID-17: status text shares the tray foreground channel so it stays readable on a host tint.
-			statusView.setTextColor(host.barForeground(settings.getKeyboardTextColor()));
+			statusView.setTextColor(foreground);
 		}
 
 		// SID-17: when a trusted host supplies a tray background, tint the whole strip (quick-action icons
@@ -110,7 +114,56 @@ public class StatusBar {
 			trayContainer.setBackgroundColor(host.barBackground(Color.TRANSPARENT));
 		}
 
+		setQuickActionColors(foreground);
+		setTopSeparatorColor(host);
+
 		return this;
+	}
+
+
+	/**
+	 * The Sidephone quick actions (settings / add-word / language / emoji) declare
+	 * {@code ?attr/colorKeyboardText} in XML, which resolves once at inflation from the static theme.
+	 * Without this they stay at the theme color and read as white islands on a host tint, so re-apply
+	 * the tray foreground here on every color-scheme pass. Absent from the Classic/Numpad layouts —
+	 * hence the null checks. See SID-17.
+	 */
+	private void setQuickActionColors(int foreground) {
+		final View root = mainView.getView();
+		if (root == null) {
+			return;
+		}
+
+		for (int id : new int[]{R.id.sidephone_settings_key, R.id.sidephone_dict_key, R.id.sidephone_emoji_key}) {
+			final ImageView icon = root.findViewById(id);
+			if (icon != null) {
+				icon.setImageTintList(ColorStateList.valueOf(foreground));
+			}
+		}
+
+		final TextView languageKey = root.findViewById(R.id.sidephone_language_key);
+		if (languageKey != null) {
+			languageKey.setTextColor(foreground);
+		}
+	}
+
+
+	/**
+	 * The 1dp rule above the tray divides the keyboard from the app behind it. Under a host tint that
+	 * default-colored line reads as a hard seam across the host's surface, so blend it into the tray
+	 * background — the same reasoning that extends the tint onto the navigation bar below. With no host
+	 * override this resolves back to the static separator color. See SID-17.
+	 */
+	private void setTopSeparatorColor(@NonNull HostTrayTheme host) {
+		final View root = mainView.getView();
+		if (root == null) {
+			return;
+		}
+
+		final View separator = root.findViewById(R.id.keyboard_top_separator);
+		if (separator != null) {
+			separator.setBackgroundColor(host.barBackground(ContextCompat.getColor(separator.getContext(), R.color.keyboard_top_separator)));
+		}
 	}
 
 
