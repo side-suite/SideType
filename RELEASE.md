@@ -24,11 +24,33 @@ Version numbers are normally derived from git, but that is unreliable from a sha
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)   # JDK 21 required to run Gradle
 ./gradlew :app:assembleFullRelease \
-    -PreleaseVersionCode=1 \
-    -PreleaseVersionName=1.0
+    -PreleaseVersionCode=15 \
+    -PreleaseVersionName=2.1
 ```
 
-Start `versionCode` at `1` and bump it by one for every subsequent release (`2`, `3`, …).
+**Always pass both.** Neither derived default is usable for a release: `versionCode` derives from the
+commit count, and `versionName` derives from the *number of version tags* — so with v1.0/v1.1/v1.1.1/v2.0
+tagged, an unpinned build calls itself `4.x`.
+
+### The versionCode ledger
+
+The only hard rule is that `versionCode` **strictly increases** — Obtainible/F-Droid use it to detect
+"newer", and Android refuses to install a lower one over a higher one.
+
+| Release | versionCode |
+| --- | --- |
+| v1.0 | 1 |
+| v1.1 | 4 |
+| v1.1.1 | **5** |
+| v2.0 | **14** |
+
+**Why v2.0 jumped 5 → 14, not 5 → 6.** Release-candidate builds pinned `13` and were installed on the
+test SP-01. Shipping `6` would have been a downgrade on that device: Android would refuse the install,
+and the only way through is an uninstall — which wipes the dictionaries, settings and custom words.
+Dev builds that reach a real device consume numbers too. Pick the next value above **anything ever
+installed anywhere**, not merely above the last release.
+
+Next release: **15**.
 
 The signed APK lands in `app/build/outputs/apk/full/release/` (named `tt9-v<versionName>-full.apk`) with the
 version you passed. Upload it to a GitHub Release (tag e.g. `v1.0`).
