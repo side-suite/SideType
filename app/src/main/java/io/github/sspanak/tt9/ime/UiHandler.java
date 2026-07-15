@@ -20,6 +20,7 @@ import io.github.sspanak.tt9.hacks.AppHacks;
 import io.github.sspanak.tt9.ime.modes.InputMode;
 import io.github.sspanak.tt9.ime.voice.VoiceInputOps;
 import io.github.sspanak.tt9.languages.Language;
+import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
 import io.github.sspanak.tt9.ui.StatusIcon;
 import io.github.sspanak.tt9.ui.UI;
@@ -33,6 +34,9 @@ import io.github.sspanak.tt9.util.sys.SystemSettings;
 
 abstract class UiHandler extends AbstractHandler {
 	private final static String LOG_TAG = "UiHandler";
+
+	/** Resting alpha of a tray quick action that is present but cannot act right now. */
+	private final static float DISABLED_KEY_ALPHA = 0.35f;
 
 	@NonNull protected final AppHacks appHacks = new AppHacks();
 	@Nullable protected FoldDetector foldDetector = null;
@@ -162,17 +166,25 @@ abstract class UiHandler extends AbstractHandler {
 
 
 	/**
-	 * Shows the mic only for languages Vosk can actually transcribe, and swaps the icon while
-	 * listening so the button doubles as the stop control.
+	 * Decides whether the mic is on the strip at all, whether it is usable right now, and swaps its
+	 * icon while listening so the button doubles as the stop control.
 	 * <p>
-	 * Hiding it for the rest is not cosmetic. The tray is ~376dp and the four other quick actions
-	 * already spend 176dp of it, so a fifth costs ~22% of the suggestion strip. Finnish, Norwegian and
-	 * Danish have no model and never will (docs/adr/0001), so their users would be paying that for a
-	 * button that could never do anything.
+	 * The two questions are deliberately asked of different things:
+	 * <ul>
+	 *   <li><b>Visible</b> if <i>any enabled language</i> has a model. This is a property of the
+	 *       user's setup, not of the moment, so the button does not appear and disappear as they
+	 *       switch language — the strip would visibly reflow every time, since the suggestion
+	 *       container is weighted and swallows the freed 44dp.</li>
+	 *   <li><b>Enabled</b> only if the <i>current</i> language has one. On Finnish the mic greys out
+	 *       rather than vanishing.</li>
+	 * </ul>
+	 * A Finnish-only user therefore never sees it and keeps the full ~200dp of suggestions, while an
+	 * English+Finnish user gets a strip that never jumps. Nobody reserves space for a button their
+	 * setup can't use.
 	 * <p>
-	 * The test is "does a model exist for this language", never "is one downloaded" — the download is
-	 * triggered by pressing this very button, so gating on the disk state would hide the only way to
-	 * get one. See VoskModelCatalog.isSupported().
+	 * Both tests ask the catalog whether a model <i>exists</i>, never whether one is <i>downloaded</i>
+	 * — the download is triggered by pressing this very button, so gating on the disk state would hide
+	 * the only way to get one. See VoskModelCatalog.isSupported().
 	 */
 	protected void refreshVoiceKey() {
 		View view = mainView.getView();
@@ -185,24 +197,42 @@ abstract class UiHandler extends AbstractHandler {
 			return;
 		}
 
-		Language language = getFinalContext().getLanguage();
-		boolean show = VoiceInputOps.isAvailable(language);
-		voiceKey.setVisibility(show ? View.VISIBLE : View.GONE);
-
-		if (!show) {
+		if (!isVoiceInputPossibleForAnyLanguage()) {
+			voiceKey.setVisibility(View.GONE);
 			stopVoiceKeyPulse(voiceKey);
 			return;
 		}
 
+		voiceKey.setVisibility(View.VISIBLE);
+
+		// Greyed but still clickable on an unsupported language: setEnabled(false) would stop the click
+		// dispatching entirely, and a dead button that does nothing when pressed reads as a bug.
+		// toggleVoiceInput() answers the tap by saying why it can't listen.
+		final boolean usableNow = VoiceInputOps.isAvailable(getFinalContext().getLanguage());
+
 		CmdVoiceInput voiceInput = new CmdVoiceInput();
-		boolean active = voiceInput.isActive((TraditionalT9) this);
+		boolean active = usableNow && voiceInput.isActive((TraditionalT9) this);
 		voiceKey.setImageResource(active ? voiceInput.getIconOff() : voiceInput.getIcon());
 
+		// Order matters: the pulse animates alpha, so settle the animation first and only then set a
+		// resting alpha, or cancelling it would stamp 1f over the greyed-out state.
 		if (active) {
 			startVoiceKeyPulse(voiceKey);
 		} else {
 			stopVoiceKeyPulse(voiceKey);
+			voiceKey.setAlpha(usableNow ? 1f : DISABLED_KEY_ALPHA);
 		}
+	}
+
+
+	/** Whether any language the user has enabled has a voice model — see {@link #refreshVoiceKey}. */
+	private boolean isVoiceInputPossibleForAnyLanguage() {
+		for (int languageId : settings.getEnabledLanguageIds()) {
+			if (VoiceInputOps.isAvailable(LanguageCollection.getLanguage(languageId))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 
@@ -225,12 +255,13 @@ abstract class UiHandler extends AbstractHandler {
 	}
 
 
+	/** Cancels the pulse. The caller owns the resting alpha — see {@link #refreshVoiceKey}. */
 	private void stopVoiceKeyPulse(@NonNull View voiceKey) {
 		if (voiceKeyPulse != null) {
 			voiceKeyPulse.cancel();
 			voiceKeyPulse = null;
+			voiceKey.setAlpha(1f);
 		}
-		voiceKey.setAlpha(1f);
 	}
 
 

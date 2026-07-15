@@ -78,8 +78,17 @@ abstract class VoiceHandler extends SuggestionHandler {
 
 
 	public void toggleVoiceInput() {
-		if (voiceInputOps.isListening() || voiceInputOps.isDownloadingModel() || !VoiceInputOps.isAvailable(mLanguage)) {
+		if (voiceInputOps.isListening() || voiceInputOps.isDownloadingModel()) {
 			stopVoiceInput();
+			return;
+		}
+
+		if (!VoiceInputOps.isAvailable(mLanguage)) {
+			// The mic is on the strip because some other enabled language has a model, but this one has
+			// none and never will (docs/adr/0001). Say so — the button is deliberately greyed rather
+			// than hidden, to stop the strip reflowing on every language switch, so a silent no-op here
+			// would just look broken.
+			statusBar.setError(new VoiceInputError(this, VoiceInputError.ERROR_NO_MODEL_FOR_LANGUAGE).toString());
 			return;
 		}
 
