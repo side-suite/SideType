@@ -143,7 +143,11 @@ public class WordPredictions extends Predictions {
 		}
 
 		// App names lead; the dictionary/generated words follow, minus any the app names already cover.
-		containsGeneratedWords = true;
+		// Do not touch containsGeneratedWords here: an app name is a real word we looked up, not a letter
+		// variation we invented for a key that had no matches. Claiming otherwise makes the suggestion bar
+		// read the leading app name as one of a family of generated variations and split a "stem" off it
+		// (SuggestionsBar.setStem), which is both meaningless for app names and actively harmful — see the
+		// getRaw() fix in SuggestionsBar.
 		suggestMissingWords(dbWords, appNames);
 		return appNames;
 	}

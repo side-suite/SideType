@@ -320,9 +320,19 @@ public class SuggestionsBar {
 		}
 		stem = onlyOneContainsStem ? "" : stem;
 
-		if (!stem.isEmpty() && !newSuggestions.contains(stem)) {
-			visibleSuggestions.add(stem + STEM_SUFFIX);
-			selectedIndex++;
+		// A non-empty stem means "there is an extra stem row in front of the suggestions", and getRaw()
+		// subtracts one from every index to skip past it. So when we decline to add the row — because the
+		// stem is already a suggestion in its own right and a separate row would just duplicate it — the
+		// stem must be cleared as well. Leaving it set makes getRaw() shift off the front of the list and
+		// return "" for the selected suggestion, which is committed as empty composing text and wipes out
+		// whatever the user had typed.
+		if (!stem.isEmpty()) {
+			if (newSuggestions.contains(stem)) {
+				stem = "";
+			} else {
+				visibleSuggestions.add(stem + STEM_SUFFIX);
+				selectedIndex++;
+			}
 		}
 	}
 
