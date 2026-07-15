@@ -242,10 +242,24 @@ public class ReadOps {
 	}
 
 
+	/**
+	 * Returns a comma-separated list of row positions in the words table, for {@link #getWords} to filter
+	 * on. An empty result means "do not search" — {@link #getWords} short-circuits on it.
+	 * <p>
+	 * The "do not search" exits below must return an <em>empty</em> string, never the key sequence: a
+	 * sequence is not a position list. Upstream returned the sequence and survived it by luck, because
+	 * with only keys 0-9 a sequence is always digits, so {@code position IN(5)} is valid SQL that merely
+	 * matches an arbitrary row. The Compact QWERTY tile has 16 keys encoded as {@code '0' + key}, so keys
+	 * 10-15 become {@code : ; < = > ?} and the same line produces {@code position IN(=)} — a hard
+	 * SQLITE_ERROR that throws away every word for that keystroke. It fired on any lone press of J/K, L,
+	 * Z/X, C/V, B/N or M, and — via the cancellation exits, which are hit constantly because
+	 * DataStore.getWords cancels the in-flight query on every keystroke — on fast typing of any sequence
+	 * containing them.
+	 */
 	@NonNull
 	public String getWordPositions(@NonNull SQLiteDatabase db, @Nullable CancellationSignal cancel, @NonNull Language language, @NonNull String sequence, int generations, int minPositions, int maxPositions, String wordFilter) {
 		if ((sequence.length() == 1 && !language.isTranscribed()) || (cancel != null && cancel.isCanceled())) {
-			return sequence;
+			return "";
 		}
 
 		WordPositionsStringBuilder positions = new WordPositionsStringBuilder().setMaxFuzzy(maxPositions);
@@ -260,7 +274,7 @@ public class ReadOps {
 			positions.appendFromDbRanges(cursor);
 		} catch (OperationCanceledException ignored) {
 			Logger.d(LOG_TAG, "Word positions query cancelled!");
-			return sequence;
+			return "";
 		}
 
 		if (positions.getSize() < minPositions && generations < Integer.MAX_VALUE) {
@@ -269,7 +283,7 @@ public class ReadOps {
 				positions.appendFromDbRanges(cursor);
 			} catch (OperationCanceledException ignored) {
 				Logger.d(LOG_TAG, "Word positions query cancelled!");
-				return sequence;
+				return "";
 			}
 		}
 
