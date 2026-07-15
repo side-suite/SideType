@@ -68,7 +68,7 @@ abstract class VoiceHandler extends SuggestionHandler {
 
 
 	protected boolean navigateBack() {
-		if (!voiceInputOps.isListening()) {
+		if (!voiceInputOps.isBusy()) {
 			return false;
 		}
 
@@ -78,7 +78,9 @@ abstract class VoiceHandler extends SuggestionHandler {
 
 
 	public void toggleVoiceInput() {
-		if (voiceInputOps.isListening() || voiceInputOps.isDownloadingModel()) {
+		// isBusy(), not isListening(): a second press while the engine is still loading must stop it,
+		// not start another one on top.
+		if (voiceInputOps.isBusy() || voiceInputOps.isDownloadingModel()) {
 			stopVoiceInput();
 			return;
 		}
@@ -157,7 +159,7 @@ abstract class VoiceHandler extends SuggestionHandler {
 
 
 	public void stopVoiceInput() {
-		if (voiceInputOps.isListening()) {
+		if (voiceInputOps.isBusy()) {
 			statusBar.setText(R.string.voice_input_stopping);
 			voiceInputOps.stop();
 		}

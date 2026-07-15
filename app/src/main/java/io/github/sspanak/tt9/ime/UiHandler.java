@@ -197,7 +197,7 @@ abstract class UiHandler extends AbstractHandler {
 			return;
 		}
 
-		if (!isVoiceInputPossibleForAnyLanguage()) {
+		if (!VoiceInputOps.isAvailableForAny(settings.getEnabledLanguageIds())) {
 			voiceKey.setVisibility(View.GONE);
 			stopVoiceKeyPulse(voiceKey);
 			return;
@@ -222,17 +222,6 @@ abstract class UiHandler extends AbstractHandler {
 			stopVoiceKeyPulse(voiceKey);
 			voiceKey.setAlpha(usableNow ? 1f : DISABLED_KEY_ALPHA);
 		}
-	}
-
-
-	/** Whether any language the user has enabled has a voice model — see {@link #refreshVoiceKey}. */
-	private boolean isVoiceInputPossibleForAnyLanguage() {
-		for (int languageId : settings.getEnabledLanguageIds()) {
-			if (VoiceInputOps.isAvailable(LanguageCollection.getLanguage(languageId))) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 
@@ -301,8 +290,10 @@ abstract class UiHandler extends AbstractHandler {
 
 
 	/**
-	 * Updates the status-bar language chip to the current language's code (EN / FI / DE …). Hidden when
-	 * fewer than two languages are enabled, since there is then nothing to switch between.
+	 * Updates the status-bar language chip to the current language's code (EN / FI / DE …). Shown
+	 * whenever there is a language at all — it used to hide unless two or more were enabled, but it
+	 * now also carries the long-press to Settings, and an affordance that vanishes for
+	 * single-language users is no affordance.
 	 */
 	protected void refreshLanguageKey() {
 		View view = mainView.getView();

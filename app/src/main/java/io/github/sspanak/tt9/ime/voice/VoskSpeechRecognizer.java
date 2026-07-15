@@ -51,6 +51,13 @@ class VoskSpeechRecognizer implements RecognitionListener {
 	@Nullable private SpeechService speechService;
 	private boolean listening = false;
 
+	// Loading the model takes up to ~1s (docs/adr/0001), and until it finishes there is no
+	// SpeechService and nothing is listening yet. That gap needs its own state: without it, "not
+	// listening" is indistinguishable from "idle", so a stop() lands on nothing and a second press
+	// starts a second engine. Written on the main thread, read from the worker's post — hence volatile.
+	private volatile boolean starting = false;
+	private volatile boolean cancelled = false;
+
 	// Vosk emits an endpointed final segment (onResult) whenever it detects a pause, plus a trailing
 	// one on stop (onFinalResult). We accumulate those so multi-sentence dictation commits in full.
 	@NonNull private final StringBuilder finalizedText = new StringBuilder();
@@ -74,6 +81,16 @@ class VoskSpeechRecognizer implements RecognitionListener {
 	}
 
 	/**
+	 * Whether this recognizer owns the microphone <i>or is about to</i>. Callers deciding whether to
+	 * start another one, or whether a stop is meaningful, must ask this rather than
+	 * {@link #isListening()} — during the model load the answer to "are you listening" is honestly
+	 * "no", and acting on that starts a second engine over the top of this one.
+	 */
+	boolean isBusy() {
+		return starting || listening;
+	}
+
+	/**
 	 * Loads {@code modelDirPath} and begins listening. Safe to call on the main thread — the heavy
 	 * model load happens on a worker thread and recognition starts back on the main thread after.
 	 */
@@ -83,22 +100,39 @@ class VoskSpeechRecognizer implements RecognitionListener {
 			return;
 		}
 
-		if (listening) {
+		if (isBusy()) {
 			onError.accept(new VoiceInputError(context, SpeechRecognizer.ERROR_RECOGNIZER_BUSY));
 			return;
 		}
 
 		finalizedText.setLength(0);
+		starting = true;
+		cancelled = false;
 
 		new Thread(() -> {
 			try {
 				final Model loaded = new Model(modelDirPath);
 				final Recognizer recognizer = new Recognizer(loaded, VoskModelCatalog.SAMPLE_RATE);
+				// NB: SpeechService opens the AudioRecord in its constructor (hence the IOException), so
+				// from here on the mic is held even if startListening() is never called. Every path out
+				// of this method must release it.
 				final SpeechService service = new SpeechService(recognizer, VoskModelCatalog.SAMPLE_RATE);
 
 				mainHandler.post(() -> {
+					starting = false;
 					model = loaded;
 					speechService = service;
+
+					if (cancelled) {
+						// Stopped while the model was loading. Release the mic we just opened and report a
+						// clean stop with nothing to commit — the user asked for silence, so turning the
+						// microphone on now would be the opposite of what they pressed.
+						Logger.d(LOG_TAG, "Vosk start cancelled during model load; releasing the engine");
+						releaseEngine();
+						onStop.accept(null);
+						return;
+					}
+
 					boolean started = service.startListening(this);
 					if (started) {
 						listening = true;
@@ -115,13 +149,27 @@ class VoskSpeechRecognizer implements RecognitionListener {
 				// UnsatisfiedLinkError here almost always means R8 stripped or renamed the JNA classes
 				// Vosk resolves reflectively from native code. See proguard-rules.pro and docs/adr/0001.
 				Logger.e(LOG_TAG, "Failed to start Vosk recognition: " + e.getMessage());
-				mainHandler.post(() -> onError.accept(new VoiceInputError(context, VoiceInputError.ERROR_MODEL_LOAD_FAILED)));
+				mainHandler.post(() -> {
+					starting = false;
+					onError.accept(new VoiceInputError(context, VoiceInputError.ERROR_MODEL_LOAD_FAILED));
+				});
 			}
 		}, "vosk-recognition").start();
 	}
 
-	/** Ends the current utterance; Vosk responds with a final result via {@link #onFinalResult}. */
+	/**
+	 * Ends the current utterance; Vosk responds with a final result via {@link #onFinalResult}.
+	 * <p>
+	 * If the model is still loading there is nothing to stop yet, so this arms a cancel that the load
+	 * checks when it lands. Without that, the stop hits an engine that does not exist and the mic
+	 * switches on a moment later — after the user asked for it off.
+	 */
 	void stop() {
+		if (starting) {
+			cancelled = true;
+			return;
+		}
+
 		if (speechService != null && listening) {
 			speechService.stop();
 		}

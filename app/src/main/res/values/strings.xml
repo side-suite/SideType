@@ -380,6 +380,7 @@
 	<string name="voice_input_error_model_not_downloaded">Voice model not downloaded</string>
 	<string name="voice_input_error_model_download_failed">Voice model download failed</string>
 	<string name="voice_input_error_model_corrupted">Voice model was damaged in transit</string>
+	<string name="voice_input_error_model_download_in_progress">Already downloading that voice model</string>
 	<string name="voice_input_error_model_load_failed">Could not load the voice model</string>
 
 	<!-- SID-55: consent before a ~40 MB download. %1$s is the language, %2$s the real size from the

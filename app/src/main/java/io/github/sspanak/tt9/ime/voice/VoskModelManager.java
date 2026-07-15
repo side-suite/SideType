@@ -122,7 +122,9 @@ class VoskModelManager {
 			return;
 		}
 		if (downloading) {
-			onError.accept(VoiceInputError.ERROR_MODEL_DOWNLOAD_FAILED);
+			// Already running is not a failure. Reporting one would tell the user their download broke
+			// while it is in fact still going.
+			onError.accept(VoiceInputError.ERROR_MODEL_DOWNLOAD_IN_PROGRESS);
 			return;
 		}
 

@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 
 import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.languages.Language;
+import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.util.Logger;
 
 /**
@@ -65,8 +66,34 @@ public class VoiceInputOps {
 	}
 
 
+	/**
+	 * Whether <i>any</i> of the given languages has a model — i.e. whether voice input is worth
+	 * offering to this user at all, as opposed to right now. The tray uses it to decide if the mic
+	 * belongs on the strip, and the settings panel to decide if the hotkey is worth binding; both need
+	 * the same answer, so it lives here rather than being re-looped in each.
+	 */
+	public static boolean isAvailableForAny(@NonNull Iterable<Integer> languageIds) {
+		for (int languageId : languageIds) {
+			if (isAvailable(LanguageCollection.getLanguage(languageId))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 	public boolean isListening() {
 		return recognizer != null && recognizer.isListening();
+	}
+
+
+	/**
+	 * Whether voice input owns the microphone <i>or is about to</i> — true from the moment the engine
+	 * starts loading, not just once it is listening. Anything deciding "start or stop?" must ask this;
+	 * see {@link VoskSpeechRecognizer#isBusy()}.
+	 */
+	public boolean isBusy() {
+		return recognizer != null && recognizer.isBusy();
 	}
 
 
@@ -131,7 +158,9 @@ public class VoiceInputOps {
 			return;
 		}
 
-		if (isListening()) {
+		// isBusy(), not isListening(): during the model load nothing is listening yet, and starting a
+		// second engine here would orphan the first one with its microphone already open.
+		if (isBusy()) {
 			onListeningError.accept(new VoiceInputError(ims, android.speech.SpeechRecognizer.ERROR_RECOGNIZER_BUSY));
 			return;
 		}
@@ -146,8 +175,9 @@ public class VoiceInputOps {
 		}
 
 		if (!modelManager.isModelReady(model)) {
-			// Downloading ~40 MB requires the user's explicit consent first, which needs an Activity —
-			// an IME cannot show a dialog. Until SID-55 wires that up, refuse rather than surprise them.
+			// A backstop, not the consent prompt. Callers ask first — VoiceHandler.toggleVoiceInput()
+			// puts up VoiceModelDownloadDialog, and the settings panel downloads on an explicit tap. If
+			// we get here the model simply is not on disk, so refuse rather than fetch ~40 MB unasked.
 			Logger.i(LOG_TAG, "Vosk model not downloaded for: " + language.getName());
 			onListeningError.accept(new VoiceInputError(ims, VoiceInputError.ERROR_MODEL_NOT_DOWNLOADED));
 			return;
@@ -159,7 +189,9 @@ public class VoiceInputOps {
 
 
 	public void stop() {
-		if (recognizer != null && isListening()) {
+		// No isListening() gate: the recognizer decides what stopping means for it, because during the
+		// model load the answer is "cancel the load", not "stop the stream".
+		if (recognizer != null) {
 			recognizer.stop();
 		}
 	}

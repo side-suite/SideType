@@ -84,26 +84,11 @@ public class VoiceInputScreen extends BaseScreenFragment {
 		}
 
 		Command voiceInput = CommandCollection.getById(CommandCollection.COLLECTION_HOTKEYS, CmdVoiceInput.ID);
-		if (voiceInput == null || !isVoiceInputPossible()) {
+		if (voiceInput == null || !VoiceInputOps.isAvailableForAny(activity.getSettings().getEnabledLanguageIds())) {
 			category.setVisible(false);
 			return;
 		}
 
 		category.addPreference(new PreferenceHotkey(activity, activity.getSettings(), voiceInput));
-	}
-
-
-	/** Whether any enabled language has a model at all. Asks the catalog, never the disk. */
-	private boolean isVoiceInputPossible() {
-		if (activity == null) {
-			return false;
-		}
-
-		for (int languageId : activity.getSettings().getEnabledLanguageIds()) {
-			if (VoiceInputOps.isAvailable(LanguageCollection.getLanguage(languageId))) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

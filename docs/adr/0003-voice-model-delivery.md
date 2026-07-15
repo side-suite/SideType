@@ -43,13 +43,17 @@ errors.
 
 The v1 catalog (all current, non-obsolete, `type: small`):
 
+The `Locale` column is the catalog key, and is the tag the language definition actually declares —
+`English.yml` says `locale: en`, not `en-US`, so the key is `en`. The model behind it is still the
+US one; Vosk names it that, SideType does not.
+
 | Locale | Model | Size | md5 | Licence |
 | --- | --- | --- | --- | --- |
-| en-US | `vosk-model-small-en-us-0.15` | 41.2 MB | `09ab50ccd62b674cbaa231b825f9c1cb` | Apache-2.0 |
+| en | `vosk-model-small-en-us-0.15` | 41.2 MB | `09ab50ccd62b674cbaa231b825f9c1cb` | Apache-2.0 |
 | en-GB | `vosk-model-small-en-gb-0.15` | 42.8 MB | `6afd611b04b2b47c129c3615dc502383` | Apache-2.0 |
-| de | `vosk-model-small-de-0.15` | 46.5 MB | `4f21f92c0897b48287ef8839420608eb` | Apache-2.0 |
-| fr | `vosk-model-small-fr-0.22` | 42.2 MB | `8873b1234503f6edd55f54bfff31cf3e` | Apache-2.0 |
-| es | `vosk-model-small-es-0.42` | 39.8 MB | `2d5c94f9859a84881a0ef744738ebd31` | Apache-2.0 |
+| de-DE | `vosk-model-small-de-0.15` | 46.5 MB | `4f21f92c0897b48287ef8839420608eb` | Apache-2.0 |
+| fr-FR | `vosk-model-small-fr-0.22` | 42.2 MB | `8873b1234503f6edd55f54bfff31cf3e` | Apache-2.0 |
+| es-ES | `vosk-model-small-es-0.42` | 39.8 MB | `2d5c94f9859a84881a0ef744738ebd31` | Apache-2.0 |
 
 **Fetch from the alphacephei origin.** No mirroring: md5 pinning makes integrity
 independent of the host, so re-hosting would buy only availability, at the cost
