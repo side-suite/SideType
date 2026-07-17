@@ -3,7 +3,22 @@
 Notable changes to SideType. SideType is a fork of
 [Traditional T9](https://github.com/sspanak/tt9) adapted to the Sidephone SP-01
 Compact QWERTY tile. Versions follow the signed APKs on the
-[Releases page](https://github.com/oliverpalonkorp/SideType/releases).
+[Releases page](https://github.com/side-suite/SideType/releases).
+
+## [2.1] — 2026-07-17
+
+### Added
+- **A proper app icon.** SideType now has its own launcher icon — the Compact
+  QWERTY keycap on a soft silver ground — so it's easy to spot among your apps
+  instead of wearing the inherited Traditional T9 mark.
+- **A way to support SideType.** A new **Support SideType** entry in **Settings →
+  About** opens the project's GitHub Sponsors page. SideType stays free and asks
+  for nothing on its own; this is only there if you'd like to chip in.
+
+### Changed
+- The project moved to the **SideSuite** organisation on GitHub. Existing installs
+  keep updating (the old links redirect), and language-dictionary downloads now
+  come from the new location.
 
 ## [2.0] — 2026-07-15
 

@@ -1,5 +1,8 @@
 package io.github.sspanak.tt9.preferences.screens.main;
 
+import android.content.Intent;
+import android.net.Uri;
+
 import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 
@@ -10,6 +13,7 @@ import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.preferences.HelpFile;
 import io.github.sspanak.tt9.preferences.PreferencesActivity;
 import io.github.sspanak.tt9.preferences.screens.BaseScreenFragment;
+import io.github.sspanak.tt9.util.Logger;
 import io.github.sspanak.tt9.util.sys.SystemSettings;
 
 public class MainSettingsScreen extends BaseScreenFragment {
@@ -50,6 +54,24 @@ public class MainSettingsScreen extends BaseScreenFragment {
 		if (profPref != null && activity != null) {
 			profPref.populate(activity, isTT9On);
 		}
+		enableSupportLink();
+	}
+
+
+	private void enableSupportLink() {
+		Preference support = findPreference("support_sidetype");
+		if (support == null || activity == null) {
+			return;
+		}
+
+		support.setOnPreferenceClickListener(p -> {
+			try {
+				activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(activity.getString(R.string.sponsor_url))));
+			} catch (Exception e) {
+				Logger.w(getClass().getSimpleName(), "Cannot open the sponsor page. " + e.getMessage() + " (do you have a browser?)");
+			}
+			return true;
+		});
 	}
 
 

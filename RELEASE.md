@@ -43,6 +43,7 @@ The only hard rule is that `versionCode` **strictly increases** — Obtainible/F
 | v1.1 | 4 |
 | v1.1.1 | **5** |
 | v2.0 | **14** |
+| v2.1 | **15** |
 
 **Why v2.0 jumped 5 → 14, not 5 → 6.** Release-candidate builds pinned `13` and were installed on the
 test SP-01. Shipping `6` would have been a downgrade on that device: Android would refuse the install,
@@ -50,7 +51,7 @@ and the only way through is an uninstall — which wipes the dictionaries, setti
 Dev builds that reach a real device consume numbers too. Pick the next value above **anything ever
 installed anywhere**, not merely above the last release.
 
-Next release: **15**.
+Next release: **16**.
 
 The signed APK lands in `app/build/outputs/apk/full/release/` (named `tt9-v<versionName>-full.apk`) with the
 version you passed. Upload it to a GitHub Release (tag e.g. `v1.0`).

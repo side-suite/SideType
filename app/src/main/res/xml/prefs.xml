@@ -70,6 +70,12 @@
 		</Preference>
 
 		<Preference
+			app:key="support_sidetype"
+			app:title="@string/pref_support_title"
+			app:summary="@string/pref_support_summary"
+			app:iconSpaceReserved="false" />
+
+		<Preference
 			app:key="version_info"
 			app:title="@string/app_name" />
 

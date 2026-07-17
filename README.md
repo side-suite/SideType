@@ -1,6 +1,16 @@
+<p align="center">
+  <img src="docs/brand/banner.png" alt="SideType — Compact QWERTY for everyone, built for the Sidephone SP-01" width="820">
+</p>
+
 # SideType ⌨️
 
 **Predictive text in your language for the Sidephone Compact QWERTY tile.**
+
+<p align="center">
+  <a href="https://github.com/sponsors/oliverpalonkorp"><img src="https://img.shields.io/badge/Sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white" alt="Sponsor SideType"></a>
+  &nbsp;
+  <img src="https://img.shields.io/badge/License-Apache--2.0-4a9e8f" alt="License: Apache-2.0">
+</p>
 
 SideType is a free, open-source keyboard (an Android "input method") for the
 [Sidephone SP-01](https://sidephone.com) when it's fitted with the swappable **Compact QWERTY**
@@ -33,6 +43,7 @@ produce.
 - [How it's built (under the hood)](#-how-its-built-under-the-hood)
 - [What's new](#-whats-new)
 - [Found a bug?](#-found-a-bug)
+- [Support SideType](#-support-sidetype)
 - [Credits & attribution](#-credits--attribution)
 - [License](#-license)
 
@@ -328,7 +339,7 @@ installable `.apk`.
 ### Build the app
 
 ```bash
-git clone https://github.com/oliverpalonkorp/SideType.git
+git clone https://github.com/side-suite/SideType.git
 cd SideType
 
 export JAVA_HOME=/path/to/jdk-21
@@ -401,7 +412,7 @@ phone), a **British English** dictionary, contractions that type naturally (`tha
 rearranged on-screen strip. ⚠️ **This release is arm64-only** — fine for the SP-01, but it won't
 install on 32-bit devices any more; v1.1.1 is the last version that will. Full history in
 [`CHANGELOG.md`](CHANGELOG.md); signed APKs on the
-[Releases page](https://github.com/oliverpalonkorp/SideType/releases).
+[Releases page](https://github.com/side-suite/SideType/releases).
 
 ---
 
@@ -414,7 +425,7 @@ likely being:
 - a **prediction** that ranks words oddly,
 - anything that **crashes** or behaves unexpectedly.
 
-Please open an issue: **[github.com/oliverpalonkorp/SideType/issues](https://github.com/oliverpalonkorp/SideType/issues)**.
+Please open an issue: **[github.com/side-suite/SideType/issues](https://github.com/side-suite/SideType/issues)**.
 It helps to include:
 
 1. Your **language**, what keys you pressed, and what you expected vs. what you got.
@@ -422,6 +433,23 @@ It helps to include:
 3. A **screenshot**, if it's something you can see.
 
 Feature ideas and pull requests are welcome too — especially new language layouts (see the design notes).
+
+---
+
+## 💛 Support SideType
+
+SideType is free software, Apache-2.0, built for one small phone by one person. There's no
+company behind it and nothing to buy — if it's taught your Compact QWERTY tile to type your
+language, you can help keep it (and the rest of SideSuite) going:
+
+<p align="center">
+  <a href="https://github.com/sponsors/oliverpalonkorp"><img src="https://img.shields.io/badge/Sponsor%20on%20GitHub-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white&style=for-the-badge" alt="Sponsor on GitHub"></a>
+</p>
+
+Any amount is genuinely appreciated, and higher-tier sponsors get their name right here in
+the README. Thank you. 💛
+
+<!-- Sponsors — names land here as they come in. -->
 
 ---
 
@@ -446,6 +474,9 @@ accompanies SCOWL — the same source the English word list came from.
 If you want to improve the underlying engine, dictionaries, or add words to a language, the upstream
 [Traditional T9 contribution guide](CONTRIBUTING.md) is the place — improvements there flow back to
 everyone.
+
+SideType is part of **[SideSuite](https://github.com/side-suite)** — a small family of apps built for
+the Sidephone SP-01, alongside **SideCall** (a call-guard for the missing proximity sensor).
 
 ---
 

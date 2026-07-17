@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher-icon background: a mid-silver matching the rendered brand icon's ground
+     (SideSuite/brand-templates/rendered/icons/sidetype-icon-512.png). The foreground PNG carries
+     the same silver ground full-bleed, so this only shows at the mask edge under parallax. -->
+<resources>
+    <color name="ic_launcher_background">#D9D9D9</color>
+</resources>
