@@ -24,6 +24,8 @@ public class NaturalLanguage extends TranscribedLanguage {
 	// The single source of truth is the language definition's "transparentChars"; the build-time encoder
 	// reads the same declaration, so the two cannot structurally diverge. See SID-6.
 	@NonNull private String transparentChars = "";
+	// Letters most frequent first. See Language.sortKeyCharsByLetterFrequency.
+	@NonNull private String letterFrequency = "";
 
 
 	public static NaturalLanguage fromDefinition(LanguageDefinition definition) throws Exception {
@@ -42,6 +44,7 @@ public class NaturalLanguage extends TranscribedLanguage {
 		lang.iconABC = definition.iconABC;
 		lang.iconT9 = definition.iconT9;
 		lang.isTranscribed = definition.isTranscribed;
+		lang.letterFrequency = definition.letterFrequency;
 		lang.name = definition.name.isEmpty() ? lang.name : definition.name;
 		lang.ngramsFile = definition.getNgramsFile();
 		lang.numerals = definition.numerals;
@@ -228,6 +231,17 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 
 	@NonNull
+	@Override
+	public ArrayList<String> getFactoryKeyCharacters(int key) {
+		if (key < 0 || key >= factoryLayout.size()) {
+			return new ArrayList<>();
+		}
+
+		return new ArrayList<>(factoryLayout.get(key));
+	}
+
+
+	@NonNull
 	public String getKeyNumeral(int key) {
 		String digit = numerals.getOrDefault(key, null);
 		return  digit != null ? digit : super.getKeyNumeral(key);
@@ -238,6 +252,13 @@ public class NaturalLanguage extends TranscribedLanguage {
 	@Override
 	public String getTransparentChars() {
 		return transparentChars;
+	}
+
+
+	@NonNull
+	@Override
+	public String getLetterFrequency() {
+		return letterFrequency;
 	}
 
 

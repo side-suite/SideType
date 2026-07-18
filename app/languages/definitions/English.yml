@@ -8,6 +8,10 @@ supplementFile: en-contractions.csv
 # Keep these to caseless characters only: the build encoder matches after upper-casing the word while
 # the runtime matches after lower-casing, so an alphabetic entry here would make the two disagree.
 transparentChars: '
+# Letters most frequent first. Ranks the letters suggested for a lone key press; does NOT touch the
+# ABC cycle, the key hint, or `layout` below, which mirrors the physical keycaps. Must cover every
+# letter in `layout` (the build enforces this). See Language.sortKeyCharsByLetterFrequency.
+letterFrequency: etaoinshrdlucmfywgpbvkxqjz
 ngramFile: en-ngrams.zip
 iconABC: ic_lang_latin
 iconT9: ic_lang_en

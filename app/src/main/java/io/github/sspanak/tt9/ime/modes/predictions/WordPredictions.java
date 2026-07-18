@@ -115,6 +115,9 @@ public class WordPredictions extends Predictions {
 		dbWords = rearrangeByPairFrequency(dbWords);
 		suggestMissingWords(generatePossibleStemVariations(dbWords), newWords);
 		suggestMissingWords(dbWords.isEmpty() ? generateWordVariations(inputWord) : dbWords, newWords);
+		// Reached only by transcribed languages: for everyone else the line above has already added these
+		// letters (via generateWordVariations), because a 1-token sequence can never match the dictionary.
+		// Ranking them here would therefore be dead code — the ordering lives in generateWordVariations.
 		if (digitSequence.length() == 1 && digitSequence.charAt(0) >= '2' && digitSequence.charAt(0) <= KeySequence.MAX_TOKEN) {
 			suggestMissingWords(settings.getOrderedKeyChars(language, digitSequence.charAt(0) - '0'), newWords);
 		}
@@ -188,7 +191,17 @@ public class WordPredictions extends Predictions {
 
 		// append all letters for the last digit in the sequence (the last pressed key)
 		int lastSequenceDigit = digitSequence.charAt(digitSequence.length() - 1) - '0';
-		for (String keyLetter : settings.getOrderedKeyChars(language, lastSequenceDigit)) {
+
+		// A lone letter key can never match the dictionary (ReadOps.getWordPositions bails on 1-token
+		// sequences), so what we invent here IS the whole suggestion list and its order is the ranking
+		// the user sees — hence frequency, not keycap order. For longer sequences these variations sit
+		// beside real dictionary words, so their order stays as the layout declares it.
+		ArrayList<String> keyChars = settings.getOrderedKeyChars(language, lastSequenceDigit);
+		if (digitSequence.length() == 1 && lastSequenceDigit >= 2) {
+			keyChars = language.sortKeyCharsByLetterFrequency(lastSequenceDigit, keyChars);
+		}
+
+		for (String keyLetter : keyChars) {
 			if (Character.isAlphabetic(keyLetter.charAt(0)) || Characters.isCombiningPunctuation(language, keyLetter.charAt(0)) || TextTools.isCombining(keyLetter)) {
 				generatedWords.add(baseWord + keyLetter);
 			}

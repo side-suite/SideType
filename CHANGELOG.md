@@ -5,6 +5,17 @@ Notable changes to SideType. SideType is a fork of
 Compact QWERTY tile. Versions follow the signed APKs on the
 [Releases page](https://github.com/side-suite/SideType/releases).
 
+## [Unreleased]
+
+### Fixed
+- **Pressing a key on its own now suggests the more common letter first.** Tapping
+  **U/I** once offered "u" before "i", even though "i" is a whole word and far more
+  common — and the same went for every other key. The order was simply the order the
+  letters are printed on the physical key, because a lone key press never reaches the
+  dictionary and so had nothing else to rank by. English and English (UK) now rank
+  those letters by how common they are. The keycaps, ABC mode, and which key types a
+  letter are all unchanged.
+
 ## [2.1] — 2026-07-17
 
 ### Added

@@ -7,6 +7,8 @@ dictionaryFile: en-GB-utf8.csv
 # keeps the leading-apostrophe fragments ('s, 'll, …) that the transparency filter drops from `en`.
 supplementFile: en-contractions.csv
 transparentChars: '
+# Shared with `en` — VarCon's spelling variants don't shift letter frequency. See English.yml.
+letterFrequency: etaoinshrdlucmfywgpbvkxqjz
 ngramFile: en-ngrams.zip
 iconABC: ic_lang_latin
 iconT9: ic_lang_en

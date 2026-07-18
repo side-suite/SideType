@@ -32,6 +32,8 @@ public class LanguageDefinition {
 	public String iconT9 = "";
 	public boolean isTranscribed = false;
 	public final ArrayList<ArrayList<String>> layout = new ArrayList<>();
+	// The language's letters, most frequent first. See Language.sortKeyCharsByLetterFrequency.
+	public String letterFrequency = "";
 	public String locale = "";
 	public String name = "";
 	public String ngramFile = "";
@@ -163,6 +165,9 @@ public class LanguageDefinition {
 				return;
 			case "sounds":
 				isTranscribed = true;
+				return;
+			case "letterFrequency":
+				letterFrequency = value;
 				return;
 			case "locale":
 				locale = value;

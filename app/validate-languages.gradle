@@ -71,6 +71,7 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 	String ngramFileName = ""
 	String supplementFileName = ""
 	String transparentChars = ""
+	String letterFrequency = ""
 
 	final String INVALID_FILE = "Language '${languageFile.name}' is invalid."
 
@@ -87,6 +88,7 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 			&& !rawLine.startsWith("hasUpperCase")
 			&& !rawLine.startsWith("iconABC") && !rawLine.startsWith("iconT9")
 			&& !rawLine.startsWith("layout")
+			&& !rawLine.startsWith("letterFrequency")
 			&& !rawLine.startsWith("locale")
 			&& !rawLine.startsWith("name")
 			&& !rawLine.startsWith("numerals")
@@ -153,6 +155,10 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 			transparentChars = line.replaceFirst("^transparentChars:", "").trim()
 		}
 
+		if (line.startsWith("letterFrequency")) {
+			letterFrequency = line.replaceFirst("^letterFrequency:", "").trim()
+		}
+
 		if (line.startsWith("numerals")) {
 			areNumeralsValid = line.matches("^numerals:\\s*\\[(.,\\s*?){9,15}.\\]")
 		}
@@ -199,6 +205,23 @@ ext.parseLanguageDefintion = { File languageFile, String dictionariesDir, String
 	if (alphabet.isEmpty()) {
 		errorCount++
 		errorMsg += "${INVALID_FILE} No language characters found. Make sure 'layout' contains series of characters per each key in the format: ' - [a, b, c]' and so on\n"
+	}
+
+	// 'letterFrequency' is optional, but a partial one is worse than none: a letter missing from it
+	// silently sinks to the end of every suggestion list for its key, with no other symptom.
+	if (!letterFrequency.isEmpty()) {
+		def duplicates = letterFrequency.toList().countBy { it }.findAll { it.value > 1 }.keySet()
+		if (duplicates) {
+			errorCount++
+			errorMsg += "${INVALID_FILE} 'letterFrequency' contains duplicate characters: '${duplicates.join("', '")}'. Each letter must appear exactly once.\n"
+		}
+
+		// Letters only: 'layout' also carries apostrophes, hyphens and the like, which have no frequency rank.
+		def missing = alphabet.toLowerCase().toList().unique().findAll { it ==~ /\p{L}/ && !letterFrequency.contains(it) }
+		if (missing) {
+			errorCount++
+			errorMsg += "${INVALID_FILE} 'letterFrequency' is missing letters that 'layout' declares: '${missing.join("', '")}'. It must cover every layout letter, or those letters rank last in every suggestion.\n"
+		}
 	}
 
 	if (!areNumeralsValid) {

@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Locale;
 
 import io.github.sspanak.tt9.languages.exceptions.InvalidLanguageCharactersException;
@@ -72,6 +73,65 @@ abstract public class Language {
 	 */
 	@NonNull public String getTransparentChars() {
 		return "";
+	}
+
+	/**
+	 * The language's letters, most frequent first. Purely a ranking hint for suggestions — it never
+	 * changes which key types a letter, nor the order ABC/multi-tap cycles through a key. Empty for
+	 * languages that do not declare it, which leaves every order exactly as the layout defines it.
+	 */
+	@NonNull public String getLetterFrequency() {
+		return "";
+	}
+
+	/**
+	 * The characters a key types as the language definition declares them, before any characters the
+	 * user appended via PreferenceChars2to9. Languages without a factory/custom distinction have
+	 * nothing to separate, so the live list is the factory list.
+	 */
+	@NonNull public ArrayList<String> getFactoryKeyCharacters(int key) {
+		return getKeyCharacters(key);
+	}
+
+	/**
+	 * Reorders a key's factory characters by getLetterFrequency(), most frequent first.
+	 * <p>
+	 * This exists because on a 2-letters-per-key layout the layout order is a statement about the
+	 * physical keycap ("U/I" is printed in that order and ABC mode must cycle U then I), but it is a
+	 * terrible ranking for predictions: a lone press of the U/I key never reaches the dictionary
+	 * (see ReadOps.getWordPositions), so the layout list *is* the suggestion list, and the far more
+	 * common "i" lost to "u" purely because of the silkscreen. Sorting only here keeps the keycap and
+	 * the ranking as the separate concerns they are.
+	 * <p>
+	 * Only the factory prefix is sorted. Characters the user appended with PreferenceChars2to9 are
+	 * appended *after* the factory letters by design (NaturalLanguage.updateKeyCharacters), and ranking
+	 * them alongside would promote an extra "a" above the key's own letters.
+	 * <p>
+	 * The sort is stable and conservative: multi-character entries (combining marks) and letters
+	 * missing from the frequency list keep their relative order and sink to the end of the prefix. An
+	 * undeclared frequency list returns the input untouched.
+	 */
+	@NonNull final public ArrayList<String> sortKeyCharsByLetterFrequency(int key, @NonNull ArrayList<String> keyChars) {
+		final String frequency = getLetterFrequency();
+		final int factoryCount = Math.min(getFactoryKeyCharacters(key).size(), keyChars.size());
+		if (frequency.isEmpty() || factoryCount < 2) {
+			return keyChars;
+		}
+
+		// subList is a view onto the copy, so sorting it reorders the prefix in place
+		ArrayList<String> sorted = new ArrayList<>(keyChars);
+		Collections.sort(sorted.subList(0, factoryCount), (left, right) -> Integer.compare(rankLetter(frequency, left), rankLetter(frequency, right)));
+		return sorted;
+	}
+
+
+	private int rankLetter(@NonNull String frequency, @NonNull String keyChar) {
+		if (keyChar.length() != 1) {
+			return Integer.MAX_VALUE;
+		}
+
+		int rank = frequency.indexOf(Character.toLowerCase(keyChar.charAt(0)));
+		return rank == -1 ? Integer.MAX_VALUE : rank;
 	}
 
 	@NonNull public String getNgramsFile() {
