@@ -22,7 +22,7 @@ Then copy `keystore.properties.example` → `keystore.properties` (git-ignored) 
 Version numbers are normally derived from git, but that is unreliable from a shallow clone, so pin them explicitly. `versionCode` **must increase every release** (Obtainium/F-Droid use it to detect "newer"):
 
 ```bash
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)   # JDK 21 required to run Gradle
+export JAVA_HOME=/usr/local/Cellar/openjdk@21/21.0.11   # JDK 21 required to run Gradle
 ./gradlew :app:assembleFullRelease \
     -PreleaseVersionCode=15 \
     -PreleaseVersionName=2.1
@@ -55,7 +55,22 @@ installed anywhere**, not merely above the last release.
 Next release: **17**.
 
 The signed APK lands in `app/build/outputs/apk/full/release/` (named `tt9-v<versionName>-full.apk`) with the
-version you passed. Upload it to a GitHub Release (tag e.g. `v1.0`).
+version you passed. Upload it to a GitHub Release (tag e.g. `v1.0`), **renamed to `SideType-v<x>.apk`** —
+that is the asset name every previous release uses, and Obtainium users' update filters expect it.
+
+> `gh` resolves to the **upstream** repo (`sspanak/tt9`) because of the `upstream` remote. Always pass
+> `-R side-suite/SideType`, or you will read and write someone else's releases.
+
+### Verify before publishing
+
+```bash
+aapt2 dump badging <apk> | grep -E "^package|native-code"   # versionCode + arm64-v8a ONLY
+apksigner verify --print-certs <apk> | grep "SHA-256"       # MUST match 2cc5ecde… or installs break
+grep -Ec "^(org\.vosk|com\.sun\.jna)\..* -> [a-z0-9]{1,3}:$" app/build/outputs/mapping/fullRelease/mapping.txt   # MUST be 0
+```
+
+A non-zero count on the last one means R8 renamed Vosk's native bindings — the `UnsatisfiedLinkError`
+from SID-8. R8 only runs in `assembleFullRelease`, so a plain compile check will not catch it.
 
 > Note: a `assembleFullRelease` run leaves `app/src/main/AndroidManifest.xml` with a changed
 > `versionCode` (a cosmetic post-build rewrite based on git commit count — it does **not** affect the built
