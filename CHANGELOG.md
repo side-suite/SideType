@@ -5,7 +5,7 @@ Notable changes to SideType. SideType is a fork of
 Compact QWERTY tile. Versions follow the signed APKs on the
 [Releases page](https://github.com/side-suite/SideType/releases).
 
-## [Unreleased]
+## [2.1.1] — 2026-07-18
 
 ### Fixed
 - **Pressing a key on its own now suggests the more common letter first.** Tapping
