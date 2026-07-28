@@ -17,15 +17,19 @@ import io.github.sspanak.tt9.languages.Language;
 
 
 public class InsertOps {
-	private final HashMap<Integer, SQLiteStatement> insertWordsQuery = new HashMap<>();
-	private final HashMap<Integer, SQLiteStatement> insertPositionsQuery = new HashMap<>();
+	// SID-121/123: keyed by the resolved table name, not langId, because the table now carries the active
+	// (geometry, variant) suffix — a cache keyed by langId alone would return a statement pointing at the
+	// wrong combo's table after a tile switch.
+	private final HashMap<String, SQLiteStatement> insertWordsQuery = new HashMap<>();
+	private final HashMap<String, SQLiteStatement> insertPositionsQuery = new HashMap<>();
 
 
 	public void insertWord(@NonNull SQLiteDatabase db, @NonNull Language language, @NonNull Word word) {
-		SQLiteStatement insert = insertWordsQuery.get(language.getId());
+		String table = Tables.getWords(language.getId());
+		SQLiteStatement insert = insertWordsQuery.get(table);
 		if (insert == null) {
-			insert = CompiledQueryCache.get(db, "INSERT INTO " + Tables.getWords(language.getId()) + " (frequency, position, word) VALUES (?, ?, ?)");
-			insertWordsQuery.put(language.getId(), insert);
+			insert = CompiledQueryCache.get(db, "INSERT INTO " + table + " (frequency, position, word) VALUES (?, ?, ?)");
+			insertWordsQuery.put(table, insert);
 		}
 
 		insert.bindLong(1, word.frequency);
@@ -36,10 +40,11 @@ public class InsertOps {
 
 
 	public void insertWordPosition(@NonNull SQLiteDatabase db, @NonNull Language language, @NonNull WordPosition position) {
-		SQLiteStatement insert = insertPositionsQuery.get(language.getId());
+		String table = Tables.getWordPositions(language.getId());
+		SQLiteStatement insert = insertPositionsQuery.get(table);
 		if (insert == null) {
-			insert = CompiledQueryCache.get(db, "INSERT INTO " + Tables.getWordPositions(language.getId()) + " (sequence, `start`, `end`) VALUES (?, ?, ?)");
-			insertPositionsQuery.put(language.getId(), insert);
+			insert = CompiledQueryCache.get(db, "INSERT INTO " + table + " (sequence, `start`, `end`) VALUES (?, ?, ?)");
+			insertPositionsQuery.put(table, insert);
 		}
 
 		insert.bindString(1, position.sequence);

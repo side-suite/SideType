@@ -77,6 +77,23 @@ tasks.register('copyGeometriesToAssets', Copy) {
 }
 
 
+// SID-123: bundle plain word+freq wordlists (zipped) so the on-device encoder can materialize a
+// numpad (or any) index on the phone. These languages have no supplement/transparent processing, so
+// the raw dictionary CSV is already the faithful wordlist. Add more here as numpad support widens.
+ext.WORDLIST_LANGUAGES = ['fi', 'de']
+WORDLIST_LANGUAGES.each { wl ->
+	tasks.register("bundleWordlist_${wl}", Zip) {
+		from DICTIONARIES_INPUT_DIR
+		include "${wl}-utf8.csv"
+		archiveFileName = "${wl}-utf8.zip"
+		destinationDirectory = file(WORDLISTS_OUTPUT_DIR)
+	}
+}
+tasks.register('buildWordlists') {
+	dependsOn WORDLIST_LANGUAGES.collect { "bundleWordlist_${it}" }
+}
+
+
 tasks.register('generateNgramsMeta') {
 	inputs.dir NGRAMS_INPUT_DIR
 	outputs.dir NGRAMS_META_OUTPUT_DIR
@@ -271,7 +288,7 @@ android {
 				"generate${variantName}LintVitalReportModel"
 			].each { taskName ->
 				tasks.matching { it.name == taskName }.configureEach {
-					dependsOn(buildDefinition, generateDocs, validateLanguages, buildDictionaryDownloads, copyNgramsToAssets, copyNgramsToDownloads, copyGeometriesToAssets)
+					dependsOn(buildDefinition, generateDocs, validateLanguages, buildDictionaryDownloads, copyNgramsToAssets, copyNgramsToDownloads, copyGeometriesToAssets, buildWordlists)
 
 					if (taskName.toLowerCase().contains("full")) {
 						dependsOn(copyDownloadsToAssets)

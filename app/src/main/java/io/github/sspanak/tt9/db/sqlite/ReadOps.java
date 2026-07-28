@@ -96,6 +96,20 @@ public class ReadOps {
 
 
 	/**
+	 * True if the active (geometry, variant) index for this language holds any rows — i.e. it has been
+	 * materialized. O(1) (LIMIT 1) and tolerant of the table not existing yet (a not-yet-materialized
+	 * combo, e.g. the numpad tile before its first use). See SID-123.
+	 */
+	public boolean isMaterialized(@NonNull SQLiteDatabase db, @NonNull Language language) {
+		try (Cursor cursor = db.rawQuery("SELECT 1 FROM " + Tables.getWords(language.getId()) + " LIMIT 1", null)) {
+			return cursor.moveToFirst();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+
+	/**
 	 * Gets the timestamp of the language file at the time of the last import into the database.
 	 */
 	public String getLanguageFileHash(@NonNull SQLiteDatabase db, int langId) {

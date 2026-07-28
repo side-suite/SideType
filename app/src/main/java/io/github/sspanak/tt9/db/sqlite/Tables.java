@@ -29,7 +29,7 @@ public class Tables {
 		return name.replaceAll("[^A-Za-z0-9]", "_");
 	}
 
-	static String activeGeometryId() {
+	public static String activeGeometryId() {
 		return GeometryRegistry.getActive().getId();
 	}
 
@@ -75,6 +75,20 @@ public class Tables {
 		}
 
 		return queries;
+	}
+
+
+	/**
+	 * Creates the word/position/pair tables for a language's ACTIVE (geometry, variant) combo, if absent.
+	 * Used to lazily materialize a new combo (e.g. the numpad tile) on first use — onCreate only builds
+	 * the combo that was active when the DB was first created. Idempotent (CREATE TABLE IF NOT EXISTS).
+	 */
+	public static void createWordTables(@NonNull SQLiteDatabase db, @NonNull Language language) {
+		int langId = language.getId();
+		CompiledQueryCache
+			.execute(db, createWordsTable(langId))
+			.execute(createWordPositions(langId))
+			.execute(createWordPairs(langId));
 	}
 
 
