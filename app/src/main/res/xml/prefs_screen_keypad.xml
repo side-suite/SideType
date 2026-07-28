@@ -44,6 +44,11 @@
 	</PreferenceCategory>
 
 	<PreferenceCategory android:title="@string/pref_category_keypad_hardware">
+		<io.github.sspanak.tt9.preferences.screens.keypad.DropDownKeypadType
+			android:key="pref_keypad_type"
+			android:title="@string/pref_keypad_type"
+			android:summary="@string/pref_keypad_type_summary" />
+
 		<Preference
 			android:fragment="io.github.sspanak.tt9.preferences.screens.hotkeys.HotkeysScreen"
 			android:key="screen_hotkeys"

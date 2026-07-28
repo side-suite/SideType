@@ -49,6 +49,21 @@ public class CmdShowSymbols implements Command {
 		// and survives scrolling, so repeated SYM presses walk through the ENTIRE symbol row.
 		InputMode mode = tt9.getInputMode();
 		String current = tt9.getSuggestionOps() != null ? tt9.getSuggestionOps().getCurrent() : null;
+
+		// SID-129: the numpad tile has no ▲▼ key and ✱ is its SYM key, so while a word is being composed
+		// ✱ cycles the predictions (the job ▲▼ does on compact); it only falls through to showing symbols
+		// when there is no word to iterate. Guarded to the digits geometry, so compact SYM is unchanged.
+		if (
+			io.github.sspanak.tt9.languages.GeometryRegistry.getActive().detectsDigits()
+			&& current != null && !current.isEmpty() && Character.isLetter(current.charAt(0))
+		) {
+			CmdSuggestionNext.scrollSuggestions(tt9, false);
+			if (tt9.getMainView() != null) {
+				tt9.getMainView().renderDynamicKeys();
+			}
+			return true;
+		}
+
 		boolean showingSymbols =
 			current != null && current.length() == 1
 			&& !Character.isLetterOrDigit(current.charAt(0))

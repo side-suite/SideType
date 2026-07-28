@@ -99,6 +99,20 @@ public class SettingsHotkeys extends SettingsVirtualNumpad {
 	}
 
 
+	// SID-125 D8: the "Keypad type" override. "auto" uses keycode detection (the default); a specific
+	// geometry id hard-pins that tile and disables detection.
+	public static final String KEYPAD_TYPE = "pref_keypad_type";
+	public static final String KEYPAD_TYPE_AUTO = "auto";
+
+	public String getKeypadType() {
+		return prefs.getString(KEYPAD_TYPE, KEYPAD_TYPE_AUTO);
+	}
+
+	public boolean isKeypadTypeAuto() {
+		return KEYPAD_TYPE_AUTO.equals(getKeypadType());
+	}
+
+
 	public int getFunctionKey(String functionName) {
 		if (GeometryRegistry.getActive().detectsDigits()) {
 			Integer numpadKey = NUMPAD_HOTKEYS.get(functionName);

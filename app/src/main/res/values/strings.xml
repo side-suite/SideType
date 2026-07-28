@@ -65,6 +65,11 @@
 	<string name="pref_category_key_chars_summary">Add extra letters to the 2–9 keys. Reorder, add, and remove special characters on the 0 and 1 keys.</string>
 	<string name="pref_category_keypad">Keypad</string>
 	<string name="pref_category_keypad_hardware">Physical Keys</string>
+	<string name="pref_keypad_type">Keypad type</string>
+	<string name="pref_keypad_type_summary">Which tile is attached. Auto detects it from the keys you press.</string>
+	<string name="pref_keypad_type_auto">Auto (detect)</string>
+	<string name="pref_keypad_type_compact">Compact QWERTY</string>
+	<string name="pref_keypad_type_numpad">T9 keypad</string>
 	<string name="pref_category_keypad_onscreen">On-Screen Keys</string>
 	<string name="pref_category_layout">On-screen Layout</string>
 	<string name="pref_category_predictive_mode">Predictive Mode</string>

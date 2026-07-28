@@ -153,6 +153,10 @@ public abstract class TypingHandler extends KeyPadHandler {
 	protected void validateLanguages() {
 		mEnabledLanguages = InputModeValidator.validateEnabledLanguages(mEnabledLanguages);
 		mLanguage = InputModeValidator.validateLanguage(mLanguage, mEnabledLanguages);
+		// D8: when the "Keypad type" is pinned to a specific tile, force it before binding the language.
+		if (!settings.isKeypadTypeAuto()) {
+			GeometryRegistry.setActive(settings.getKeypadType());
+		}
 		// Keep the active language's layout in sync with the active tile. A language rebound to the numpad
 		// tile must return to its 16-key compact binding when it becomes active on the compact tile again,
 		// even though only the language (not the geometry) changed. Idempotent. See SID-125 bugfix.
@@ -172,6 +176,10 @@ public abstract class TypingHandler extends KeyPadHandler {
 	 */
 	@Override
 	protected void onPossibleGeometrySwitch(int keyCode) {
+		// D8: "Keypad type" hard-pin disables auto-detection.
+		if (!settings.isKeypadTypeAuto()) {
+			return;
+		}
 		String detected = GeometryRegistry.classify(keyCode);
 		if (detected == null || detected.equals(GeometryRegistry.getActive().getId())) {
 			return;
@@ -203,8 +211,15 @@ public abstract class TypingHandler extends KeyPadHandler {
 
 		DictionaryLoader.loadIfEmpty(getFinalContext(), settings, mLanguage);
 
+		// A brief, self-fading "tile detected" banner (D4): show the tile name, then restore the normal
+		// status (the input mode) after a moment.
 		if (statusBar != null) {
 			statusBar.setText(GeometryRegistry.COMPACT_QWERTY.equals(detected) ? "Compact QWERTY" : "T9 keypad");
+			new Handler(Looper.getMainLooper()).postDelayed(() -> {
+				if (statusBar != null && mInputMode != null) {
+					statusBar.setText(mInputMode);
+				}
+			}, 1500);
 		}
 	}
 
