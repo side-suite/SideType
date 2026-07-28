@@ -207,9 +207,14 @@ public class WordPredictions extends Predictions {
 			}
 		}
 
-		// if there are no letters for this key, just append the number
+		// if there are no letters for this key, just append the number. Only a real numeric key (0-9) has
+		// a printable number to fall back to — the extended sequence tokens for keys 10-15 (':'..'?') are
+		// internal and must never surface as text (SID-125 bugfix).
 		if (generatedWords.isEmpty()) {
-			generatedWords.add(baseWord + digitSequence.charAt(digitSequence.length() - 1));
+			char lastToken = digitSequence.charAt(digitSequence.length() - 1);
+			if (Character.isDigit(lastToken)) {
+				generatedWords.add(baseWord + lastToken);
+			}
 		}
 
 		containsGeneratedWords = true;

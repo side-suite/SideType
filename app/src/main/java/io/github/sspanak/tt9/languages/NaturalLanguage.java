@@ -1,6 +1,7 @@
 package io.github.sspanak.tt9.languages;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,6 +69,10 @@ public class NaturalLanguage extends TranscribedLanguage {
 	// SID-125: the resolved (default-variant) binding per geometry the definition declares, so the active
 	// binding can be switched when the tile changes without re-reading the definition.
 	private final HashMap<String, ArrayList<ArrayList<String>>> geometryBindings = new HashMap<>();
+	// The geometry the current `layout` was built for, so applyActiveGeometry() is a cheap no-op when it
+	// already matches. Without this, a language rebound to the numpad tile stays a 10-key layout after you
+	// switch language (not geometry) back on the compact tile — its keys 10-15 vanish. See SID-125 bugfix.
+	@Nullable private String builtGeometry = null;
 
 
 	private void setLayout(LanguageDefinition definition) {
@@ -80,11 +85,18 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 	/**
 	 * Rebuilds {@link #layout} + the character map from the binding of the currently active geometry
-	 * (SID-125). Called at construction and whenever the tile switches. Falls back to the compact binding
-	 * if the active geometry has none (D4a handles keeping such a language off an unsupported tile).
+	 * (SID-125), if it is not already built for that geometry. Idempotent, so it is safe (and cheap) to
+	 * call whenever this language becomes the active input language — which is what keeps its layout in
+	 * sync with the tile even when the language changed but the geometry did not. Falls back to the compact
+	 * binding if the active geometry has none (D4a handles keeping such a language off an unsupported tile).
 	 */
 	public void applyActiveGeometry() {
-		ArrayList<ArrayList<String>> binding = geometryBindings.get(GeometryRegistry.getActive().getId());
+		final String activeGeometry = GeometryRegistry.getActive().getId();
+		if (activeGeometry.equals(builtGeometry)) {
+			return;
+		}
+
+		ArrayList<ArrayList<String>> binding = geometryBindings.get(activeGeometry);
 		if (binding == null) {
 			binding = geometryBindings.get(GeometryRegistry.COMPACT_QWERTY);
 		}
@@ -99,6 +111,7 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 		factoryLayout = new ArrayList<>(layout);
 		generateCharacterKeyMap();
+		builtGeometry = activeGeometry;
 	}
 
 

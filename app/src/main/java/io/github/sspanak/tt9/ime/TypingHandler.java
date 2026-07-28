@@ -153,6 +153,12 @@ public abstract class TypingHandler extends KeyPadHandler {
 	protected void validateLanguages() {
 		mEnabledLanguages = InputModeValidator.validateEnabledLanguages(mEnabledLanguages);
 		mLanguage = InputModeValidator.validateLanguage(mLanguage, mEnabledLanguages);
+		// Keep the active language's layout in sync with the active tile. A language rebound to the numpad
+		// tile must return to its 16-key compact binding when it becomes active on the compact tile again,
+		// even though only the language (not the geometry) changed. Idempotent. See SID-125 bugfix.
+		if (mLanguage instanceof NaturalLanguage) {
+			((NaturalLanguage) mLanguage).applyActiveGeometry();
+		}
 		settings.saveInputLanguage(mLanguage.getId());
 		settings.saveEnabledLanguageIds(mEnabledLanguages);
 	}
@@ -255,6 +261,14 @@ public abstract class TypingHandler extends KeyPadHandler {
 
 	@Override
 	public boolean onBackspace(int repeat) {
+		// A dictionary load blocks predictions (the "please wait" toast). Let the user cancel it with
+		// Backspace instead of waiting out a multi-minute encode. Reachable on both tiles: the compact ⌫
+		// and the numpad's top-right nav key (mapped to Backspace). SID-125 / cancel-loading.
+		if (repeat == 0 && DictionaryLoader.isRunning()) {
+			DictionaryLoader.abort();
+			return true;
+		}
+
 		// Dialer fields seem to handle backspace on their own, and we must ignore it,
 		// otherwise, a keyDown race condition occurs for all keys.
 		if (InputModeKind.isPassthrough(mInputMode)) {

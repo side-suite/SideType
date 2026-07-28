@@ -19,6 +19,7 @@ import io.github.sspanak.tt9.commands.CmdSelectKeyboard;
 import io.github.sspanak.tt9.commands.CmdShift;
 import io.github.sspanak.tt9.commands.CmdShowEmojis;
 import io.github.sspanak.tt9.commands.CmdShowSettings;
+import io.github.sspanak.tt9.commands.CmdShowSymbols;
 import io.github.sspanak.tt9.commands.CmdSpaceKorean;
 import io.github.sspanak.tt9.commands.CmdSuggestionNext;
 import io.github.sspanak.tt9.commands.CmdSuggestionPrevious;
@@ -46,8 +47,10 @@ public class SettingsHotkeys extends SettingsVirtualNumpad {
 	// compact defaults, since POUND/STAR happen to be numpad keys.
 	private static final HashMap<String, Integer> NUMPAD_HOTKEYS = new HashMap<>();
 	static {
-		NUMPAD_HOTKEYS.put(CmdBackspace.ID, KeyEvent.KEYCODE_ENDCALL);
-		NUMPAD_HOTKEYS.put(CmdSuggestionNext.ID, KeyEvent.KEYCODE_STAR);
+		NUMPAD_HOTKEYS.put(CmdBackspace.ID, KeyEvent.KEYCODE_ENDCALL);   // top-right nav "—" (only hold-free spare key)
+		NUMPAD_HOTKEYS.put(CmdShowSymbols.ID, KeyEvent.KEYCODE_STAR);    // ✱ tap = symbols, same as the compact SYM key
+		NUMPAD_HOTKEYS.put(CmdSuggestionNext.ID, -KeyEvent.KEYCODE_STAR); // ✱ hold = cycle predictions (negative = hold)
+		NUMPAD_HOTKEYS.put(CmdCommandPalette.ID, KeyEvent.KEYCODE_UNKNOWN); // no Command Palette on the numpad tile
 	}
 
 
