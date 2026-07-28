@@ -107,6 +107,31 @@ public class Key {
 	}
 
 
+	/**
+	 * The "SYM" key for the active geometry: KEYCODE_ALT_LEFT on the compact tile, KEYCODE_STAR (✱) on the
+	 * numpad tile (which has no ALT key). Tapping it shows the symbols row; holding it is the emoji layer.
+	 * See KeyPadHandler and SID-129.
+	 */
+	public static boolean isSymKey(int keyCode) {
+		return GeometryRegistry.getActive().detectsDigits()
+			? keyCode == KeyEvent.KEYCODE_STAR
+			: keyCode == KeyEvent.KEYCODE_ALT_LEFT;
+	}
+
+
+	/**
+	 * A typing key that can carry a bound emoji while the SYM key is held: the compact letter keys, or the
+	 * numpad's alphabetic keys 2-9. See KeyPadHandler's emoji layer.
+	 */
+	public static boolean isSymModifierTarget(SettingsStore settings, int keyCode) {
+		if (GeometryRegistry.getActive().detectsLetters()) {
+			return isCompactQwertyLetter(keyCode);
+		}
+		int index = codeToNumber(settings, keyCode);
+		return index >= 2 && index <= 9;
+	}
+
+
 	public static boolean isHotkey(SettingsStore settings, int keyCode) {
 		for (Command cmd : CommandCollection.getHotkeyCommands()) {
 			if (keyCode == settings.getFunctionKey(cmd.getId())) {

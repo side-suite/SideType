@@ -48,10 +48,11 @@ public class SettingsHotkeys extends SettingsVirtualNumpad {
 	private static final HashMap<String, Integer> NUMPAD_HOTKEYS = new HashMap<>();
 	static {
 		NUMPAD_HOTKEYS.put(CmdBackspace.ID, KeyEvent.KEYCODE_ENDCALL);   // top-right nav "—" (only hold-free spare key)
-		NUMPAD_HOTKEYS.put(CmdShowSymbols.ID, KeyEvent.KEYCODE_STAR);    // ✱ tap = symbols, same as the compact SYM key
-		NUMPAD_HOTKEYS.put(CmdSuggestionNext.ID, -KeyEvent.KEYCODE_STAR); // ✱ hold = cycle predictions (negative = hold)
+		NUMPAD_HOTKEYS.put(CmdShowSymbols.ID, KeyEvent.KEYCODE_STAR);    // ✱ = the SYM key: tap = symbols, hold = emoji layer
 		NUMPAD_HOTKEYS.put(CmdCommandPalette.ID, KeyEvent.KEYCODE_UNKNOWN); // no Command Palette on the numpad tile
 	}
+	// ✱ hold on the numpad opens the emoji layer via KeyPadHandler (Key.isSymKey), exactly like holding the
+	// compact SYM key — so it is intentionally not a tap/hold hotkey here.
 
 
 	SettingsHotkeys(Context context) { super(context); }

@@ -86,8 +86,8 @@ abstract class KeyPadHandler extends UiHandler {
 		// "broken" for reporters, recoverable only by reinstalling. Any failure resets to a clean state
 		// and falls through to normal typing instead of propagating.
 		try {
-			if (keyCode == KeyEvent.KEYCODE_ALT_LEFT) {
-				// Only arm the preview on the FIRST down; ALT auto-repeats while held and re-arming would
+			if (Key.isSymKey(keyCode)) {
+				// Only arm the preview on the FIRST down; the key auto-repeats while held and re-arming would
 				// keep pushing the show-time forward so it never appears.
 				if (!symHeld) {
 					symHeld = true;
@@ -95,7 +95,7 @@ abstract class KeyPadHandler extends UiHandler {
 					scheduleSymPreview();
 				}
 				// fall through, so the hotkey system can still track the key for the tap action
-			} else if (symHeld && Key.isCompactQwertyLetter(keyCode)) {
+			} else if (symHeld && Key.isSymModifierTarget(settings, keyCode)) {
 				symUsedAsModifier = true; // SYM acted as a modifier this press → don't also show symbols on release
 				cancelSymPreview(); // pressing a key resolves the hold; the grid (if pending) is now moot
 				String emoji = settings.getEmojiBind(Key.codeToNumber(settings, keyCode));
@@ -246,10 +246,10 @@ abstract class KeyPadHandler extends UiHandler {
 
 		onPossibleGeometrySwitch(keyCode); // Keytile detection (SID-125) — see onKeyDown
 
-		// Emoji layer (Sidephone): releasing SYM (ALT). If it was used to type an emoji, swallow the
-		// key-up so the "show symbols" tap action does not also fire. Otherwise it was a lone tap and
-		// we let the hotkey system show the symbols page.
-		if (keyCode == KeyEvent.KEYCODE_ALT_LEFT) {
+		// Emoji layer (Sidephone): releasing the SYM key (ALT on compact, ✱ on the numpad). If it was used
+		// to type an emoji, swallow the key-up so the "show symbols" tap action does not also fire.
+		// Otherwise it was a lone tap and we let the hotkey system show the symbols page.
+		if (Key.isSymKey(keyCode)) {
 			boolean wasModifier;
 			try {
 				cancelSymPreview(); // if released before the hold threshold, the grid must never appear
