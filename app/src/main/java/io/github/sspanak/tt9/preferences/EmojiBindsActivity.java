@@ -25,16 +25,34 @@ import io.github.sspanak.tt9.ui.EdgeToEdgeActivity;
  * indices here must match Key.codeToNumber().
  */
 public class EmojiBindsActivity extends EdgeToEdgeActivity {
-	// {display label, key index} laid out like the physical tile (3 rows).
-	private static final Object[][] KEYS = {
+	// {display label, key index} laid out like the physical tile. SID-130: emoji binds are per tile.
+	private static final Object[][] COMPACT_KEYS = {
 		{"Q W", 2}, {"E R", 3}, {"T Y", 4}, {"U I", 5}, {"O P", 6},
 		{"A S", 7}, {"D F", 8}, {"G H", 9}, {"J K", 10}, {"L", 11},
 		{"Z X", 12}, {"C V", 13}, {"B N", 14}, {"M", 15},
 	};
-	private static final int COLUMNS = 5;
+	private static final int COMPACT_COLUMNS = 5;
+	// Numpad tile: the alphabetic keys 2-9 (1 and 0 carry no emoji).
+	private static final Object[][] NUMPAD_KEYS = {
+		{"2", 2}, {"3", 3}, {"4", 4},
+		{"5", 5}, {"6", 6}, {"7", 7},
+		{"8", 8}, {"9", 9},
+	};
+	private static final int NUMPAD_COLUMNS = 3;
 
 	private SettingsStore settings;
 	private final ArrayList<Button> keyButtons = new ArrayList<>();
+	// The tile whose binds are being edited. Compact by default; a toggle switches to numpad.
+	private String currentGeometry = io.github.sspanak.tt9.languages.GeometryRegistry.COMPACT_QWERTY;
+	private LinearLayout keyGridHolder;
+
+	private Object[][] currentKeys() {
+		return io.github.sspanak.tt9.languages.GeometryRegistry.COMPACT_QWERTY.equals(currentGeometry) ? COMPACT_KEYS : NUMPAD_KEYS;
+	}
+
+	private int currentColumns() {
+		return io.github.sspanak.tt9.languages.GeometryRegistry.COMPACT_QWERTY.equals(currentGeometry) ? COMPACT_COLUMNS : NUMPAD_COLUMNS;
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,10 +79,56 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 		hint.setPadding(0, 0, 0, dp(16));
 		root.addView(hint);
 
+		// SID-130: Compact / Numpad tile selector — each tile has its own emoji binds.
+		LinearLayout tileRow = new LinearLayout(this);
+		tileRow.setOrientation(LinearLayout.HORIZONTAL);
+		final Button compactTab = new Button(this);
+		final Button numpadTab = new Button(this);
+		compactTab.setAllCaps(false);
+		numpadTab.setAllCaps(false);
+		compactTab.setText("Compact QWERTY");
+		numpadTab.setText("T9 keypad");
+		Runnable syncTabs = () -> {
+			boolean compact = io.github.sspanak.tt9.languages.GeometryRegistry.COMPACT_QWERTY.equals(currentGeometry);
+			compactTab.setAlpha(compact ? 1f : 0.5f);
+			numpadTab.setAlpha(compact ? 0.5f : 1f);
+		};
+		compactTab.setOnClickListener(v -> {
+			currentGeometry = io.github.sspanak.tt9.languages.GeometryRegistry.COMPACT_QWERTY;
+			syncTabs.run();
+			buildKeyGrid();
+			refreshKeys();
+		});
+		numpadTab.setOnClickListener(v -> {
+			currentGeometry = "numpad";
+			syncTabs.run();
+			buildKeyGrid();
+			refreshKeys();
+		});
+		LinearLayout.LayoutParams tabLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+		tileRow.addView(compactTab, tabLp);
+		tileRow.addView(numpadTab, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+		syncTabs.run();
+		root.addView(tileRow);
+
+		keyGridHolder = new LinearLayout(this);
+		keyGridHolder.setOrientation(LinearLayout.VERTICAL);
+		keyGridHolder.setPadding(0, dp(8), 0, 0);
+		root.addView(keyGridHolder);
+		buildKeyGrid();
+
+		ScrollView scroll = new ScrollView(this);
+		scroll.addView(root);
+		return scroll;
+	}
+
+	/** (Re)builds the key grid for the currently selected tile. */
+	private void buildKeyGrid() {
+		keyGridHolder.removeAllViews();
 		GridLayout grid = new GridLayout(this);
-		grid.setColumnCount(COLUMNS);
+		grid.setColumnCount(currentColumns());
 		keyButtons.clear();
-		for (Object[] key : KEYS) {
+		for (Object[] key : currentKeys()) {
 			final int index = (int) key[1];
 			Button b = new Button(this);
 			b.setAllCaps(false);
@@ -80,17 +144,13 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 			b.setTag(key[0]);
 			keyButtons.add(b);
 		}
-		root.addView(grid);
-
-		ScrollView scroll = new ScrollView(this);
-		scroll.addView(root);
-		return scroll;
+		keyGridHolder.addView(grid);
 	}
 
 	private void refreshKeys() {
 		for (Button b : keyButtons) {
 			int index = keyIndexOf(b);
-			String bind = settings.getEmojiBind(index);
+			String bind = settings.getEmojiBind(currentGeometry, index);
 			String label = String.valueOf(b.getTag());
 			b.setText(label + "\n" + (bind.isEmpty() ? "—" : bind));
 		}
@@ -98,7 +158,7 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 
 	private int keyIndexOf(Button b) {
 		String label = String.valueOf(b.getTag());
-		for (Object[] key : KEYS) {
+		for (Object[] key : currentKeys()) {
 			if (key[0].equals(label)) {
 				return (int) key[1];
 			}
@@ -191,7 +251,7 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 			.setTitle(R.string.emoji_binds_pick)
 			.setView(container)
 			.setNeutralButton(R.string.emoji_binds_clear, (d, w) -> {
-				settings.setEmojiBind(keyIndex, "");
+				settings.setEmojiBind(currentGeometry, keyIndex, "");
 				refreshKeys();
 			})
 			.setNegativeButton(android.R.string.cancel, null)
@@ -218,7 +278,7 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 		cell.setTextSize(textSize);
 		cell.setGravity(Gravity.CENTER);
 		cell.setOnClickListener(v -> {
-			settings.setEmojiBind(keyIndex, glyph);
+			settings.setEmojiBind(currentGeometry, keyIndex, glyph);
 			refreshKeys();
 			if (currentDialog != null) currentDialog.dismiss();
 		});

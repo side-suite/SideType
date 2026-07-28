@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import java.text.BreakIterator;
 import java.util.ArrayList;
 
+import io.github.sspanak.tt9.languages.GeometryRegistry;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageKind;
 import io.github.sspanak.tt9.preferences.screens.keychars.PreferenceChars2to9;
@@ -36,14 +37,33 @@ class SettingsKeyChars extends SettingsInput {
 	}
 
 
-	/** The emoji (or text) bound to the given keypad key for the Sidephone emoji layer, or "" if none. */
+	// SID-130: emoji binds are geometry-scoped, because a key index is a different physical key on each
+	// tile (index 2 is Q/W on compact but the "2 abc" key on numpad). The compact tile keeps the legacy
+	// unprefixed key for back-compat; other geometries get a prefix (emoji_key_bind_numpad_<index>).
+	private String emojiBindKey(@NonNull String geometry, int key) {
+		return GeometryRegistry.COMPACT_QWERTY.equals(geometry)
+			? EMOJI_BIND_PREFIX + key
+			: EMOJI_BIND_PREFIX + geometry + "_" + key;
+	}
+
+	/** The emoji (or text) bound to a key on the ACTIVE tile's emoji layer, or "" if none. */
 	@NonNull
 	public String getEmojiBind(int key) {
-		return prefs.getString(EMOJI_BIND_PREFIX + key, "");
+		return getEmojiBind(GeometryRegistry.getActive().getId(), key);
+	}
+
+	/** The emoji (or text) bound to a key on the given tile's emoji layer, or "" if none. */
+	@NonNull
+	public String getEmojiBind(@NonNull String geometry, int key) {
+		return prefs.getString(emojiBindKey(geometry, key), "");
 	}
 
 	public void setEmojiBind(int key, @Nullable String emoji) {
-		getPrefsEditor().putString(EMOJI_BIND_PREFIX + key, emoji == null ? "" : emoji).apply();
+		setEmojiBind(GeometryRegistry.getActive().getId(), key, emoji);
+	}
+
+	public void setEmojiBind(@NonNull String geometry, int key, @Nullable String emoji) {
+		getPrefsEditor().putString(emojiBindKey(geometry, key), emoji == null ? "" : emoji).apply();
 	}
 
 
