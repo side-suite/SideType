@@ -1,0 +1,33 @@
+# Sidephone SP-01 "Compact QWERTY" Keytile — geometry (keycode -> key index).
+#
+# Source of truth (tracked). Copied into assets/geometries/ at build time by the
+# copyGeometriesToAssets gradle task, mirroring how languages/definitions/*.yml
+# are merged into assets/languages/definitions.yml.
+#
+# Transcribed verbatim from the definitive live-captured keymap COMPACT_QWERTY_KEYMAP.md
+# (getevent, 2026-07-08) and mirrors the legacy hardcoded Key.codeToNumber() it
+# replaces. Each physical button emits the keycode of its LEFT glyph only (the 14
+# letters below); numbers/space/backspace are separate keys handled elsewhere. See
+# docs/adr/0005-keytile-layout-platform.md (D2).
+#
+# keyCount 16 -> key indices 0..15. Index 0 is SPACE and index 1 is unused on this
+# tile (both handled by the numpad fallback in Key.java, not listed here), so only
+# the 14 ambiguous letter keys (indices 2..15) belong to this geometry.
+id: compact-qwerty
+keyCount: 16
+detect: letters
+keymap:
+  KEYCODE_Q: 2
+  KEYCODE_E: 3
+  KEYCODE_T: 4
+  KEYCODE_U: 5
+  KEYCODE_O: 6
+  KEYCODE_A: 7
+  KEYCODE_D: 8
+  KEYCODE_G: 9
+  KEYCODE_J: 10
+  KEYCODE_L: 11
+  KEYCODE_Z: 12
+  KEYCODE_C: 13
+  KEYCODE_B: 14
+  KEYCODE_M: 15

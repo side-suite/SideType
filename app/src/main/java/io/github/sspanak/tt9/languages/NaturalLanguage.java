@@ -66,7 +66,7 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 
 	private void setLayout(LanguageDefinition definition) {
-		for (int key = 0; key <= KeySequence.MAX_KEY && key < definition.layout.size(); key++) {
+		for (int key = 0; key <= KeySequence.getMaxKey() && key < definition.layout.size(); key++) {
 				layout.add(
 					key,
 					key > 1 ? definition.layout.get(key) : generateSpecialChars(definition.layout.get(key))
@@ -352,7 +352,7 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 
 	public void updateKeyCharacters(@NonNull SettingsStore settings) {
-		for (int key = 2; key <= KeySequence.MAX_KEY && key < layout.size(); key++) {
+		for (int key = 2; key <= KeySequence.getMaxKey() && key < layout.size(); key++) {
 			updateKeyCharacters(
 				key,
 				settings.getCharsExtra(this, PreferenceChars2to9.NAME_PREFIX + key),

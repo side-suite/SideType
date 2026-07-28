@@ -276,7 +276,7 @@ public class DictionaryLoader {
 		boolean isEnglish = LanguageKind.isEnglish(language);
 		WordBatch letters = new WordBatch(language);
 
-		for (int key = 2; key <= KeySequence.MAX_KEY; key++) {
+		for (int key = 2; key <= KeySequence.getMaxKey(); key++) {
 			for (String langChar : language.getKeyCharacters(key)) {
 				langChar = (isEnglish && langChar.equals("i")) ? langChar.toUpperCase(Locale.ENGLISH) : langChar;
 				letters.add(langChar, 0, key);

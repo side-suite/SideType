@@ -118,7 +118,7 @@ public class WordPredictions extends Predictions {
 		// Reached only by transcribed languages: for everyone else the line above has already added these
 		// letters (via generateWordVariations), because a 1-token sequence can never match the dictionary.
 		// Ranking them here would therefore be dead code — the ordering lives in generateWordVariations.
-		if (digitSequence.length() == 1 && digitSequence.charAt(0) >= '2' && digitSequence.charAt(0) <= KeySequence.MAX_TOKEN) {
+		if (digitSequence.length() == 1 && digitSequence.charAt(0) >= '2' && digitSequence.charAt(0) <= KeySequence.getMaxToken()) {
 			suggestMissingWords(settings.getOrderedKeyChars(language, digitSequence.charAt(0) - '0'), newWords);
 		}
 		words = prependHostAppNames(insertPunctuationCompletions(newWords));

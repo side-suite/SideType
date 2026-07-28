@@ -321,14 +321,14 @@ public class ReadOps {
 			.append(" WHERE ");
 
 		// Match the exact sequence plus its "children" (sequences having `sequence` as a prefix).
-		// Sequence tokens are contiguous chars '0'..MAX_TOKEN (see KeySequence), so the children are
-		// exactly the rows in the lexical half-open range [sequence, sequence + RANGE_UPPER_BOUND),
-		// where RANGE_UPPER_BOUND is one char past the highest token. `generations` (when 1-9) caps
+		// Sequence tokens are contiguous chars '0'..getMaxToken() (see KeySequence), so the children are
+		// exactly the rows in the lexical half-open range [sequence, sequence + getRangeUpperBound()),
+		// where getRangeUpperBound() is one char past the highest token. `generations` (when 1-9) caps
 		// how many extra keys deep to look, via a LENGTH bound.
 		sql.append(" sequence = '").append(sequence).append("'");
 		if (generations != 0) {
 			sql.append(" OR (sequence > '").append(sequence)
-				.append("' AND sequence < '").append(sequence).append(KeySequence.RANGE_UPPER_BOUND).append("'");
+				.append("' AND sequence < '").append(sequence).append(KeySequence.getRangeUpperBound()).append("'");
 			if (generations > 0 && generations < 10) {
 				sql.append(" AND LENGTH(sequence) <= ").append(sequence.length() + generations);
 			}
@@ -360,7 +360,7 @@ public class ReadOps {
 		// Sequences are quoted TEXT and matched by lexical prefix range (see getFactoryWordPositionsQuery).
 		// Quoting also fixes the old integer-comparison bug for sequences beginning with '0'.
 		if (generations != 0) {
-			sql += " OR (sequence > '" + sequence + "' AND sequence < '" + sequence + KeySequence.RANGE_UPPER_BOUND + "')";
+			sql += " OR (sequence > '" + sequence + "' AND sequence < '" + sequence + KeySequence.getRangeUpperBound() + "')";
 		}
 		sql += ")";
 

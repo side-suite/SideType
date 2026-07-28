@@ -41,6 +41,9 @@ public class LanguageCollection {
 
 
 	public static synchronized void init(Context context) {
+		// Geometry must be ready before any language is built: NaturalLanguage.setLayout() reads
+		// KeySequence.getMaxKey(), which comes from the active geometry (SID-120).
+		GeometryRegistry.init(context);
 		if (self == null) {
 			self = new LanguageCollection(context);
 		}
