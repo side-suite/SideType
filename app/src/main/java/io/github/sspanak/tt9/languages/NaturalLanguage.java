@@ -66,10 +66,14 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 
 	private void setLayout(LanguageDefinition definition) {
-		for (int key = 0; key <= KeySequence.getMaxKey() && key < definition.layout.size(); key++) {
+		// Select the binding for the active (geometry, variant). SID-122: for the bundled languages this
+		// is (compact-qwerty, default) — identical to the old flat `layout:`. Later phases pick a numpad
+		// geometry or a variant (e.g. QWERTZ) here.
+		ArrayList<ArrayList<String>> binding = definition.getLayout(GeometryRegistry.getActive().getId(), null);
+		for (int key = 0; key <= KeySequence.getMaxKey() && key < binding.size(); key++) {
 				layout.add(
 					key,
-					key > 1 ? definition.layout.get(key) : generateSpecialChars(definition.layout.get(key))
+					key > 1 ? binding.get(key) : generateSpecialChars(binding.get(key))
 				);
 		}
 
