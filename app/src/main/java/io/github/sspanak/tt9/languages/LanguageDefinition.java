@@ -333,7 +333,13 @@ public class LanguageDefinition {
 				for (ArrayList<String> row : layout) {
 					binding.positional.add(new ArrayList<>(row));
 				}
-				compact.put(DEFAULT_VARIANT, binding);
+				// Insert the backfilled default FIRST so getDefaultVariant() (first-declared wins) still
+				// returns it, even when the file declared delta variants (e.g. qwertz) under compact-qwerty
+				// before the flat layout was reconciled into the default. See SID-124.
+				LinkedHashMap<String, VariantBinding> ordered = new LinkedHashMap<>();
+				ordered.put(DEFAULT_VARIANT, binding);
+				ordered.putAll(compact);
+				layouts.put(GeometryRegistry.COMPACT_QWERTY, ordered);
 			}
 		} else if (layouts.containsKey(GeometryRegistry.COMPACT_QWERTY)) {
 			layout.addAll(getLayout(GeometryRegistry.COMPACT_QWERTY, null));

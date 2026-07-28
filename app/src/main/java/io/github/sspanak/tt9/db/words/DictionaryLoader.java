@@ -33,6 +33,7 @@ import io.github.sspanak.tt9.db.sqlite.WordDbOpener;
 import io.github.sspanak.tt9.languages.GeometryRegistry;
 import io.github.sspanak.tt9.languages.KeySequence;
 import io.github.sspanak.tt9.languages.Language;
+import io.github.sspanak.tt9.languages.LanguageDefinition;
 import io.github.sspanak.tt9.languages.LanguageKind;
 import io.github.sspanak.tt9.languages.NaturalLanguage;
 import io.github.sspanak.tt9.languages.exceptions.InvalidLanguageCharactersException;
@@ -383,24 +384,32 @@ public class DictionaryLoader {
 	}
 
 
+	/** True when the active combo is (compact-qwerty, default) — the only combo a pre-encoded asset was baked for. */
+	private boolean hasPreEncodedAsset(@NonNull Language language) {
+		return !isNumpadActive()
+			&& LanguageDefinition.DEFAULT_VARIANT.equals(GeometryRegistry.getActiveVariant(language.getId()));
+	}
+
+
 	/**
 	 * Whether to encode this language on-device (two-pass, from its plain wordlist) instead of loading a
-	 * pre-encoded asset. The numpad tile always encodes on-device (no pre-encoded numpad asset exists);
-	 * the compact tile does so only under the ENCODE_COMPACT_ON_DEVICE flag (S8/S1 validation, D1a).
-	 * Requires the wordlist to be bundled. See SID-123.
+	 * pre-encoded asset. Only (compact-qwerty, default) has a pre-encoded asset, so the numpad tile AND any
+	 * non-default compact variant (e.g. German QWERTZ, SID-124) always encode on-device; the default compact
+	 * combo does so only under the ENCODE_COMPACT_ON_DEVICE flag (S8/S1 validation, D1a). Requires the
+	 * wordlist to be bundled. See SID-123.
 	 */
 	private boolean shouldEncodeOnDevice(@NonNull Context context, @NonNull Language language) {
 		if (!(language instanceof NaturalLanguage)) {
 			return false;
 		}
-		boolean wantOnDevice = isNumpadActive() || SettingsStatic.ENCODE_COMPACT_ON_DEVICE;
+		boolean wantOnDevice = !hasPreEncodedAsset(language) || SettingsStatic.ENCODE_COMPACT_ON_DEVICE;
 		return wantOnDevice && hasWordlist(context, language);
 	}
 
 
-	/** The pre-encoded dictionary asset is only valid for the compact tile (it was baked for that binding). */
+	/** The pre-encoded dictionary asset is only valid for (compact-qwerty, default) — it was baked for that binding. */
 	private boolean canLoadPreEncoded(@NonNull Language language) {
-		return !isNumpadActive();
+		return hasPreEncodedAsset(language);
 	}
 
 

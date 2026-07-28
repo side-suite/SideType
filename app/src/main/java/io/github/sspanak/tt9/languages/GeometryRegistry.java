@@ -58,6 +58,11 @@ public class GeometryRegistry {
 	// compact in between (e.g. ✱-hold opens the command palette instead of the emoji layer). See SID-125.
 	private static final String PREF_ACTIVE_GEOMETRY = "keytile_active_geometry";
 
+	// SID-124: the selected layout variant, per (geometry, language). Geometry-scoped so the same language
+	// can pick a variant per tile (QWERTZ only exists on compact-qwerty); language-scoped because the pick
+	// lives "under the language" (e.g. German QWERTZ). Absent -> the language's default variant.
+	private static final String PREF_VARIANT_PREFIX = "keytile_variant_";
+
 	private static GeometryRegistry self;
 
 	private final HashMap<String, Geometry> geometries = new HashMap<>();
@@ -108,6 +113,44 @@ public class GeometryRegistry {
 			self.prefs.edit().putString(PREF_ACTIVE_GEOMETRY, id).apply();
 		}
 		return true;
+	}
+
+
+	/**
+	 * The selected variant for the ACTIVE geometry and the given language, or {@link LanguageDefinition#DEFAULT_VARIANT}
+	 * when none is stored (or the registry is not initialised). This is the variant the DB suffix and the language's
+	 * live binding must agree on, so both call through here. See SID-124.
+	 */
+	@NonNull
+	public static String getActiveVariant(int langId) {
+		return getVariant(getActive().getId(), langId);
+	}
+
+
+	@NonNull
+	public static String getVariant(@NonNull String geometryId, int langId) {
+		if (self == null || self.prefs == null) {
+			return LanguageDefinition.DEFAULT_VARIANT;
+		}
+		return self.prefs.getString(PREF_VARIANT_PREFIX + geometryId + "_" + langId, LanguageDefinition.DEFAULT_VARIANT);
+	}
+
+
+	/**
+	 * Persists the variant pick for a (geometry, language). Selecting the default variant clears the stored
+	 * key (so the language falls back to its default). The new (geometry, variant) combo is materialized
+	 * lazily on next use — the DB suffix changes and the encoder fills the new tables. See SID-124.
+	 */
+	public static synchronized void setVariant(@NonNull String geometryId, int langId, @NonNull String variant) {
+		if (self == null || self.prefs == null) {
+			return;
+		}
+		String key = PREF_VARIANT_PREFIX + geometryId + "_" + langId;
+		if (LanguageDefinition.DEFAULT_VARIANT.equals(variant)) {
+			self.prefs.edit().remove(key).apply();
+		} else {
+			self.prefs.edit().putString(key, variant).apply();
+		}
 	}
 
 

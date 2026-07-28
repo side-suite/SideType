@@ -118,6 +118,11 @@
 	<string name="pref_backspace_recomposing_summary">Press Backspace at word end to edit the word. (Not possible in some apps and with mixed-language text)</string>
 	<string name="pref_choose_languages">Languages</string>
 
+	<!-- SID-124: %1$s is the language name, e.g. "German keyboard layout". -->
+	<string name="pref_language_variant">%1$s keyboard layout</string>
+	<string name="pref_language_variant_summary">Which letters the keys type for this language. The keycaps are unchanged.</string>
+	<string name="pref_language_variant_default">QWERTY</string>
+
 	<string name="pref_bottom_padding_portrait">Space Below (Portrait)</string>
 	<string name="pref_drag_resize">Drag to Resize</string>
 	<string name="pref_drag_resize_summary">Drag the Status Bar or the Settings key to minimize the keyboard or adjust its position on the screen.</string>

@@ -6,6 +6,10 @@
 		app:key="pref_languages"
 		app:title="@string/pref_choose_languages" />
 
+	<io.github.sspanak.tt9.preferences.screens.languages.DropDownLanguageVariant
+		app:key="pref_language_variant"
+		app:summary="@string/pref_language_variant_summary" />
+
 	<Preference
 		app:key="dictionary_load"
 		app:title="@string/dictionary_load_title" />
