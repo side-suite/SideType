@@ -23,6 +23,7 @@ import io.github.sspanak.tt9.ime.helpers.TextSelection;
 import io.github.sspanak.tt9.ime.mindreader.MindReader;
 import io.github.sspanak.tt9.ime.modes.InputMode;
 import io.github.sspanak.tt9.ime.modes.InputModeKind;
+import io.github.sspanak.tt9.languages.GeometryRegistry;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.languages.LanguageKind;
@@ -154,6 +155,66 @@ public abstract class TypingHandler extends KeyPadHandler {
 		mLanguage = InputModeValidator.validateLanguage(mLanguage, mEnabledLanguages);
 		settings.saveInputLanguage(mLanguage.getId());
 		settings.saveEnabledLanguageIds(mEnabledLanguages);
+	}
+
+
+	/**
+	 * SID-125: a detected Keytile swap. Switches the active geometry, rebinds the active language to the
+	 * new tile's binding (falling back to a supporting language if it has none — D4a), rebuilds the input
+	 * mode, materializes the new (lang, geometry, variant) index if needed, and flashes a banner. Runs on
+	 * the keycode that proved the new tile, so the same keystroke is then handled under the new geometry.
+	 */
+	@Override
+	protected void onPossibleGeometrySwitch(int keyCode) {
+		String detected = GeometryRegistry.classify(keyCode);
+		if (detected == null || detected.equals(GeometryRegistry.getActive().getId())) {
+			return;
+		}
+		if (!GeometryRegistry.setActive(detected)) {
+			return;
+		}
+
+		// D4a: if the active language can't be typed on the new tile, switch to the most-recent enabled
+		// language that can.
+		if (!(mLanguage instanceof NaturalLanguage) || !((NaturalLanguage) mLanguage).hasBinding(detected)) {
+			Language fallback = firstLanguageSupporting(detected);
+			if (fallback != null) {
+				mLanguage = fallback;
+				settings.saveInputLanguage(mLanguage.getId());
+			}
+		}
+
+		if (mLanguage instanceof NaturalLanguage) {
+			((NaturalLanguage) mLanguage).applyActiveGeometry();
+			settings.setDefaultChars(mLanguage, false);
+			((NaturalLanguage) mLanguage).updateKeyCharacters(settings);
+		}
+
+		resetKeyRepeat();
+		mInputMode = determineInputMode();
+		determineTextCase();
+		suggestionOps.set(null);
+
+		DictionaryLoader.loadIfEmpty(getFinalContext(), settings, mLanguage);
+
+		if (statusBar != null) {
+			statusBar.setText(GeometryRegistry.COMPACT_QWERTY.equals(detected) ? "Compact QWERTY" : "T9 keypad");
+		}
+	}
+
+
+	@Nullable
+	private Language firstLanguageSupporting(@NonNull String geometry) {
+		if (mEnabledLanguages == null) {
+			return null;
+		}
+		for (int langId : mEnabledLanguages) {
+			Language language = LanguageCollection.getLanguage(langId);
+			if (language instanceof NaturalLanguage && ((NaturalLanguage) language).hasBinding(geometry)) {
+				return language;
+			}
+		}
+		return null;
 	}
 
 

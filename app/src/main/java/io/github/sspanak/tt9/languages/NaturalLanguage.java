@@ -65,21 +65,46 @@ public class NaturalLanguage extends TranscribedLanguage {
 	}
 
 
+	// SID-125: the resolved (default-variant) binding per geometry the definition declares, so the active
+	// binding can be switched when the tile changes without re-reading the definition.
+	private final HashMap<String, ArrayList<ArrayList<String>>> geometryBindings = new HashMap<>();
+
+
 	private void setLayout(LanguageDefinition definition) {
-		// Select the binding for the active (geometry, variant). SID-122: for the bundled languages this
-		// is (compact-qwerty, default) — identical to the old flat `layout:`. Later phases pick a numpad
-		// geometry or a variant (e.g. QWERTZ) here.
-		ArrayList<ArrayList<String>> binding = definition.getLayout(GeometryRegistry.getActive().getId(), null);
+		for (String geometry : definition.getGeometries()) {
+			geometryBindings.put(geometry, definition.getLayout(geometry, null));
+		}
+		applyActiveGeometry();
+	}
+
+
+	/**
+	 * Rebuilds {@link #layout} + the character map from the binding of the currently active geometry
+	 * (SID-125). Called at construction and whenever the tile switches. Falls back to the compact binding
+	 * if the active geometry has none (D4a handles keeping such a language off an unsupported tile).
+	 */
+	public void applyActiveGeometry() {
+		ArrayList<ArrayList<String>> binding = geometryBindings.get(GeometryRegistry.getActive().getId());
+		if (binding == null) {
+			binding = geometryBindings.get(GeometryRegistry.COMPACT_QWERTY);
+		}
+		if (binding == null) {
+			return;
+		}
+
+		layout.clear();
 		for (int key = 0; key <= KeySequence.getMaxKey() && key < binding.size(); key++) {
-				layout.add(
-					key,
-					key > 1 ? binding.get(key) : generateSpecialChars(binding.get(key))
-				);
+			layout.add(key, key > 1 ? binding.get(key) : generateSpecialChars(binding.get(key)));
 		}
 
 		factoryLayout = new ArrayList<>(layout);
-
 		generateCharacterKeyMap();
+	}
+
+
+	/** True if this language has a binding for the given geometry (so it can be typed on that tile). */
+	public boolean hasBinding(@NonNull String geometry) {
+		return geometryBindings.containsKey(geometry);
 	}
 
 

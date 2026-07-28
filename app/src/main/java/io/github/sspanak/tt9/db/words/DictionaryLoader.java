@@ -110,6 +110,27 @@ public class DictionaryLoader {
 	}
 
 
+	/**
+	 * Materialize the active (geometry, variant) index for a language if it is empty — the lazy trigger
+	 * used when the tile switches (SID-125). getLanguageFileHash reports "" for a not-yet-materialized
+	 * combo, so this loads exactly once per new combo, off the main thread. No cooldown (unlike autoLoad),
+	 * because a tile switch is an explicit user action.
+	 */
+	public static void loadIfEmpty(@NonNull Context context, @NonNull SettingsStore settings, @Nullable Language language) {
+		if (language == null || isRunning()) {
+			return;
+		}
+		DataStore.getLastLanguageUpdateTime(
+			(hash) -> {
+				if (hash == null || hash.isEmpty()) {
+					load(context, settings, language);
+				}
+			},
+			language
+		);
+	}
+
+
 	public static boolean autoLoad(@NonNull InputMethodService context, @NonNull SettingsStore settings, @NonNull Language language) {
 		if (!settings.getPredictiveMode() || isRunning()) {
 			return false;
@@ -503,7 +524,7 @@ public class DictionaryLoader {
 		// S1 gate: record wall-clock encode time and peak heap. The two-pass, on-disk-staged design keeps
 		// dalvik heap flat regardless of dictionary size — this line is where we verify that on the SP-01.
 		Runtime rt = Runtime.getRuntime();
-		android.util.Log.e(
+		android.util.Log.i(
 			"SID123-S1",
 			"Encoded '" + language.getName() + "' (" + Tables.activeGeometryId() + "): " + staged + " words in "
 				+ (System.currentTimeMillis() - s1StartMs) + " ms. dalvikUsed="

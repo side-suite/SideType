@@ -23,3 +23,17 @@ layout:
   - [c, v] # 13
   - [b, n] # 14
   - [m] # 15
+# SID-125: T9 / Classic Keypad (numpad) binding. Standard 10-key German T9 assignment covering a-z + ä ö ü ß.
+layouts:
+  numpad:
+    default:
+      - [SPECIAL]
+      - [PUNCTUATION_DE]
+      - [a, b, c, ä]
+      - [d, e, f]
+      - [g, h, i]
+      - [j, k, l]
+      - [m, n, o, ö]
+      - [p, q, r, s, ß]
+      - [t, u, v, ü]
+      - [w, x, y, z]

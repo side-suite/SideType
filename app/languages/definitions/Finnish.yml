@@ -23,3 +23,17 @@ layout:
   - [c, v] # 13
   - [b, n] # 14
   - [m] # 15
+# SID-125: T9 / Classic Keypad (numpad) binding. Standard 10-key Finnish T9 assignment covering a-z + ä å ö.
+layouts:
+  numpad:
+    default:
+      - [SPECIAL]
+      - [PUNCTUATION]
+      - [a, b, c, ä, å]
+      - [d, e, f]
+      - [g, h, i]
+      - [j, k, l]
+      - [m, n, o, ö]
+      - [p, q, r, s]
+      - [t, u, v]
+      - [w, x, y, z]

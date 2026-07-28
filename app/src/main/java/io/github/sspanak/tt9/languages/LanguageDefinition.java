@@ -436,6 +436,13 @@ public class LanguageDefinition {
 	}
 
 
+	/** The geometries this language defines a binding for, in declaration order. */
+	@NonNull
+	public ArrayList<String> getGeometries() {
+		return new ArrayList<>(layouts.keySet());
+	}
+
+
 	/** The variant names declared for a geometry, in declaration order (empty if the geometry is absent). */
 	@NonNull
 	public ArrayList<String> getVariants(@NonNull String geometry) {

@@ -137,15 +137,18 @@ public class Key {
 
 
 	public static int codeToNumber(SettingsStore settings, int keyCode) {
-		// The active geometry owns its typing keys as data (SID-120). For the Compact QWERTY tile these
-		// are the 14 letter keycodes -> key indices 2..15 (must match the language layout order).
-		int geometryIndex = GeometryRegistry.getActive().codeToIndex(keyCode);
-		if (geometryIndex != -1) {
-			return geometryIndex;
+		// The active geometry owns its typing keys as data (SID-120). For a letters geometry (Compact
+		// QWERTY) these are the 14 letter keycodes -> key indices 2..15. A digits geometry (numpad) falls
+		// through to the switch below, which maps the numeric keycodes AND applies the upside-down remap.
+		Geometry active = GeometryRegistry.getActive();
+		if (active.detectsLetters()) {
+			int geometryIndex = active.codeToIndex(keyCode);
+			if (geometryIndex != -1) {
+				return geometryIndex;
+			}
 		}
 
-		// Numpad digits, SPACE and the upside-down remap are not part of the compact geometry (the
-		// numpad geometry lands in P3), so they remain hardcoded here.
+		// Numpad digits, SPACE and the upside-down remap.
 		return switch (keyCode) {
 			case KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0, KeyEvent.KEYCODE_SPACE -> 0;
 			case KeyEvent.KEYCODE_1, KeyEvent.KEYCODE_NUMPAD_1 -> settings.getUpsideDownKeys() ? 7 : 1;

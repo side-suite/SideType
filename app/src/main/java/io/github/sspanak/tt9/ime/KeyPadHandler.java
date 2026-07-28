@@ -74,6 +74,11 @@ abstract class KeyPadHandler extends UiHandler {
 			return false;
 		}
 
+		// Keytile detection (SID-125): a letter keycode means the compact tile, a digit means the numpad
+		// tile. On the first keycode that proves a different tile, switch geometry so this very keystroke
+		// is interpreted under the new one (D3a). Neutral keys classify to null and never switch.
+		onPossibleGeometrySwitch(keyCode);
+
 		// Emoji layer (Sidephone): SYM (ALT) is a modifier. Track its held state here; the tap action
 		// (show symbols) is decided on key up, so a lone SYM tap can be told apart from "hold SYM +
 		// press key". While SYM is held, a key press types that key's bound emoji instead of a letter.
@@ -210,6 +215,13 @@ abstract class KeyPadHandler extends UiHandler {
 
 
 	/**
+	 * Keytile auto-detection hook (SID-125). No-op here; TypingHandler overrides it to switch geometry,
+	 * rebind the active language and materialize its index for the newly detected tile.
+	 */
+	protected void onPossibleGeometrySwitch(int keyCode) {}
+
+
+	/**
 	 * Use this to monitor key events being delivered to the application. We get
 	 * first crack at them, and can either resume them or let them continue to
 	 * the app.
@@ -229,6 +241,8 @@ abstract class KeyPadHandler extends UiHandler {
 		if (shouldBeOff()) {
 			return false;
 		}
+
+		onPossibleGeometrySwitch(keyCode); // Keytile detection (SID-125) — see onKeyDown
 
 		// Emoji layer (Sidephone): releasing SYM (ALT). If it was used to type an emoji, swallow the
 		// key-up so the "show symbols" tap action does not also fire. Otherwise it was a lone tap and

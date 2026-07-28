@@ -80,6 +80,24 @@ public class GeometryRegistry {
 	}
 
 
+	/**
+	 * Switches the active geometry to {@code id}. Returns true if it actually changed (so the caller can
+	 * rebind languages, materialize the new combo, and show the banner). No-op if the registry is not
+	 * initialized, the id is unknown, or it is already active. See SID-125.
+	 */
+	public static synchronized boolean setActive(@NonNull String id) {
+		if (self == null) {
+			return false;
+		}
+		Geometry geometry = self.geometries.get(id);
+		if (geometry == null || geometry == self.active) {
+			return false;
+		}
+		self.active = geometry;
+		return true;
+	}
+
+
 	@Nullable
 	public static Geometry byId(@NonNull String id) {
 		if (self == null) {
