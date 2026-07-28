@@ -285,6 +285,12 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 	@NonNull
 	public String getKeyNumeral(int key) {
+		// The `numerals` list holds the character printed above each COMPACT QWERTY key (e.g. index 4 is
+		// the T/Y key, printed "2"). On a digits geometry (numpad) the key index IS the number it prints —
+		// key 4 is "4" — so ignore the compact list there, or button 4 would emit "2". SID-125 bugfix.
+		if (GeometryRegistry.getActive().detectsDigits()) {
+			return super.getKeyNumeral(key);
+		}
 		String digit = numerals.getOrDefault(key, null);
 		return  digit != null ? digit : super.getKeyNumeral(key);
 	}

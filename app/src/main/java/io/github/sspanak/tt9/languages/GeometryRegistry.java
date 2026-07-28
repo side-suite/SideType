@@ -1,11 +1,13 @@
 package io.github.sspanak.tt9.languages;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,15 +53,23 @@ public class GeometryRegistry {
 		}
 	);
 
+	// Persist the last active tile (D4), so it is already right on the next field/session — otherwise the
+	// app defaults to compact until the first *digit* switches it, and ✱/backspace/numerals resolve as
+	// compact in between (e.g. ✱-hold opens the command palette instead of the emoji layer). See SID-125.
+	private static final String PREF_ACTIVE_GEOMETRY = "keytile_active_geometry";
+
 	private static GeometryRegistry self;
 
 	private final HashMap<String, Geometry> geometries = new HashMap<>();
+	@Nullable private SharedPreferences prefs;
 	private Geometry active;
 
 
 	private GeometryRegistry(@NonNull Context context) {
 		load(context.getAssets());
-		active = geometries.getOrDefault(COMPACT_QWERTY, COMPACT_FALLBACK);
+		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		String saved = prefs.getString(PREF_ACTIVE_GEOMETRY, COMPACT_QWERTY);
+		active = geometries.containsKey(saved) ? geometries.get(saved) : geometries.getOrDefault(COMPACT_QWERTY, COMPACT_FALLBACK);
 	}
 
 
@@ -94,6 +104,9 @@ public class GeometryRegistry {
 			return false;
 		}
 		self.active = geometry;
+		if (self.prefs != null) {
+			self.prefs.edit().putString(PREF_ACTIVE_GEOMETRY, id).apply();
+		}
 		return true;
 	}
 
