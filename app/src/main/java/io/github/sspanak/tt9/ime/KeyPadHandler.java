@@ -115,10 +115,12 @@ abstract class KeyPadHandler extends UiHandler {
 
 		// "backspace" key must repeat its function when held down, so we handle it in a special way
 		if (Key.isBackspace(settings, keyCode)) {
-			if (onBackspace(event.getRepeatCount())) {
-				return Key.setHandled(KeyEvent.KEYCODE_DEL, true);
-			} else {
-				Key.setHandled(KeyEvent.KEYCODE_DEL, false);
+			boolean deleted = onBackspace(event.getRepeatCount());
+			Key.setHandled(KeyEvent.KEYCODE_DEL, deleted);
+			// Always swallow the numpad backspace key (top-right nav = ENDCALL) so its system default
+			// (end call / sleep the device) can never fire, even with nothing to delete. SID-129.
+			if (deleted || keyCode == KeyEvent.KEYCODE_ENDCALL) {
+				return true;
 			}
 		}
 

@@ -28,10 +28,27 @@ import io.github.sspanak.tt9.commands.CmdVoiceInput;
 import io.github.sspanak.tt9.commands.Command;
 import io.github.sspanak.tt9.commands.CommandCollection;
 import io.github.sspanak.tt9.ime.helpers.Hotkey;
+import io.github.sspanak.tt9.languages.GeometryRegistry;
 import io.github.sspanak.tt9.util.Logger;
+
+import java.util.HashMap;
 
 public class SettingsHotkeys extends SettingsVirtualNumpad {
 	private static final String HOTKEY_VERSION = "hotkeys_v6";
+
+	// SID-129: geometry-aware function keys. The compact tile has dedicated ⌫/SYM/▲▼/aA keys; the numpad
+	// (T9) tile does not — it only has 1-9, 0, ✱, # + a nav row. When the numpad geometry is active, these
+	// functions are remapped to the numpad's reachable keys (verified on device to reach the IME):
+	//   Backspace     -> top-right nav "—" (KEYCODE_ENDCALL), the only hold-free spare key
+	//   Next suggestion-> ✱ tap (KEYCODE_STAR); ✱ hold stays the Command Palette
+	// Applied at read time so the stored (compact) hotkeys and any user customization are untouched. The
+	// numpad's # (next input mode / hold = next language) and ✱-hold (palette) already work via the
+	// compact defaults, since POUND/STAR happen to be numpad keys.
+	private static final HashMap<String, Integer> NUMPAD_HOTKEYS = new HashMap<>();
+	static {
+		NUMPAD_HOTKEYS.put(CmdBackspace.ID, KeyEvent.KEYCODE_ENDCALL);
+		NUMPAD_HOTKEYS.put(CmdSuggestionNext.ID, KeyEvent.KEYCODE_STAR);
+	}
 
 
 	SettingsHotkeys(Context context) { super(context); }
@@ -79,6 +96,12 @@ public class SettingsHotkeys extends SettingsVirtualNumpad {
 
 
 	public int getFunctionKey(String functionName) {
+		if (GeometryRegistry.getActive().detectsDigits()) {
+			Integer numpadKey = NUMPAD_HOTKEYS.get(functionName);
+			if (numpadKey != null) {
+				return numpadKey;
+			}
+		}
 		return getStringifiedInt(functionName, KeyEvent.KEYCODE_UNKNOWN);
 	}
 
