@@ -6,7 +6,9 @@ import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 
+import io.github.sspanak.tt9.languages.GeometryRegistry;
 import io.github.sspanak.tt9.languages.Language;
+import io.github.sspanak.tt9.languages.LanguageDefinition;
 
 public class Tables {
 
@@ -18,12 +20,29 @@ public class Tables {
 	private static final String WORDS_TABLE_BASE_NAME = "words_";
 	private static final String WORD_PAIRS_TABLE_BASE_NAME = "word_pairs_";
 
+	// SID-121: the word/position/pair tables (and their indexes) carry the active (geometry, variant),
+	// because a word's stored key sequence depends on the binding. The suffix is derived from the active
+	// tile's geometry; the variant is "default" until per-language variant selection lands (SID-124).
+	// MindReader n-grams/tokens are word-context models (no key sequences), so they stay langId-only.
+	// The suffix is sanitized to a valid SQLite identifier ("compact-qwerty" -> "compact_qwerty").
+	private static String sanitize(@NonNull String name) {
+		return name.replaceAll("[^A-Za-z0-9]", "_");
+	}
+
+	static String activeGeometryId() {
+		return GeometryRegistry.getActive().getId();
+	}
+
+	private static String activeSuffix() {
+		return "_" + sanitize(activeGeometryId()) + "_" + sanitize(LanguageDefinition.DEFAULT_VARIANT);
+	}
+
 	static String getMindReaderNgrams(int langId) { return MIND_READER_NGRAMS_TABLE_BASE_NAME + langId; }
 	static String getMindReaderTokens(int langId) { return MIND_READER_TOKENS_TABLE_BASE_NAME + langId; }
 
-	static String getWords(int langId) { return WORDS_TABLE_BASE_NAME + langId; }
-	static String getWordPositions(int langId) { return POSITIONS_TABLE_BASE_NAME + langId; }
-	static String getWordPairs(int langId) { return WORD_PAIRS_TABLE_BASE_NAME + langId; }
+	static String getWords(int langId) { return WORDS_TABLE_BASE_NAME + langId + activeSuffix(); }
+	static String getWordPositions(int langId) { return POSITIONS_TABLE_BASE_NAME + langId + activeSuffix(); }
+	static String getWordPairs(int langId) { return WORD_PAIRS_TABLE_BASE_NAME + langId + activeSuffix(); }
 
 
 	public static String[] getMindReaderCreateQueries(@NonNull ArrayList<Language> languages) {
@@ -84,12 +103,16 @@ public class Tables {
 			")";
 	}
 
+	private static String wordsIndexName(int langId) {
+		return "idx_position_" + langId + activeSuffix();
+	}
+
 	private static String createWordsIndex(int langId) {
-		return "CREATE INDEX IF NOT EXISTS idx_position_" + langId + " ON " + getWords(langId) + " (position, word)";
+		return "CREATE INDEX IF NOT EXISTS " + wordsIndexName(langId) + " ON " + getWords(langId) + " (position, word)";
 	}
 
 	private static String dropWordsIndex(int langId) {
-		return "DROP INDEX IF EXISTS idx_position_" + langId;
+		return "DROP INDEX IF EXISTS " + wordsIndexName(langId);
 	}
 
 	private static String createWordPositions(int langId) {
@@ -101,12 +124,16 @@ public class Tables {
 			")";
 	}
 
+	private static String positionsIndexName(int langId) {
+		return "idx_sequence_start_" + langId + activeSuffix();
+	}
+
 	private static String createWordsPositionsIndex(int langId) {
-		return "CREATE INDEX IF NOT EXISTS idx_sequence_start_" + langId + " ON " + getWordPositions(langId) + " (sequence, `start`)";
+		return "CREATE INDEX IF NOT EXISTS " + positionsIndexName(langId) + " ON " + getWordPositions(langId) + " (sequence, `start`)";
 	}
 
 	private static String dropWordPositionsIndex(int langId) {
-		return "DROP INDEX IF EXISTS idx_sequence_start_" + langId;
+		return "DROP INDEX IF EXISTS " + positionsIndexName(langId);
 	}
 
 	private static String createCustomWords() {
