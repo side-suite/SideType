@@ -33,6 +33,20 @@ abstract public class SQLiteOpener extends SQLiteOpenHelper {
 	}
 
 
+	/**
+	 * SID-52: the DB schema version is the app versionCode (see the constructor), which increments on
+	 * almost every build, so installing any lower-versionCode build looks like a downgrade even when the
+	 * schema is unchanged. The default onDowngrade throws — bricking every dictionary until the user
+	 * clears app data (which also destroys their custom words + settings). Our schema is idempotent
+	 * (CREATE TABLE IF NOT EXISTS + additive migrations), so re-running onCreate is a safe no-op that
+	 * also creates any tables a newer build had added. This makes a version rollback non-destructive.
+	 */
+	@Override
+	public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		onCreate(db);
+	}
+
+
 	@Override
 	public void onConfigure(SQLiteDatabase db) {
 		super.onConfigure(db);

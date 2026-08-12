@@ -132,7 +132,17 @@ public class WordStore extends BaseSyncStore {
 
 
 	@NonNull public String getLanguageFileHash(Language language) {
-		return language != null && !(language instanceof NullLanguage) && checkOrNotify() ? readOps.getLanguageFileHash(sqlite.getDb(), language.getId()) : "";
+		if (language == null || language instanceof NullLanguage || !checkOrNotify()) {
+			return "";
+		}
+		// SID-123: report "no dictionary" when the active (geometry, variant) index has not been
+		// materialized, so autoLoad rebuilds it — covers a fresh combo (the numpad tile on first use) and
+		// the renamed tables of an upgraded install. A materialized combo always has a stored hash (the
+		// importer/encoder writes it on success), so this never loops.
+		if (!readOps.isMaterialized(sqlite.getDb(), language)) {
+			return "";
+		}
+		return readOps.getLanguageFileHash(sqlite.getDb(), language.getId());
 	}
 
 

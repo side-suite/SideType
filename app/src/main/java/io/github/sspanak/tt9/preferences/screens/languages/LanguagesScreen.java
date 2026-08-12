@@ -5,6 +5,7 @@ import android.content.Intent;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
+import androidx.preference.Preference;
 
 import java.util.ArrayList;
 
@@ -41,6 +42,11 @@ public class LanguagesScreen extends BaseScreenFragment {
 	@Override
 	protected void onCreate() {
 		new ItemSelectLanguage(activity, findPreference(ItemSelectLanguage.NAME)).populate();
+
+		Preference languageVariant = findPreference(DropDownLanguageVariant.NAME);
+		if (languageVariant instanceof DropDownLanguageVariant && activity != null) {
+			((DropDownLanguageVariant) languageVariant).populate(activity.getSettings()).preview();
+		}
 
 		loadItem = new ItemLoadDictionary(
 			findPreference(ItemLoadDictionary.NAME),
@@ -125,6 +131,11 @@ public class LanguagesScreen extends BaseScreenFragment {
 
 	protected void refreshItems() {
 		new ItemSelectLanguage(activity, findPreference(ItemSelectLanguage.NAME)).populate();
+
+		Preference languageVariant = findPreference(DropDownLanguageVariant.NAME);
+		if (languageVariant instanceof DropDownLanguageVariant && activity != null) {
+			((DropDownLanguageVariant) languageVariant).populate(activity.getSettings()).preview();
+		}
 		loadItem.refreshStatus();
 		exportDictionaryItem.refreshStatus();
 		exportCustomWordsItem.refreshStatus();

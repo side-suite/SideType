@@ -19,6 +19,7 @@ import io.github.sspanak.tt9.commands.CmdSelectKeyboard;
 import io.github.sspanak.tt9.commands.CmdShift;
 import io.github.sspanak.tt9.commands.CmdShowEmojis;
 import io.github.sspanak.tt9.commands.CmdShowSettings;
+import io.github.sspanak.tt9.commands.CmdShowSymbols;
 import io.github.sspanak.tt9.commands.CmdSpaceKorean;
 import io.github.sspanak.tt9.commands.CmdSuggestionNext;
 import io.github.sspanak.tt9.commands.CmdSuggestionPrevious;
@@ -28,10 +29,30 @@ import io.github.sspanak.tt9.commands.CmdVoiceInput;
 import io.github.sspanak.tt9.commands.Command;
 import io.github.sspanak.tt9.commands.CommandCollection;
 import io.github.sspanak.tt9.ime.helpers.Hotkey;
+import io.github.sspanak.tt9.languages.GeometryRegistry;
 import io.github.sspanak.tt9.util.Logger;
+
+import java.util.HashMap;
 
 public class SettingsHotkeys extends SettingsVirtualNumpad {
 	private static final String HOTKEY_VERSION = "hotkeys_v6";
+
+	// SID-129: geometry-aware function keys. The compact tile has dedicated ⌫/SYM/▲▼/aA keys; the numpad
+	// (T9) tile does not — it only has 1-9, 0, ✱, # + a nav row. When the numpad geometry is active, these
+	// functions are remapped to the numpad's reachable keys (verified on device to reach the IME):
+	//   Backspace     -> top-right nav "—" (KEYCODE_ENDCALL), the only hold-free spare key
+	//   Next suggestion-> ✱ tap (KEYCODE_STAR); ✱ hold stays the Command Palette
+	// Applied at read time so the stored (compact) hotkeys and any user customization are untouched. The
+	// numpad's # (next input mode / hold = next language) and ✱-hold (palette) already work via the
+	// compact defaults, since POUND/STAR happen to be numpad keys.
+	private static final HashMap<String, Integer> NUMPAD_HOTKEYS = new HashMap<>();
+	static {
+		NUMPAD_HOTKEYS.put(CmdBackspace.ID, KeyEvent.KEYCODE_ENDCALL);   // top-right nav "—" (only hold-free spare key)
+		NUMPAD_HOTKEYS.put(CmdShowSymbols.ID, KeyEvent.KEYCODE_STAR);    // ✱ = the SYM key: tap = symbols, hold = emoji layer
+		NUMPAD_HOTKEYS.put(CmdCommandPalette.ID, KeyEvent.KEYCODE_UNKNOWN); // no Command Palette on the numpad tile
+	}
+	// ✱ hold on the numpad opens the emoji layer via KeyPadHandler (Key.isSymKey), exactly like holding the
+	// compact SYM key — so it is intentionally not a tap/hold hotkey here.
 
 
 	SettingsHotkeys(Context context) { super(context); }
@@ -78,7 +99,27 @@ public class SettingsHotkeys extends SettingsVirtualNumpad {
 	}
 
 
+	// SID-125 D8: the "Keypad type" override. "auto" uses keycode detection (the default); a specific
+	// geometry id hard-pins that tile and disables detection.
+	public static final String KEYPAD_TYPE = "pref_keypad_type";
+	public static final String KEYPAD_TYPE_AUTO = "auto";
+
+	public String getKeypadType() {
+		return prefs.getString(KEYPAD_TYPE, KEYPAD_TYPE_AUTO);
+	}
+
+	public boolean isKeypadTypeAuto() {
+		return KEYPAD_TYPE_AUTO.equals(getKeypadType());
+	}
+
+
 	public int getFunctionKey(String functionName) {
+		if (GeometryRegistry.getActive().detectsDigits()) {
+			Integer numpadKey = NUMPAD_HOTKEYS.get(functionName);
+			if (numpadKey != null) {
+				return numpadKey;
+			}
+		}
 		return getStringifiedInt(functionName, KeyEvent.KEYCODE_UNKNOWN);
 	}
 

@@ -1,0 +1,23 @@
+# Sidephone SP-01 T9 / Classic Keypad tile — numpad geometry (keycode -> key index).
+#
+# Source of truth (tracked); copied into assets/geometries/ at build time. Transcribed from the
+# live-captured keymap in docs/keytile-numpad-keymap.md (getevent on the T9 tile, 2026-07-27):
+# the 12 keypad buttons emit standard numeric Android keycodes KEYCODE_0..9 (+ STAR/POUND, which are
+# functions handled by Key.isPoundOrStar, not layout keys). This vocabulary is disjoint from the
+# compact tile's letters, so the active tile is inferred from the keycodes alone (ADR-0005 D3/D3a).
+#
+# keyCount 10 -> key indices 0..9 (the classic T9 numpad). See SID-125.
+id: numpad
+keyCount: 10
+detect: digits
+keymap:
+  KEYCODE_0: 0
+  KEYCODE_1: 1
+  KEYCODE_2: 2
+  KEYCODE_3: 3
+  KEYCODE_4: 4
+  KEYCODE_5: 5
+  KEYCODE_6: 6
+  KEYCODE_7: 7
+  KEYCODE_8: 8
+  KEYCODE_9: 9

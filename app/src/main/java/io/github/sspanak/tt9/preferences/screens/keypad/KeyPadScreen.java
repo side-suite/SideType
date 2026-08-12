@@ -26,6 +26,11 @@ public class KeyPadScreen extends BaseScreenFragment {
 	}
 
 	private void createPhysicalKeysSection() {
+		Preference keypadType = findPreference(DropDownKeypadType.NAME);
+		if (keypadType instanceof DropDownKeypadType && activity != null) {
+			((DropDownKeypadType) keypadType).populate(activity.getSettings()).preview();
+		}
+
 		Preference debounceTime = findPreference(DropDownKeyPadDebounceTime.NAME);
 		if (debounceTime instanceof DropDownKeyPadDebounceTime && activity != null) {
 			((DropDownKeyPadDebounceTime) debounceTime).populate(activity.getSettings()).preview();

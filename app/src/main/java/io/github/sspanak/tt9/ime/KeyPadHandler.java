@@ -74,6 +74,11 @@ abstract class KeyPadHandler extends UiHandler {
 			return false;
 		}
 
+		// Keytile detection (SID-125): a letter keycode means the compact tile, a digit means the numpad
+		// tile. On the first keycode that proves a different tile, switch geometry so this very keystroke
+		// is interpreted under the new one (D3a). Neutral keys classify to null and never switch.
+		onPossibleGeometrySwitch(keyCode);
+
 		// Emoji layer (Sidephone): SYM (ALT) is a modifier. Track its held state here; the tap action
 		// (show symbols) is decided on key up, so a lone SYM tap can be told apart from "hold SYM +
 		// press key". While SYM is held, a key press types that key's bound emoji instead of a letter.
@@ -81,8 +86,8 @@ abstract class KeyPadHandler extends UiHandler {
 		// "broken" for reporters, recoverable only by reinstalling. Any failure resets to a clean state
 		// and falls through to normal typing instead of propagating.
 		try {
-			if (keyCode == KeyEvent.KEYCODE_ALT_LEFT) {
-				// Only arm the preview on the FIRST down; ALT auto-repeats while held and re-arming would
+			if (Key.isSymKey(keyCode)) {
+				// Only arm the preview on the FIRST down; the key auto-repeats while held and re-arming would
 				// keep pushing the show-time forward so it never appears.
 				if (!symHeld) {
 					symHeld = true;
@@ -90,7 +95,7 @@ abstract class KeyPadHandler extends UiHandler {
 					scheduleSymPreview();
 				}
 				// fall through, so the hotkey system can still track the key for the tap action
-			} else if (symHeld && Key.isCompactQwertyLetter(keyCode)) {
+			} else if (symHeld && Key.isSymModifierTarget(settings, keyCode)) {
 				symUsedAsModifier = true; // SYM acted as a modifier this press → don't also show symbols on release
 				cancelSymPreview(); // pressing a key resolves the hold; the grid (if pending) is now moot
 				String emoji = settings.getEmojiBind(Key.codeToNumber(settings, keyCode));
@@ -110,10 +115,12 @@ abstract class KeyPadHandler extends UiHandler {
 
 		// "backspace" key must repeat its function when held down, so we handle it in a special way
 		if (Key.isBackspace(settings, keyCode)) {
-			if (onBackspace(event.getRepeatCount())) {
-				return Key.setHandled(KeyEvent.KEYCODE_DEL, true);
-			} else {
-				Key.setHandled(KeyEvent.KEYCODE_DEL, false);
+			boolean deleted = onBackspace(event.getRepeatCount());
+			Key.setHandled(KeyEvent.KEYCODE_DEL, deleted);
+			// Always swallow the numpad backspace key (top-right nav = ENDCALL) so its system default
+			// (end call / sleep the device) can never fire, even with nothing to delete. SID-129.
+			if (deleted || keyCode == KeyEvent.KEYCODE_ENDCALL) {
+				return true;
 			}
 		}
 
@@ -210,6 +217,13 @@ abstract class KeyPadHandler extends UiHandler {
 
 
 	/**
+	 * Keytile auto-detection hook (SID-125). No-op here; TypingHandler overrides it to switch geometry,
+	 * rebind the active language and materialize its index for the newly detected tile.
+	 */
+	protected void onPossibleGeometrySwitch(int keyCode) {}
+
+
+	/**
 	 * Use this to monitor key events being delivered to the application. We get
 	 * first crack at them, and can either resume them or let them continue to
 	 * the app.
@@ -230,10 +244,12 @@ abstract class KeyPadHandler extends UiHandler {
 			return false;
 		}
 
-		// Emoji layer (Sidephone): releasing SYM (ALT). If it was used to type an emoji, swallow the
-		// key-up so the "show symbols" tap action does not also fire. Otherwise it was a lone tap and
-		// we let the hotkey system show the symbols page.
-		if (keyCode == KeyEvent.KEYCODE_ALT_LEFT) {
+		onPossibleGeometrySwitch(keyCode); // Keytile detection (SID-125) — see onKeyDown
+
+		// Emoji layer (Sidephone): releasing the SYM key (ALT on compact, ✱ on the numpad). If it was used
+		// to type an emoji, swallow the key-up so the "show symbols" tap action does not also fire.
+		// Otherwise it was a lone tap and we let the hotkey system show the symbols page.
+		if (Key.isSymKey(keyCode)) {
 			boolean wasModifier;
 			try {
 				cancelSymPreview(); // if released before the hold threshold, the grid must never appear

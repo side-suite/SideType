@@ -69,6 +69,31 @@ tasks.register('copyDownloadsToAssets', Copy) {
 }
 
 
+// SID-120: copy the tracked geometry files into the (generated) assets dir so they ship in the APK.
+tasks.register('copyGeometriesToAssets', Copy) {
+	from GEOMETRIES_INPUT_DIR
+	include '**/*.yml'
+	into GEOMETRIES_OUTPUT_DIR
+}
+
+
+// SID-123: bundle plain word+freq wordlists (zipped) so the on-device encoder can materialize a
+// numpad (or any) index on the phone. These languages have no supplement/transparent processing, so
+// the raw dictionary CSV is already the faithful wordlist. Add more here as numpad support widens.
+ext.WORDLIST_LANGUAGES = ['fi', 'de']
+WORDLIST_LANGUAGES.each { wl ->
+	tasks.register("bundleWordlist_${wl}", Zip) {
+		from DICTIONARIES_INPUT_DIR
+		include "${wl}-utf8.csv"
+		archiveFileName = "${wl}-utf8.zip"
+		destinationDirectory = file(WORDLISTS_OUTPUT_DIR)
+	}
+}
+tasks.register('buildWordlists') {
+	dependsOn WORDLIST_LANGUAGES.collect { "bundleWordlist_${it}" }
+}
+
+
 tasks.register('generateNgramsMeta') {
 	inputs.dir NGRAMS_INPUT_DIR
 	outputs.dir NGRAMS_META_OUTPUT_DIR
@@ -221,6 +246,13 @@ android {
 		targetCompatibility JavaVersion.VERSION_17
 	}
 
+	testOptions {
+		// Geometry parsing reads only inlined KeyEvent.KEYCODE_* constants (never android *methods*), so
+		// the parity test runs on a plain JVM. This keeps a stray android call from crashing instead of
+		// silently returning a default, should the test ever grow to touch one.
+		unitTests.returnDefaultValues = true
+	}
+
 	flavorDimensions = ['app']
 	productFlavors {
 		full {
@@ -256,7 +288,7 @@ android {
 				"generate${variantName}LintVitalReportModel"
 			].each { taskName ->
 				tasks.matching { it.name == taskName }.configureEach {
-					dependsOn(buildDefinition, generateDocs, validateLanguages, buildDictionaryDownloads, copyNgramsToAssets, copyNgramsToDownloads)
+					dependsOn(buildDefinition, generateDocs, validateLanguages, buildDictionaryDownloads, copyNgramsToAssets, copyNgramsToDownloads, copyGeometriesToAssets, buildWordlists)
 
 					if (taskName.toLowerCase().contains("full")) {
 						dependsOn(copyDownloadsToAssets)
@@ -292,4 +324,6 @@ dependencies {
 	// the abiFilters above); the per-language acoustic models are NOT bundled and download on demand.
 	// Binds natively through JNA, so proguard-rules.pro must keep org.vosk/com.sun.jna — see docs/adr/0001.
 	implementation 'com.alphacephei:vosk-android:0.3.47'
+
+	testImplementation 'junit:junit:4.13.2'
 }

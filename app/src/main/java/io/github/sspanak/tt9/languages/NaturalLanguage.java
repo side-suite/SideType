@@ -1,9 +1,11 @@
 package io.github.sspanak.tt9.languages;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -65,17 +67,90 @@ public class NaturalLanguage extends TranscribedLanguage {
 	}
 
 
+	// SID-125: the resolved default-variant binding per geometry the definition declares, so the active
+	// binding can be switched when the tile changes without re-reading the definition. Used for hasBinding()
+	// and as the fallback when the selected variant is absent.
+	private final HashMap<String, ArrayList<ArrayList<String>>> geometryBindings = new HashMap<>();
+	// SID-124: every declared (geometry -> variant -> binding), variants in declaration order (default first),
+	// so applyActiveGeometry() can build the selected variant's binding (e.g. German QWERTZ) live.
+	private final HashMap<String, LinkedHashMap<String, ArrayList<ArrayList<String>>>> variantBindings = new HashMap<>();
+	// The (geometry, variant) the current `layout` was built for, so applyActiveGeometry() is a cheap no-op
+	// when it already matches. Without this, a language rebound to the numpad tile stays a 10-key layout after
+	// you switch language (not geometry) back on the compact tile — its keys 10-15 vanish. See SID-125 bugfix.
+	// The variant is part of the key so a variant switch (SID-124) also triggers a rebuild.
+	@Nullable private String builtLayoutKey = null;
+
+
 	private void setLayout(LanguageDefinition definition) {
-		for (int key = 0; key <= KeySequence.MAX_KEY && key < definition.layout.size(); key++) {
-				layout.add(
-					key,
-					key > 1 ? definition.layout.get(key) : generateSpecialChars(definition.layout.get(key))
-				);
+		for (String geometry : definition.getGeometries()) {
+			geometryBindings.put(geometry, definition.getLayout(geometry, null));
+			LinkedHashMap<String, ArrayList<ArrayList<String>>> variants = new LinkedHashMap<>();
+			for (String variant : definition.getVariants(geometry)) {
+				variants.put(variant, definition.getLayout(geometry, variant));
+			}
+			variantBindings.put(geometry, variants);
+		}
+		applyActiveGeometry();
+	}
+
+
+	/**
+	 * Rebuilds {@link #layout} + the character map from the binding of the currently active (geometry,
+	 * variant) (SID-125/SID-124), if it is not already built for that combo. Idempotent, so it is safe (and
+	 * cheap) to call whenever this language becomes the active input language — which is what keeps its layout
+	 * in sync with the tile even when the language or the selected variant changed but the geometry did not.
+	 * Falls back to the compact binding if the active geometry has none (D4a keeps such a language off an
+	 * unsupported tile).
+	 */
+	public void applyActiveGeometry() {
+		final String activeGeometry = GeometryRegistry.getActive().getId();
+		final String variant = GeometryRegistry.getActiveVariant(getId());
+		final String layoutKey = activeGeometry + "/" + variant;
+		if (layoutKey.equals(builtLayoutKey)) {
+			return;
+		}
+
+		ArrayList<ArrayList<String>> binding = resolveBinding(activeGeometry, variant);
+		if (binding == null) {
+			binding = geometryBindings.get(GeometryRegistry.COMPACT_QWERTY);
+		}
+		if (binding == null) {
+			return;
+		}
+
+		layout.clear();
+		for (int key = 0; key <= KeySequence.getMaxKey() && key < binding.size(); key++) {
+			layout.add(key, key > 1 ? binding.get(key) : generateSpecialChars(binding.get(key)));
 		}
 
 		factoryLayout = new ArrayList<>(layout);
-
 		generateCharacterKeyMap();
+		builtLayoutKey = layoutKey;
+	}
+
+
+	/** The binding for a (geometry, variant), or the geometry's default binding if that variant is absent. */
+	@Nullable
+	private ArrayList<ArrayList<String>> resolveBinding(@NonNull String geometry, @NonNull String variant) {
+		LinkedHashMap<String, ArrayList<ArrayList<String>>> variants = variantBindings.get(geometry);
+		if (variants != null && variants.containsKey(variant)) {
+			return variants.get(variant);
+		}
+		return geometryBindings.get(geometry);
+	}
+
+
+	/** True if this language has a binding for the given geometry (so it can be typed on that tile). */
+	public boolean hasBinding(@NonNull String geometry) {
+		return geometryBindings.containsKey(geometry);
+	}
+
+
+	/** The variant names this language declares for a geometry, in declaration order (default first). Empty if none. */
+	@NonNull
+	public ArrayList<String> getVariants(@NonNull String geometry) {
+		LinkedHashMap<String, ArrayList<ArrayList<String>>> variants = variantBindings.get(geometry);
+		return variants == null ? new ArrayList<>() : new ArrayList<>(variants.keySet());
 	}
 
 
@@ -243,6 +318,12 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 	@NonNull
 	public String getKeyNumeral(int key) {
+		// The `numerals` list holds the character printed above each COMPACT QWERTY key (e.g. index 4 is
+		// the T/Y key, printed "2"). On a digits geometry (numpad) the key index IS the number it prints —
+		// key 4 is "4" — so ignore the compact list there, or button 4 would emit "2". SID-125 bugfix.
+		if (GeometryRegistry.getActive().detectsDigits()) {
+			return super.getKeyNumeral(key);
+		}
 		String digit = numerals.getOrDefault(key, null);
 		return  digit != null ? digit : super.getKeyNumeral(key);
 	}
@@ -352,7 +433,7 @@ public class NaturalLanguage extends TranscribedLanguage {
 
 
 	public void updateKeyCharacters(@NonNull SettingsStore settings) {
-		for (int key = 2; key <= KeySequence.MAX_KEY && key < layout.size(); key++) {
+		for (int key = 2; key <= KeySequence.getMaxKey() && key < layout.size(); key++) {
 			updateKeyCharacters(
 				key,
 				settings.getCharsExtra(this, PreferenceChars2to9.NAME_PREFIX + key),

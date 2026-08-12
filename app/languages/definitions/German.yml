@@ -23,3 +23,25 @@ layout:
   - [c, v] # 13
   - [b, n] # 14
   - [m] # 15
+# SID-124: QWERTZ — a delta variant on the Compact QWERTY base that swaps Z and Y to match German
+# muscle memory. The keycaps still read QWERTY (the tile is not relabelled); the -0.19pp top-candidate
+# hit-rate cost of the swapped ambiguity is measured and accepted (ADR-0004/0005 D7). Delta is overlaid
+# onto the (compact-qwerty, default) base: key 4 (labelled TY) -> [t, z]; key 12 (labelled ZX) -> [y, x].
+# SID-125: T9 / Classic Keypad (numpad) binding. Standard 10-key German T9 assignment covering a-z + ä ö ü ß.
+layouts:
+  compact-qwerty:
+    qwertz:
+      4: [t, z]
+      12: [y, x]
+  numpad:
+    default:
+      - [SPECIAL]
+      - [PUNCTUATION_DE]
+      - [a, b, c, ä]
+      - [d, e, f]
+      - [g, h, i]
+      - [j, k, l]
+      - [m, n, o, ö]
+      - [p, q, r, s, ß]
+      - [t, u, v, ü]
+      - [w, x, y, z]

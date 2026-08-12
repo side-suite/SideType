@@ -23,6 +23,7 @@ import io.github.sspanak.tt9.ime.helpers.TextSelection;
 import io.github.sspanak.tt9.ime.mindreader.MindReader;
 import io.github.sspanak.tt9.ime.modes.InputMode;
 import io.github.sspanak.tt9.ime.modes.InputModeKind;
+import io.github.sspanak.tt9.languages.GeometryRegistry;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.languages.LanguageKind;
@@ -152,8 +153,89 @@ public abstract class TypingHandler extends KeyPadHandler {
 	protected void validateLanguages() {
 		mEnabledLanguages = InputModeValidator.validateEnabledLanguages(mEnabledLanguages);
 		mLanguage = InputModeValidator.validateLanguage(mLanguage, mEnabledLanguages);
+		// D8: when the "Keypad type" is pinned to a specific tile, force it before binding the language.
+		if (!settings.isKeypadTypeAuto()) {
+			GeometryRegistry.setActive(settings.getKeypadType());
+		}
+		// Keep the active language's layout in sync with the active tile. A language rebound to the numpad
+		// tile must return to its 16-key compact binding when it becomes active on the compact tile again,
+		// even though only the language (not the geometry) changed. Idempotent. See SID-125 bugfix.
+		if (mLanguage instanceof NaturalLanguage) {
+			((NaturalLanguage) mLanguage).applyActiveGeometry();
+		}
 		settings.saveInputLanguage(mLanguage.getId());
 		settings.saveEnabledLanguageIds(mEnabledLanguages);
+	}
+
+
+	/**
+	 * SID-125: a detected Keytile swap. Switches the active geometry, rebinds the active language to the
+	 * new tile's binding (falling back to a supporting language if it has none — D4a), rebuilds the input
+	 * mode, materializes the new (lang, geometry, variant) index if needed, and flashes a banner. Runs on
+	 * the keycode that proved the new tile, so the same keystroke is then handled under the new geometry.
+	 */
+	@Override
+	protected void onPossibleGeometrySwitch(int keyCode) {
+		// D8: "Keypad type" hard-pin disables auto-detection.
+		if (!settings.isKeypadTypeAuto()) {
+			return;
+		}
+		String detected = GeometryRegistry.classify(keyCode);
+		if (detected == null || detected.equals(GeometryRegistry.getActive().getId())) {
+			return;
+		}
+		if (!GeometryRegistry.setActive(detected)) {
+			return;
+		}
+
+		// D4a: if the active language can't be typed on the new tile, switch to the most-recent enabled
+		// language that can.
+		if (!(mLanguage instanceof NaturalLanguage) || !((NaturalLanguage) mLanguage).hasBinding(detected)) {
+			Language fallback = firstLanguageSupporting(detected);
+			if (fallback != null) {
+				mLanguage = fallback;
+				settings.saveInputLanguage(mLanguage.getId());
+			}
+		}
+
+		if (mLanguage instanceof NaturalLanguage) {
+			((NaturalLanguage) mLanguage).applyActiveGeometry();
+			settings.setDefaultChars(mLanguage, false);
+			((NaturalLanguage) mLanguage).updateKeyCharacters(settings);
+		}
+
+		resetKeyRepeat();
+		mInputMode = determineInputMode();
+		determineTextCase();
+		suggestionOps.set(null);
+
+		DictionaryLoader.loadIfEmpty(getFinalContext(), settings, mLanguage);
+
+		// A brief, self-fading "tile detected" banner (D4): show the tile name, then restore the normal
+		// status (the input mode) after a moment.
+		if (statusBar != null) {
+			statusBar.setText(GeometryRegistry.COMPACT_QWERTY.equals(detected) ? "Compact QWERTY" : "T9 keypad");
+			new Handler(Looper.getMainLooper()).postDelayed(() -> {
+				if (statusBar != null && mInputMode != null) {
+					statusBar.setText(mInputMode);
+				}
+			}, 1500);
+		}
+	}
+
+
+	@Nullable
+	private Language firstLanguageSupporting(@NonNull String geometry) {
+		if (mEnabledLanguages == null) {
+			return null;
+		}
+		for (int langId : mEnabledLanguages) {
+			Language language = LanguageCollection.getLanguage(langId);
+			if (language instanceof NaturalLanguage && ((NaturalLanguage) language).hasBinding(geometry)) {
+				return language;
+			}
+		}
+		return null;
 	}
 
 
@@ -194,6 +276,14 @@ public abstract class TypingHandler extends KeyPadHandler {
 
 	@Override
 	public boolean onBackspace(int repeat) {
+		// A dictionary load blocks predictions (the "please wait" toast). Let the user cancel it with
+		// Backspace instead of waiting out a multi-minute encode. Reachable on both tiles: the compact ⌫
+		// and the numpad's top-right nav key (mapped to Backspace). SID-125 / cancel-loading.
+		if (repeat == 0 && DictionaryLoader.isRunning()) {
+			DictionaryLoader.abort();
+			return true;
+		}
+
 		// Dialer fields seem to handle backspace on their own, and we must ignore it,
 		// otherwise, a keyDown race condition occurs for all keys.
 		if (InputModeKind.isPassthrough(mInputMode)) {

@@ -6,6 +6,12 @@ public class SettingsStatic extends SettingsColors {
 	protected SettingsStatic(Context context) { super(context); }
 
 	/************* internal settings *************/
+	// SID-123 / D1a: when true, languages that ship a plain wordlist are encoded on-device for the
+	// COMPACT tile too (instead of loading the pre-encoded asset). Off by default — compact keeps its
+	// proven pre-encoded path (the S1 safety-valve). Flip on to validate the on-device encoder against
+	// the build encoder (S8) and to measure its throughput + peak memory (S1). The numpad tile always
+	// encodes on-device regardless of this flag.
+	public static final boolean ENCODE_COMPACT_ON_DEVICE = false;
 	public static final int AUTO_ASSISTANCE_BEFORE_TEXT = 50; // chars
 	public static final int AUTO_ASSISTANCE_AFTER_TEXT = 2; // chars
 	public static final int BACKSPACE_ACCELERATION_MAX_CHARS = 20; // maximum chars to be deleted at once in very long words

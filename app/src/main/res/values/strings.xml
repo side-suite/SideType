@@ -65,6 +65,11 @@
 	<string name="pref_category_key_chars_summary">Add extra letters to the 2–9 keys. Reorder, add, and remove special characters on the 0 and 1 keys.</string>
 	<string name="pref_category_keypad">Keypad</string>
 	<string name="pref_category_keypad_hardware">Physical Keys</string>
+	<string name="pref_keypad_type">Keypad type</string>
+	<string name="pref_keypad_type_summary">Which tile is attached. Auto detects it from the keys you press.</string>
+	<string name="pref_keypad_type_auto">Auto (detect)</string>
+	<string name="pref_keypad_type_compact">Compact QWERTY</string>
+	<string name="pref_keypad_type_numpad">T9 keypad</string>
 	<string name="pref_category_keypad_onscreen">On-Screen Keys</string>
 	<string name="pref_category_layout">On-screen Layout</string>
 	<string name="pref_category_predictive_mode">Predictive Mode</string>
@@ -112,6 +117,11 @@
 	<string name="pref_backspace_recomposing">Word Re-Composition</string>
 	<string name="pref_backspace_recomposing_summary">Press Backspace at word end to edit the word. (Not possible in some apps and with mixed-language text)</string>
 	<string name="pref_choose_languages">Languages</string>
+
+	<!-- SID-124: %1$s is the language name, e.g. "German keyboard layout". -->
+	<string name="pref_language_variant">%1$s keyboard layout</string>
+	<string name="pref_language_variant_summary">Which letters the keys type for this language. The keycaps are unchanged.</string>
+	<string name="pref_language_variant_default">QWERTY</string>
 
 	<string name="pref_bottom_padding_portrait">Space Below (Portrait)</string>
 	<string name="pref_drag_resize">Drag to Resize</string>

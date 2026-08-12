@@ -11,6 +11,7 @@ ext.DICTIONARIES_DIR_NAME = 'dictionaries'
 ext.DICTIONARIES_DOWNLOAD_DIR_NAME = 'downloads'
 ext.DICTIONARY_SIZES_DIR_NAME = 'dictionary-sizes'
 ext.NGRAMS_DIR_NAME = 'ngrams'
+ext.GEOMETRIES_DIR_NAME = 'geometries'
 
 def APP_ROOT_DIR = "${project.rootDir}/app"
 ext.ICONS_DIR = "${APP_ROOT_DIR}/src/main/res/drawable"
@@ -38,6 +39,15 @@ ext.DICTIONARY_META_OUTPUT_DIR = "${LANGUAGES_OUTPUT_DIR}/${DICTIONARIES_DIR_NAM
 ext.DICTIONARIES_OUTPUT_DIR = "${FULL_VERSION_ASSETS_DIR}/${LANGUAGES_DIR_NAME}/${DICTIONARIES_DIR_NAME}"
 ext.NGRAMS_META_OUTPUT_DIR = "${LANGUAGES_OUTPUT_DIR}/${NGRAMS_DIR_NAME}"
 ext.NGRAMS_OUTPUT_DIR = "${FULL_VERSION_ASSETS_DIR}/${LANGUAGES_DIR_NAME}/${NGRAMS_DIR_NAME}"
+
+// Keypad geometries (keycode -> key index). Shipped in the main APK for every flavor. The tracked
+// source under app/geometries/ is copied verbatim into assets at build time (SID-120).
+ext.GEOMETRIES_INPUT_DIR = "${APP_ROOT_DIR}/${GEOMETRIES_DIR_NAME}"
+ext.GEOMETRIES_OUTPUT_DIR = "${MAIN_ASSETS_DIR}/${GEOMETRIES_DIR_NAME}"
+
+// Plain word+freq wordlists, bundled so the on-device encoder (SID-123) can materialize an index for
+// any (geometry, variant) on the phone — e.g. the numpad tile. Zipped from the same dictionary CSVs.
+ext.WORDLISTS_OUTPUT_DIR = "${LANGUAGES_OUTPUT_DIR}/wordlists"
 
 ext.LANGUAGE_VALIDATION_DIR = layout.buildDirectory.dir("langValidation")
 

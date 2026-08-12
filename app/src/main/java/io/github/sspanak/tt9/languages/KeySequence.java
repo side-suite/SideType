@@ -17,26 +17,37 @@ package io.github.sspanak.tt9.languages;
  * Because the tokens are contiguous and ordered, the existing decode (`char - '0'`) and the SQLite
  * lexical range scans keep working; only the upper bound char and the digit-vs-word boundary test
  * need to know the alphabet's extent. This class is the single source of truth for all of that.
+ *
+ * The alphabet's extent is the active geometry's key count (SID-120): the Compact QWERTY geometry has
+ * 16 keys, so {@link #getMaxKey()} is 15 and the top token is '?' — byte-identical to the previous
+ * hardcoded constant. A narrower geometry (e.g. the numpad, P3) yields a shorter alphabet.
  */
 public final class KeySequence {
-	/** Highest supported key index. 15 keeps the max token at '?' (63), strictly below 'A' (65). */
-	public static final int MAX_KEY = 15;
-
 	/** Lowest token character ('0'). */
 	public static final char MIN_TOKEN = '0';
 
-	/** Highest token character for MAX_KEY (currently '?'). */
-	public static final char MAX_TOKEN = (char) ('0' + MAX_KEY);
-
-	/**
-	 * One character past MAX_TOKEN ('@'). Used as an exclusive upper bound for SQLite prefix range
-	 * scans: every child sequence of a prefix P satisfies  P <= sequence < P+RANGE_UPPER_BOUND.
-	 */
-	public static final char RANGE_UPPER_BOUND = (char) (MAX_TOKEN + 1);
-
 	private KeySequence() {}
 
-	/** Encodes a key index (0..MAX_KEY) as its single-character sequence token. */
+	/** Highest supported key index — the active geometry's {@code keyCount - 1}. */
+	public static int getMaxKey() {
+		return GeometryRegistry.getActive().getMaxKey();
+	}
+
+	/** Highest token character for {@link #getMaxKey()} (currently '?' for the 16-key compact tile). */
+	public static char getMaxToken() {
+		return (char) ('0' + getMaxKey());
+	}
+
+	/**
+	 * One character past {@link #getMaxToken()} ('@' for the compact tile). Used as an exclusive upper
+	 * bound for SQLite prefix range scans: every child sequence of a prefix P satisfies
+	 * P <= sequence < P+RANGE_UPPER_BOUND.
+	 */
+	public static char getRangeUpperBound() {
+		return (char) (getMaxToken() + 1);
+	}
+
+	/** Encodes a key index (0..getMaxKey()) as its single-character sequence token. */
 	public static char keyToToken(int key) {
 		return (char) ('0' + key);
 	}
@@ -53,6 +64,6 @@ public final class KeySequence {
 
 	/** True if {@code c} is a valid sequence token (i.e. represents a key, not a word character). */
 	public static boolean isToken(char c) {
-		return c >= MIN_TOKEN && c <= MAX_TOKEN;
+		return c >= MIN_TOKEN && c <= getMaxToken();
 	}
 }

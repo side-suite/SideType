@@ -49,6 +49,15 @@ abstract public class Language {
 		return dictionaryFile;
 	}
 
+	/**
+	 * The plain word+freq wordlist asset (zipped), used by the on-device encoder to materialize an index
+	 * for a (geometry, variant) on the phone. Parallels the pre-encoded dictionary file. Only bundled for
+	 * the languages in the build's WORDLIST_LANGUAGES set; the encoder checks the asset exists. See SID-123.
+	 */
+	@NonNull final public String getWordlistFile() {
+		return dictionaryFile.replace("/dictionaries/", "/wordlists/");
+	}
+
 	@NonNull final public Locale getLocale() {
 		return locale;
 	}

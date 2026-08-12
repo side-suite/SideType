@@ -18,15 +18,27 @@ import io.github.sspanak.tt9.preferences.settings.SettingsStore;
  * so it doubles as a key-location guide. Key indices match Key.codeToNumber().
  */
 public class EmojiPreview {
-	private static final int[][] ROWS = {
+	// Compact QWERTY tile: the 14 letter keys (indices 2-15). SID-130.
+	private static final int[][] COMPACT_ROWS = {
 		{2, 3, 4, 5, 6},   // Q E T U O
 		{7, 8, 9, 10, 11}, // A D G J L
 		{12, 13, 14, 15},  // Z C B M
 	};
-	private static final String[][] LABELS = {
+	private static final String[][] COMPACT_LABELS = {
 		{"QW", "ER", "TY", "UI", "OP"},
 		{"AS", "DF", "GH", "JK", "L"},
 		{"ZX", "CV", "BN", "M"},
+	};
+	// Numpad (T9) tile: the digit keys, laid out like the physical keypad. Only 2-9 carry emoji.
+	private static final int[][] NUMPAD_ROWS = {
+		{1, 2, 3},
+		{4, 5, 6},
+		{7, 8, 9},
+	};
+	private static final String[][] NUMPAD_LABELS = {
+		{"1", "2", "3"},
+		{"4", "5", "6"},
+		{"7", "8", "9"},
 	};
 
 	@Nullable private PopupWindow popup;
@@ -77,11 +89,16 @@ public class EmojiPreview {
 		bg.setCornerRadius(dp(context, 12));
 		root.setBackground(bg);
 
-		for (int r = 0; r < ROWS.length; r++) {
+		// Render the grid for the active tile (SID-130).
+		boolean numpad = io.github.sspanak.tt9.languages.GeometryRegistry.getActive().detectsDigits();
+		int[][] rows = numpad ? NUMPAD_ROWS : COMPACT_ROWS;
+		String[][] labels = numpad ? NUMPAD_LABELS : COMPACT_LABELS;
+
+		for (int r = 0; r < rows.length; r++) {
 			LinearLayout row = new LinearLayout(context);
 			row.setOrientation(LinearLayout.HORIZONTAL);
-			for (int c = 0; c < ROWS[r].length; c++) {
-				row.addView(buildCell(context, ROWS[r][c], LABELS[r][c], settings));
+			for (int c = 0; c < rows[r].length; c++) {
+				row.addView(buildCell(context, rows[r][c], labels[r][c], settings));
 			}
 			root.addView(row);
 		}

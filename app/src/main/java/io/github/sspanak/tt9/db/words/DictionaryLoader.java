@@ -1,6 +1,9 @@
 package io.github.sspanak.tt9.db.words;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.inputmethodservice.InputMethodService;
 
 import androidx.annotation.NonNull;
@@ -8,10 +11,14 @@ import androidx.annotation.Nullable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.zip.ZipInputStream;
 
 import io.github.sspanak.tt9.db.DataStore;
 import io.github.sspanak.tt9.db.entities.WordBatch;
@@ -23,15 +30,19 @@ import io.github.sspanak.tt9.db.sqlite.InsertOps;
 import io.github.sspanak.tt9.db.sqlite.SQLiteOpener;
 import io.github.sspanak.tt9.db.sqlite.Tables;
 import io.github.sspanak.tt9.db.sqlite.WordDbOpener;
+import io.github.sspanak.tt9.languages.GeometryRegistry;
 import io.github.sspanak.tt9.languages.KeySequence;
 import io.github.sspanak.tt9.languages.Language;
+import io.github.sspanak.tt9.languages.LanguageDefinition;
 import io.github.sspanak.tt9.languages.LanguageKind;
 import io.github.sspanak.tt9.languages.NaturalLanguage;
 import io.github.sspanak.tt9.languages.exceptions.InvalidLanguageCharactersException;
 import io.github.sspanak.tt9.languages.exceptions.InvalidLanguageException;
+import io.github.sspanak.tt9.preferences.settings.SettingsStatic;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
 import io.github.sspanak.tt9.ui.notifications.DictionaryLoadingBar;
 import io.github.sspanak.tt9.ui.notifications.DictionaryUpdateNotification;
+import io.github.sspanak.tt9.util.AssetFile;
 import io.github.sspanak.tt9.util.Logger;
 import io.github.sspanak.tt9.util.Timer;
 import io.github.sspanak.tt9.util.sys.DeviceInfo;
@@ -97,6 +108,27 @@ public class DictionaryLoader {
 		ArrayList<Language> languages = new ArrayList<>(1);
 		languages.add(language);
 		load(context, settings, languages);
+	}
+
+
+	/**
+	 * Materialize the active (geometry, variant) index for a language if it is empty — the lazy trigger
+	 * used when the tile switches (SID-125). getLanguageFileHash reports "" for a not-yet-materialized
+	 * combo, so this loads exactly once per new combo, off the main thread. No cooldown (unlike autoLoad),
+	 * because a tile switch is an explicit user action.
+	 */
+	public static void loadIfEmpty(@NonNull Context context, @NonNull SettingsStore settings, @Nullable Language language) {
+		if (language == null || isRunning()) {
+			return;
+		}
+		DataStore.getLastLanguageUpdateTime(
+			(hash) -> {
+				if (hash == null || hash.isEmpty()) {
+					load(context, settings, language);
+				}
+			},
+			language
+		);
 	}
 
 
@@ -189,6 +221,11 @@ public class DictionaryLoader {
 
 			sqlite.beginTransaction();
 
+			// Ensure the active (geometry, variant) tables exist before we touch them — a combo materialized
+			// for the first time (e.g. the numpad tile) has no tables yet (onCreate only built the initial
+			// combo). Idempotent. See SID-123.
+			Tables.createWordTables(sqlite.getDb(), language);
+
 			Tables.dropWordsIndexes(sqlite.getDb(), language);
 			sendProgressMessage(language, ++progress);
 			logLoadingStep("Indexes dropped", language, Timer.restart());
@@ -204,10 +241,20 @@ public class DictionaryLoader {
 			sendProgressMessage(language, ++progress);
 			logLoadingStep("Letters imported", language, Timer.restart());
 
-			importWordFile(context, language, lettersCount, progress, 88);
+			if (shouldEncodeOnDevice(context, language)) {
+				encodeWordlistOnDevice(context, language, lettersCount, progress, 88);
+				logLoadingStep("Wordlist encoded on-device", language, Timer.restart());
+			} else if (canLoadPreEncoded(language)) {
+				importWordFile(context, language, lettersCount, progress, 88);
+				logLoadingStep("Dictionary file imported", language, Timer.restart());
+			} else {
+				// A non-compact combo (e.g. numpad) with no bundled wordlist cannot be materialized; leave
+				// the index letters-only rather than loading the compact-encoded dictionary into it (its
+				// sequences would be wrong). SID-125's language fallback keeps such a language off this tile.
+				Logger.w(LOG_TAG, "No wordlist to encode '" + language.getName() + "' for geometry '" + GeometryRegistry.getActive().getId() + "'; leaving letters-only.");
+			}
 			progress = 88;
 			sendProgressMessage(language, progress);
-			logLoadingStep("Dictionary file imported", language, Timer.restart());
 
 			Tables.createPositionIndex(sqlite.getDb(), language);
 			progress = progress + (98f - progress) / 2f;
@@ -276,7 +323,7 @@ public class DictionaryLoader {
 		boolean isEnglish = LanguageKind.isEnglish(language);
 		WordBatch letters = new WordBatch(language);
 
-		for (int key = 2; key <= KeySequence.MAX_KEY; key++) {
+		for (int key = 2; key <= KeySequence.getMaxKey(); key++) {
 			for (String langChar : language.getKeyCharacters(key)) {
 				langChar = (isEnglish && langChar.equals("i")) ? langChar.toUpperCase(Locale.ENGLISH) : langChar;
 				letters.add(langChar, 0, key);
@@ -324,6 +371,186 @@ public class DictionaryLoader {
 
 		saveWordBatch(batch);
 		InsertOps.replaceLanguageMeta(sqlite.getDb(), language.getId(), wordFile.getHash());
+	}
+
+
+	private boolean isNumpadActive() {
+		return !GeometryRegistry.COMPACT_QWERTY.equals(GeometryRegistry.getActive().getId());
+	}
+
+
+	private boolean hasWordlist(@NonNull Context context, @NonNull Language language) {
+		return !language.getWordlistFile().isEmpty() && new AssetFile(context.getAssets(), language.getWordlistFile()).exists();
+	}
+
+
+	/** True when the active combo is (compact-qwerty, default) — the only combo a pre-encoded asset was baked for. */
+	private boolean hasPreEncodedAsset(@NonNull Language language) {
+		return !isNumpadActive()
+			&& LanguageDefinition.DEFAULT_VARIANT.equals(GeometryRegistry.getActiveVariant(language.getId()));
+	}
+
+
+	/**
+	 * Whether to encode this language on-device (two-pass, from its plain wordlist) instead of loading a
+	 * pre-encoded asset. Only (compact-qwerty, default) has a pre-encoded asset, so the numpad tile AND any
+	 * non-default compact variant (e.g. German QWERTZ, SID-124) always encode on-device; the default compact
+	 * combo does so only under the ENCODE_COMPACT_ON_DEVICE flag (S8/S1 validation, D1a). Requires the
+	 * wordlist to be bundled. See SID-123.
+	 */
+	private boolean shouldEncodeOnDevice(@NonNull Context context, @NonNull Language language) {
+		if (!(language instanceof NaturalLanguage)) {
+			return false;
+		}
+		boolean wantOnDevice = !hasPreEncodedAsset(language) || SettingsStatic.ENCODE_COMPACT_ON_DEVICE;
+		return wantOnDevice && hasWordlist(context, language);
+	}
+
+
+	/** The pre-encoded dictionary asset is only valid for (compact-qwerty, default) — it was baked for that binding. */
+	private boolean canLoadPreEncoded(@NonNull Language language) {
+		return hasPreEncodedAsset(language);
+	}
+
+
+	/**
+	 * SID-123: encode a plain word+freq wordlist on-device against the active binding, reproducing the
+	 * build encoder's ranking exactly (S8). Two passes, SQLite-staged, so peak heap stays flat regardless
+	 * of dictionary size:
+	 *   Pass 1 — stream the wordlist, compute each word's sequence, stage (seqlen, sequence, word, freq).
+	 *   Pass 2 — read back ORDER BY seqlen, sequence, freq DESC, word DESC (== the build's bucket order and
+	 *            within-bucket order for non-transcribed languages), grouping by sequence into buckets and
+	 *            assigning frequency = size − i via the existing WordBatch path.
+	 */
+	private void encodeWordlistOnDevice(Context context, Language language, int positionShift, float minProgress, float maxProgress) throws Exception {
+		final SQLiteDatabase db = sqlite.getDb();
+		positionShift = positionShift == 0 ? 1 : positionShift;
+		final long s1StartMs = System.currentTimeMillis(); // S1: encode-throughput measurement
+
+		// ---- Pass 1: stream the wordlist into a staging table (constant heap) ----
+		// A regular (on-disk) table, not TEMP, so the rows and the sort never live on the dalvik heap —
+		// this is what keeps peak memory flat under the 256 MB limit for a full 1.5M-word dictionary (S1).
+		db.execSQL("DROP TABLE IF EXISTS staging_encode");
+		db.execSQL("CREATE TABLE staging_encode (seqlen INTEGER NOT NULL, sequence TEXT NOT NULL, word TEXT NOT NULL, freq INTEGER NOT NULL)");
+
+		final WordFile wordFile = new WordFile(context, language, context.getAssets());
+		final int totalWords = Math.max(1, wordFile.getWords());
+		final float pass1Max = minProgress + (maxProgress - minProgress) * 0.6f;
+		int staged = 0;
+
+		SQLiteStatement stage = db.compileStatement("INSERT INTO staging_encode (seqlen, sequence, word, freq) VALUES (?, ?, ?, ?)");
+		try (BufferedReader reader = openWordlist(context, language)) {
+			for (String line; (line = reader.readLine()) != null; ) {
+				if (loadThread != null && loadThread.isInterrupted()) {
+					throw new DictionaryImportAbortedException();
+				}
+				if (line.isEmpty()) {
+					continue;
+				}
+
+				String[] parts = WordFile.getLineData(line);
+				String word = parts[0];
+				if (word.isEmpty()) {
+					continue;
+				}
+
+				String sequence;
+				try {
+					sequence = language.getDigitSequenceForWord(word);
+				} catch (InvalidLanguageCharactersException e) {
+					continue; // a word not typable on this binding is simply skipped
+				}
+				if (sequence.isEmpty()) {
+					continue;
+				}
+
+				int freq;
+				try {
+					freq = Integer.parseInt(parts[1].trim());
+				} catch (NumberFormatException e) {
+					freq = 0;
+				}
+
+				stage.bindLong(1, sequence.length());
+				stage.bindString(2, sequence);
+				stage.bindString(3, word);
+				stage.bindLong(4, freq);
+				stage.executeInsert();
+				stage.clearBindings();
+
+				if ((++staged & 0x3FFF) == 0) {
+					sendProgressMessage(language, minProgress + (pass1Max - minProgress) * Math.min(1f, (float) staged / totalWords));
+				}
+			}
+		}
+
+		// The covering index makes the Pass 2 read-back an ordered index scan (no in-memory sort). SQLite
+		// builds it on disk. Its key order is exactly the Pass 2 ORDER BY.
+		db.execSQL("CREATE INDEX staging_encode_ix ON staging_encode (seqlen, sequence, freq DESC, word DESC)");
+
+		// ---- Pass 2: read back grouped by sequence, assign frequency = size − i via WordBatch ----
+		WordBatch batch = new WordBatch(language, SettingsStore.DICTIONARY_IMPORT_BATCH_SIZE + 1);
+		int wordCount = 0;
+		String previousSequence = null;
+		ArrayList<String> bucket = new ArrayList<>();
+
+		try (Cursor cursor = db.rawQuery("SELECT sequence, word FROM staging_encode ORDER BY seqlen, sequence, freq DESC, word DESC", null)) {
+			while (cursor.moveToNext()) {
+				if (loadThread != null && loadThread.isInterrupted()) {
+					throw new DictionaryImportAbortedException();
+				}
+
+				String sequence = cursor.getString(0);
+				String word = cursor.getString(1);
+
+				if (previousSequence != null && !sequence.equals(previousSequence)) {
+					batch.add(bucket, previousSequence, wordCount + positionShift);
+					wordCount += bucket.size();
+					bucket = new ArrayList<>();
+
+					if (batch.getWords().size() > SettingsStore.DICTIONARY_IMPORT_BATCH_SIZE) {
+						saveWordBatch(batch);
+						batch.clear();
+						sendProgressMessage(language, pass1Max + (maxProgress - pass1Max) * Math.min(1f, (float) wordCount / totalWords));
+					}
+				}
+
+				bucket.add(word);
+				previousSequence = sequence;
+			}
+		}
+
+		if (previousSequence != null && !bucket.isEmpty()) {
+			batch.add(bucket, previousSequence, wordCount + positionShift);
+		}
+		saveWordBatch(batch);
+
+		db.execSQL("DROP TABLE IF EXISTS staging_encode");
+
+		// Mark the combo materialized. The hash is shared per langId (freshness), so reuse the dictionary's.
+		InsertOps.replaceLanguageMeta(db, language.getId(), wordFile.getHash());
+
+		// S1 gate: record wall-clock encode time and peak heap. The two-pass, on-disk-staged design keeps
+		// dalvik heap flat regardless of dictionary size — this line is where we verify that on the SP-01.
+		Runtime rt = Runtime.getRuntime();
+		android.util.Log.i(
+			"SID123-S1",
+			"Encoded '" + language.getName() + "' (" + Tables.activeGeometryId() + "): " + staged + " words in "
+				+ (System.currentTimeMillis() - s1StartMs) + " ms. dalvikUsed="
+				+ ((rt.totalMemory() - rt.freeMemory()) / 1048576) + "MB dalvikMax=" + (rt.maxMemory() / 1048576)
+				+ "MB nativeHeap=" + (android.os.Debug.getNativeHeapAllocatedSize() / 1048576) + "MB"
+		);
+	}
+
+
+	private BufferedReader openWordlist(@NonNull Context context, @NonNull Language language) throws IOException {
+		InputStream stream = context.getAssets().open(language.getWordlistFile());
+		ZipInputStream zipStream = new ZipInputStream(stream);
+		if (zipStream.getNextEntry() == null) {
+			zipStream.close();
+			throw new IOException("Empty wordlist: " + language.getWordlistFile());
+		}
+		return new BufferedReader(new InputStreamReader(zipStream, StandardCharsets.UTF_8));
 	}
 
 
