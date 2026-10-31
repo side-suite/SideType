@@ -7,6 +7,8 @@ import io.github.sspanak.tt9.commands.CmdEditDuplicateLetter;
 import io.github.sspanak.tt9.commands.CmdFilterSuggestions;
 import io.github.sspanak.tt9.commands.CmdShift;
 import io.github.sspanak.tt9.commands.CmdSpaceKorean;
+import io.github.sspanak.tt9.commands.CmdSuggestionNext;
+import io.github.sspanak.tt9.commands.CmdTogglePredictiveMode;
 import io.github.sspanak.tt9.commands.Command;
 import io.github.sspanak.tt9.commands.CommandCollection;
 import io.github.sspanak.tt9.ime.helpers.InputConnectionAsync;
@@ -21,6 +23,7 @@ public abstract class HotkeyHandler extends CommandHandler {
 	private final CmdEditAdjacentLetter editAdjacentLetter = new CmdEditAdjacentLetter();
 	private final CmdShift shift = new CmdShift();
 	private final CmdSpaceKorean spaceKorean = new CmdSpaceKorean();
+	private final CmdTogglePredictiveMode togglePredictiveMode = new CmdTogglePredictiveMode();
 
 	private boolean waitingForSpaceTrim = false;
 
@@ -94,6 +97,9 @@ public abstract class HotkeyHandler extends CommandHandler {
 			return true;
 		}
 
+		// Nothing left to accept, so Enter (or the editor action) ends the current word
+		mInputMode.onFinishWord();
+
 		int action = appHacks.getEditorAction(settings);
 
 		boolean actionPerformed;
@@ -162,6 +168,14 @@ public abstract class HotkeyHandler extends CommandHandler {
 		}
 
 		final Command cmd = CommandCollection.getByHotkey(settings, keyCode);
+
+		// Sidephone: the ▲▼ key scrolls the suggestions; with nothing to scroll (no suggestions, no
+		// SYM grid, which takes the key first), a tap toggles ABC / Predictive instead. Holding it is
+		// the next-language hotkey.
+		if (cmd instanceof CmdSuggestionNext && !cmd.isAvailable(getFinalContext())) {
+			return togglePredictiveMode.runFromHotkey(getFinalContext(), validateOnly);
+		}
+
 		if (cmd instanceof CmdFilterSuggestions) {
 			return ((CmdFilterSuggestions) cmd).runFromHotkey(getFinalContext(), validateOnly, repeat);
 		} else {

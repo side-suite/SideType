@@ -1,15 +1,14 @@
 package io.github.sspanak.tt9.commands;
 
-import android.view.KeyEvent;
-
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.ime.TraditionalT9;
-import io.github.sspanak.tt9.ime.helpers.Key;
-import io.github.sspanak.tt9.ime.modes.InputModeKind;
 
+/**
+ * Opens the Sidephone SYM grid straight on its emoji pages. Unassigned by default; a SYM tap on an
+ * open symbol grid gets there too (see {@link CmdShowSymbols}).
+ */
 public class CmdShowEmojis implements Command {
 	public static final String ID = "key_show_emojis";
 	@Override public String getId() { return ID; }
@@ -18,12 +17,7 @@ public class CmdShowEmojis implements Command {
 
 
 	@Override public boolean isAvailable(@Nullable TraditionalT9 tt9) {
-		return
-			tt9 != null
-			&& isAvailableStd(tt9)
-			&& InputModeKind.isPredictive(tt9.getInputMode())
-			&& !tt9.areEmojiCategoriesVisible()
-			&& !tt9.isTouchExplorationEnabled();
+		return tt9 != null && !tt9.shouldBeOff() && !tt9.isVoiceInputActive();
 	}
 
 
@@ -33,31 +27,7 @@ public class CmdShowEmojis implements Command {
 			return false;
 		}
 
-		final int keyCode = Key.numberToCode(tt9.getSettings(), 1);
-
-		if (!tt9.getInputMode().containsEmojis()) {
-			firstPress1(tt9, keyCode);
-		}
-		secondPress1(tt9, keyCode);
-
+		tt9.showSymbolGrid(true);
 		return true;
-	}
-
-
-	private void firstPress1(@NonNull TraditionalT9 tt9, int keyCode1) {
-		final boolean useHold = tt9.getLanguage() != null && tt9.getLanguage().hasLettersOnAllKeys();
-
-		if (useHold) {
-			tt9.onKeyLongPress(keyCode1, new KeyEvent(KeyEvent.ACTION_DOWN, keyCode1));
-		} else {
-			tt9.onKeyDown(keyCode1, new KeyEvent(KeyEvent.ACTION_DOWN, keyCode1));
-		}
-		tt9.onKeyUp(keyCode1, new KeyEvent(KeyEvent.ACTION_UP, keyCode1));
-	}
-
-
-	private void secondPress1(@NonNull TraditionalT9 tt9, int keyCode1) {
-		tt9.onKeyDown(keyCode1, new KeyEvent(KeyEvent.ACTION_DOWN, keyCode1));
-		tt9.onKeyUp(keyCode1, new KeyEvent(KeyEvent.ACTION_UP, keyCode1));
 	}
 }

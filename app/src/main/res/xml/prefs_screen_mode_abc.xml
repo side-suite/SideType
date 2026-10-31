@@ -20,6 +20,12 @@
 		android:title="@string/pref_auto_capitals_after_newline" />
 
 	<SwitchPreferenceCompat
+		android:defaultValue="true"
+		android:key="learn_abc_words"
+		android:summary="@string/pref_learn_abc_words_summary"
+		android:title="@string/pref_learn_abc_words" />
+
+	<SwitchPreferenceCompat
 		android:defaultValue="false"
 		android:key="show_suggestions_abc"
 		android:summary="@string/pref_show_suggestions_abc_summary"

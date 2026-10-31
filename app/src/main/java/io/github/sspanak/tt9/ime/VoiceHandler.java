@@ -170,7 +170,6 @@ abstract class VoiceHandler extends SuggestionHandler {
 		if (!mainView.isCommandPaletteShown()) {
 			mainView.render(); // disable the function keys
 		}
-		refreshVoiceKey(); // swap the tray mic to its "stop" icon
 		statusBar.setText(voiceInputOps);
 	}
 
@@ -187,7 +186,6 @@ abstract class VoiceHandler extends SuggestionHandler {
 	private void onVoiceInputStopped(String text) {
 		onText(autoCapitalize(text), false);
 		resetStatus();
-		refreshVoiceKey();
 		 if (!mainView.isCommandPaletteShown()) {
 			 mainView.render(); // re-enable the function keys
 		 }
@@ -214,7 +212,6 @@ abstract class VoiceHandler extends SuggestionHandler {
 			}
 		}
 
-		refreshVoiceKey();
 		 if (!mainView.isCommandPaletteShown()) {
 			 mainView.render(); // re-enable the function keys
 		 }

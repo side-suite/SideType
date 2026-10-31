@@ -8,6 +8,8 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 
 import io.github.sspanak.tt9.hacks.InputType;
+import io.github.sspanak.tt9.ime.helpers.TextField;
+import io.github.sspanak.tt9.ime.modes.helpers.AbcWordLearner;
 import io.github.sspanak.tt9.ime.modes.helpers.AutoSpace;
 import io.github.sspanak.tt9.ime.modes.helpers.AutoTextCase;
 import io.github.sspanak.tt9.ime.modes.helpers.Sequences;
@@ -26,6 +28,7 @@ class ModeABC extends InputMode {
 	// text analysis
 	@NonNull private final AutoSpace autoSpace;
 	@NonNull private final AutoTextCase autoTextCase;
+	@NonNull private final AbcWordLearner wordLearner;
 	@Nullable private final InputType inputType;
 	private final int textFieldTextCase;
 
@@ -33,10 +36,11 @@ class ModeABC extends InputMode {
 	@Override @NonNull public String toAccessibilityString(@NonNull Context c) { return language.getName() + ", " + language.getAbcString(); }
 
 
-	protected ModeABC(@NonNull SettingsStore settings, @NonNull Language lang, @Nullable InputType inputType) {
+	protected ModeABC(@NonNull SettingsStore settings, @NonNull Language lang, @Nullable InputType inputType, @Nullable TextField textField) {
 		super(settings, inputType);
 		autoSpace = new AutoSpace(settings);
 		autoTextCase = new AutoTextCase(settings, new Sequences(), inputType);
+		wordLearner = new AbcWordLearner(settings, inputType, textField);
 		this.inputType = inputType;
 		textFieldTextCase = inputType == null ? CASE_UNDEFINED : inputType.determineTextCase();
 
@@ -71,18 +75,24 @@ class ModeABC extends InputMode {
 			ArrayList<String> newSuggestions = new ArrayList<>(1);
 			newSuggestions.add(language.getKeyNumeral(number));
 			suggestions = newSuggestions;
-		} else if (repeat > 0 && !suggestions.isEmpty()) {
-			autoAcceptTimeout = settings.getAutoAcceptTimeoutAbc();
-			shouldSelectNextLetter = true;
 		} else {
-			reset();
-			autoAcceptTimeout = settings.getAutoAcceptTimeoutAbc();
-			digitSequence = String.valueOf(number);
-			shouldSelectNextLetter = false;
+			// Sidephone: only the key's letters rotate. The printed numeral or symbol (! 1 2 . ? ' @ …)
+			// is typed by holding the key, and punctuation lives in the SYM grid.
+			final ArrayList<String> keyChars = new ArrayList<>(KEY_CHARACTERS.size() > number ? KEY_CHARACTERS.get(number) : settings.getOrderedKeyChars(language, number));
 
-			ArrayList<String> newSuggestions = new ArrayList<>(KEY_CHARACTERS.size() > number ? KEY_CHARACTERS.get(number) : settings.getOrderedKeyChars(language, number));
-			newSuggestions.add(language.getKeyNumeral(number));
-			suggestions = newSuggestions;
+			if (repeat > 0 && !suggestions.isEmpty() && keyChars.size() > 1) {
+				// a repeat press cycles the key's letters
+				autoAcceptTimeout = settings.getAutoAcceptTimeoutAbc();
+				shouldSelectNextLetter = true;
+			} else {
+				// A fresh press, or a repeat on a one-letter key (L, M), where there is nothing to cycle:
+				// the pending letter is accepted and the key types again at once, so "ll" needs no wait.
+				reset();
+				autoAcceptTimeout = settings.getAutoAcceptTimeoutAbc();
+				digitSequence = String.valueOf(number);
+				shouldSelectNextLetter = false;
+				suggestions = keyChars;
+			}
 		}
 
 		return true;
@@ -201,8 +211,39 @@ class ModeABC extends InputMode {
 	}
 
 
-	@Override public void onAcceptSuggestion(@NonNull String w) {
-		reset();
+	/**
+	 * Every letter is a suggestion of its own here, so this is where the word learner watches the
+	 * word grow. Anything that is not a letter ends the word and gets it learned.
+	 */
+	@Override
+	public void onAcceptSuggestion(@NonNull String w, boolean preserveWordList) {
+		wordLearner.onAccept(language, w);
+		if (!preserveWordList) {
+			reset();
+		}
+	}
+
+
+	@Override
+	public void onCursorMove(@NonNull String word) {
+		super.onCursorMove(word);
+		wordLearner.discard(); // the user went elsewhere; whatever we collected is no longer before the cursor
+	}
+
+
+	@Override
+	public void beforeDeleteText() {
+		// While a letter is still pending (not yet accepted), Backspace removes that letter, which the
+		// learner has not collected. Only an accepted letter counts as one of the word's.
+		if (suggestions.isEmpty()) {
+			wordLearner.onBackspace();
+		}
+	}
+
+
+	@Override
+	public void onFinishWord() {
+		wordLearner.onFinishWord(language);
 	}
 
 

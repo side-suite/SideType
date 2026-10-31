@@ -116,4 +116,5 @@ public class SystemSettings {
 			originalNavigationBarColor = null;
 		}
 	}
+
 }

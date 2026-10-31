@@ -329,8 +329,7 @@ public class ModeRecomposing extends InputMode {
 		suggestionRecommendation = 0;
 
 		final Text letterAtPos = position >= 0 && position < originalWord.length() ? new Text(language, originalWord.charAt(position)) : new Text(null);
-		final ArrayList<String> keyChars = settings.getOrderedKeyChars(language, numberAtPosition);
-		keyChars.add(language.getKeyNumeral(numberAtPosition));
+		final ArrayList<String> keyChars = settings.getOrderedKeyChars(language, numberAtPosition); // Sidephone: letters only, no numeral
 
 
 		if (withTextCase != CASE_UNDEFINED) {

@@ -247,6 +247,13 @@ public class ResizableMainView extends StaticMainView implements View.OnAttachSt
 	}
 
 	@Override
+	public void setSymbolGridShown(boolean shown) {
+		super.setSymbolGridShown(shown);
+		fitMain(); // the strip's fixed height must make room for (or give back) the grid
+	}
+
+
+	@Override
 	public void showCommandPalette() {
 		super.showCommandPalette();
 		fitMain();

@@ -17,6 +17,9 @@ import io.github.sspanak.tt9.util.chars.Characters;
 class SettingsKeyChars extends SettingsInput {
 	private final static String CHARS_1_PREFIX = "punctuation_order_key_1_initial_";
 	public final static String CHARS_GROUP_1 = "punctuation_order_key_1_group";
+	private final static String RECENT_EMOJIS = "sym_grid_recent_emojis";
+	private final static String RECENT_EMOJIS_SEPARATOR = "\t";
+	private final static int RECENT_EMOJIS_MAX = 14; // one SYM grid page, see ui.tray.SymbolGrid.CELLS
 	public final static String CHARS_AFTER_GROUP_1 = "punctuation_order_key_1_after_group";
 
 	private final static String CHARS_0_PREFIX = "punctuation_order_key_0_initial_";
@@ -44,6 +47,30 @@ class SettingsKeyChars extends SettingsInput {
 
 	public void setEmojiBind(int key, @Nullable String emoji) {
 		getPrefsEditor().putString(EMOJI_BIND_PREFIX + key, emoji == null ? "" : emoji).apply();
+	}
+
+
+	/** Sidephone SYM grid: the emojis picked most recently, newest first, at most one grid page. */
+	@NonNull
+	public ArrayList<String> getRecentEmojis() {
+		final String stored = prefs.getString(RECENT_EMOJIS, "");
+		ArrayList<String> recent = new ArrayList<>();
+		for (String emoji : stored.split(RECENT_EMOJIS_SEPARATOR)) {
+			if (!emoji.isEmpty()) {
+				recent.add(emoji);
+			}
+		}
+		return recent;
+	}
+
+	public void addRecentEmoji(@NonNull String emoji) {
+		ArrayList<String> recent = getRecentEmojis();
+		recent.remove(emoji);
+		recent.add(0, emoji);
+		while (recent.size() > RECENT_EMOJIS_MAX) {
+			recent.remove(recent.size() - 1);
+		}
+		getPrefsEditor().putString(RECENT_EMOJIS, String.join(RECENT_EMOJIS_SEPARATOR, recent)).apply();
 	}
 
 

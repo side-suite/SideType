@@ -71,12 +71,12 @@ abstract public class InputMode {
 				return new ModeWords(settings, language, inputType, textField);
 			case MODE_HIRAGANA:
 				if (LanguageKind.isJapanese(language)) return new ModeHiragana(settings, language, inputType, textField);
-				return new ModeABC(settings, language, inputType);
+				return new ModeABC(settings, language, inputType, textField);
 			case MODE_KATAKANA:
 				if (LanguageKind.isJapanese(language)) return new ModeKatakana(settings, language, inputType, textField);
-				return new ModeABC(settings, language, inputType);
+				return new ModeABC(settings, language, inputType, textField);
 			case MODE_ABC:
-				return new ModeABC(settings, language, inputType);
+				return new ModeABC(settings, language, inputType, textField);
 			case MODE_RECOMPOSING:
 				return new ModeRecomposing(settings, language, inputType, textField);
 			case MODE_PASSTHROUGH:
@@ -110,6 +110,8 @@ abstract public class InputMode {
 	public void onAcceptSuggestion(@NonNull String word) { onAcceptSuggestion(word, false); }
 	public void onAcceptSuggestion(@NonNull String word, boolean preserveWordList) {}
 	public void onCursorMove(@NonNull String word) { if (!digitSequence.isEmpty()) onAcceptSuggestion(word); }
+	/** The current word was ended by something other than typing a character: Enter, an editor action, or an input mode switch. */
+	public void onFinishWord() {}
 	public boolean onReplaceSuggestion(@NonNull String rawWord) {
 		String newSequence;
 		if (SuggestionsBar.SHOW_GROUP_0_SUGGESTION.equalsIgnoreCase(rawWord)) {

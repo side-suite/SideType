@@ -12,7 +12,7 @@
 	<integer name="hotkey_show_settings">0</integer>
 	<integer name="hotkey_undo">0</integer>
 	<integer name="hotkey_redo">0</integer>
-	<integer name="hotkey_toggle_predictive_mode">-113</integer> <!-- Sidephone: hold the ▲▼ key (KEYCODE_CTRL_LEFT) -> multi-tap -->
+	<integer name="hotkey_toggle_predictive_mode">0</integer> <!-- Sidephone: unassigned; a ▲▼ tap with nothing to scroll toggles the mode (HotkeyHandler.onDynamicKey) -->
 
 	<integer name="hotkey_voice_input">0</integer>
 	<integer name="hotkey_filter_clear">20</integer> <!-- KEYCODE_DPAD_DOWN -->
@@ -21,7 +21,7 @@
 	<integer name="hotkey_next_suggestion">113</integer> <!-- Sidephone: tap the ▲▼ key (KEYCODE_CTRL_LEFT) to scroll suggestions/symbols; hold = multi-tap -->
 	<integer name="hotkey_command_palette">-17</integer> <!-- KeyEvent.KEYCODE_STAR, negative means "hold" -->
 	<integer name="hotkey_next_input_mode">18</integer> <!-- KeyEvent.KEYCODE_POUND -->
-	<integer name="hotkey_next_language">-18</integer> <!-- KeyEvent.KEYCODE_POUND, negative means "hold" -->
+	<integer name="hotkey_next_language">-113</integer> <!-- Sidephone: hold the ▲▼ key (KEYCODE_CTRL_LEFT) -->
 	<integer name="hotkey_shift">59</integer> <!-- Sidephone: aA key (KEYCODE_SHIFT_LEFT) -->
 
 	<integer name="hotkey_space_korean">62</integer> <!-- KeyEvent.KEYCODE_SPACE -->

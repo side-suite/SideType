@@ -28,6 +28,7 @@ public class SuggestionOps {
 	@NonNull private final Consumer<String> onDelayedAccept;
 
 	@Nullable protected SuggestionsBar suggestionBar;
+	@Nullable private final ResizableMainView mainView;
 	@Nullable private AppHacks appHacks;
 	private boolean isInputLimited;
 	@NonNull private TextField textField;
@@ -41,6 +42,7 @@ public class SuggestionOps {
 
 		this.appHacks = appHacks;
 		this.isInputLimited = inputType == null || inputType.isLimited();
+		this.mainView = mainView;
 		this.settings = settings;
 		this.statusBar = statusBar;
 		this.textField = textField != null ? textField : new TextField(ims, settings, null);
@@ -339,6 +341,12 @@ public class SuggestionOps {
 
 		if (statusBar != null) {
 			statusBar.setShown(willBeEmpty || !areSuggestionsVisible);
+		}
+
+		// Sidephone: the strip exists only while there is something to show in it. In ABC mode the
+		// letter choices are hidden (unless "Show Letter Suggestions" is on), so the strip stays down.
+		if (mainView != null) {
+			mainView.onSuggestionsChanged(!willBeEmpty && areSuggestionsVisible);
 		}
 	}
 }

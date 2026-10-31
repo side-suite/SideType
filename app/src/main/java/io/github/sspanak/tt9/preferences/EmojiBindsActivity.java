@@ -149,10 +149,12 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 		container.addView(gridScroll);
 
 		final ArrayList<TextView> tabs = new ArrayList<>();
-		for (int i = 0; i < io.github.sspanak.tt9.ui.EmojiData.CATEGORIES.length; i++) {
+		final java.util.List<io.github.sspanak.tt9.ui.EmojiData.Category> categories = io.github.sspanak.tt9.ui.EmojiData.getCategories(this);
+		for (int i = 0; i < categories.size(); i++) {
 			final int catIndex = i;
 			TextView tab = new TextView(this);
-			tab.setText((String) io.github.sspanak.tt9.ui.EmojiData.CATEGORIES[i][0]);
+			tab.setText(categories.get(i).icon());
+			tab.setContentDescription(categories.get(i).name());
 			tab.setTextSize(20);
 			tab.setGravity(Gravity.CENTER);
 			tab.setPadding(dp(10), dp(6), dp(10), dp(6));
@@ -200,7 +202,7 @@ public class EmojiBindsActivity extends EdgeToEdgeActivity {
 
 	private void populateGrid(GridLayout grid, int catIndex, int cellSize, int keyIndex) {
 		grid.removeAllViews();
-		for (String emoji : io.github.sspanak.tt9.ui.EmojiData.getEmojiForCategory(catIndex)) {
+		for (String emoji : io.github.sspanak.tt9.ui.EmojiData.getEmojiForCategory(this, catIndex)) {
 			grid.addView(makeBindCell(emoji, 22, cellSize, keyIndex));
 		}
 	}

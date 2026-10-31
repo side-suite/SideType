@@ -23,6 +23,7 @@ import io.github.sspanak.tt9.ime.helpers.TextSelection;
 import io.github.sspanak.tt9.ime.mindreader.MindReader;
 import io.github.sspanak.tt9.ime.modes.InputMode;
 import io.github.sspanak.tt9.ime.modes.InputModeKind;
+import io.github.sspanak.tt9.ime.modes.helpers.Sequences;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.languages.LanguageKind;
@@ -157,26 +158,10 @@ public abstract class TypingHandler extends KeyPadHandler {
 	}
 
 
-	@Override
-	protected String getDrawerPreviewText() {
-		String before = textField.getStringBeforeCursor(40);
-		String after = textField.getStringAfterCursor(10);
-		if (before.equals(InputConnectionAsync.TIMEOUT_SENTINEL)) {
-			before = "";
-		}
-		if (after.equals(InputConnectionAsync.TIMEOUT_SENTINEL)) {
-			after = "";
-		}
-		return before + "│" + after; // │ marks the cursor position
-	}
-
-
 	protected void onFinishTyping(boolean willExitInput) {
-		// Sidephone: clear the SYM/emoji modifier when focus leaves the field, so a SYM key-up that never
-		// arrives (focus stolen mid-hold) can't leave the modifier stuck on across inputs. Also dismiss
-		// the emoji drawer so it can't outlive the field it types into.
-		resetSymState();
-		hideEmojiDrawer();
+		// Sidephone: close the SYM grid when focus leaves the field, so it can't outlive the field it
+		// types into.
+		hideSymbolGrid();
 
 		if (shiftStateDebounceHandler != null) {
 			shiftStateDebounceHandler.removeCallbacksAndMessages(null);
@@ -245,6 +230,20 @@ public abstract class TypingHandler extends KeyPadHandler {
 		suggestionOps.cancelDelayedAccept();
 
 		hold = hold && settings.getHoldToType();
+
+		// Sidephone: the space key types a space and nothing else. No whitespace/symbol list to scroll,
+		// no "00" character; punctuation lives in the SYM grid. Holding it still types "0", and the
+		// number mode keeps its digit.
+		if (
+			key == Sequences.CHARS_0_KEY
+			&& !hold
+			&& !InputModeKind.isNumeric(mInputMode)
+			&& !InputModeKind.isPassthrough(mInputMode)
+			&& mLanguage != null
+			&& mLanguage.hasSpaceBetweenWords()
+		) {
+			return onText(Characters.getSpace(mLanguage), false);
+		}
 		String[] surroundingChars = textField.getSurroundingStringForAutoAssistance(settings, mInputMode);
 		String lastWord = null;
 

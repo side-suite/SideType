@@ -8,82 +8,15 @@
 	android:focusable="false"
 	android:focusableInTouchMode="false">
 
-	<!-- Sidephone quick action (far left): open the emoji key binds screen. Sits where the settings
-	     button used to; settings moved to a long-press on the language chip when the voice mic made
-	     the tray too crowded — five 44dp buttons left only 156dp of a 376dp strip for suggestions. -->
-	<ImageButton
-		android:id="@+id/sidephone_emoji_key"
-		android:layout_width="44dp"
-		android:layout_height="34dp"
-		android:paddingStart="12dp"
-		android:paddingEnd="12dp"
-		android:paddingTop="7dp"
-		android:paddingBottom="7dp"
-		android:scaleType="fitCenter"
-		android:src="@drawable/ic_fn_show_emojis"
-		android:background="?android:attr/selectableItemBackgroundBorderless"
-		android:tint="?attr/colorKeyboardText"
-		android:contentDescription="@string/pref_emoji_binds" />
-
-	<!-- Sidephone quick action (left): add the current/typed word to the dictionary. -->
-	<ImageButton
-		android:id="@+id/sidephone_dict_key"
-		android:layout_width="44dp"
-		android:layout_height="34dp"
-		android:paddingStart="12dp"
-		android:paddingEnd="12dp"
-		android:paddingTop="7dp"
-		android:paddingBottom="7dp"
-		android:scaleType="fitCenter"
-		android:src="@drawable/ic_fn_add_word"
-		android:background="?android:attr/selectableItemBackgroundBorderless"
-		android:tint="?attr/colorKeyboardText"
-		android:contentDescription="@string/function_add_word" />
-
+	<!-- Sidephone: the strip holds only the suggestions (or the status text when there are none).
+	     It is shown while a word or the symbol grid is being composed and collapses to nothing
+	     otherwise, so it carries no buttons. Settings is on the launcher icon; the language and the
+	     input mode are on the arrows key. See MainLayoutTray.applyCollapse(). -->
 	<FrameLayout
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
 		android:layout_weight="1">
 		<include layout="@layout/panel_status_bar" />
 	</FrameLayout>
-
-	<!-- Sidephone quick action (right): tap to switch the writing language (shows the current code,
-	     e.g. EN / FI / DE), long-press to open Settings. Always shown when a language exists — it is
-	     the only route to Settings since the gear was dropped, so it must not hide. See
-	     refreshLanguageKey(). -->
-	<TextView
-		android:id="@+id/sidephone_language_key"
-		android:layout_width="wrap_content"
-		android:layout_height="34dp"
-		android:minWidth="44dp"
-		android:paddingStart="8dp"
-		android:paddingEnd="8dp"
-		android:gravity="center"
-		android:textSize="13sp"
-		android:textStyle="bold"
-		android:singleLine="true"
-		android:textColor="?attr/colorKeyboardText"
-		android:background="?android:attr/selectableItemBackgroundBorderless"
-		android:contentDescription="@string/function_next_language" />
-
-	<!-- Sidephone quick action (far right): offline voice input. This is the ONLY way to reach voice on
-	     the SP-01 — the Tray layout renders no soft keys, so SoftKeyVoiceInput never appears, and the
-	     voice hotkey is unassigned by default. Starts hidden; UiHandler.refreshVoiceKey() shows it when
-	     ANY enabled language has a Vosk model and greys it out on the ones that don't, so the strip
-	     never reflows on a language switch. See SID-56. -->
-	<ImageButton
-		android:id="@+id/sidephone_voice_key"
-		android:layout_width="44dp"
-		android:layout_height="34dp"
-		android:paddingStart="12dp"
-		android:paddingEnd="12dp"
-		android:paddingTop="7dp"
-		android:paddingBottom="7dp"
-		android:scaleType="fitCenter"
-		android:src="@drawable/ic_fn_voice"
-		android:background="?android:attr/selectableItemBackgroundBorderless"
-		android:tint="?attr/colorKeyboardText"
-		android:visibility="gone"
-		android:contentDescription="@string/function_voice_input" />
 
 </LinearLayout>

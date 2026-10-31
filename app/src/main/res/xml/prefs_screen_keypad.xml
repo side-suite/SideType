@@ -32,6 +32,12 @@
 			android:title="@string/pref_auto_trim_trailing_space"
 			android:summary="@string/pref_auto_trim_trailing_space_summary" />
 
+		<SwitchPreferenceCompat
+			android:defaultValue="false"
+			android:key="sym_grid_keep_open"
+			android:title="@string/pref_sym_grid_keep_open"
+			android:summary="@string/pref_sym_grid_keep_open_summary" />
+
 		<Preference
 			android:fragment="io.github.sspanak.tt9.preferences.screens.mindReading.MindReadingScreen"
 			android:key="screen_mind_reading"

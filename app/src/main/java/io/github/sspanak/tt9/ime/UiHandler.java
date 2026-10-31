@@ -1,29 +1,19 @@
 package io.github.sspanak.tt9.ime;
 
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import io.github.sspanak.tt9.R;
-import io.github.sspanak.tt9.commands.CmdAddWord;
-import io.github.sspanak.tt9.commands.CmdNextLanguage;
-import io.github.sspanak.tt9.commands.CmdShowSettings;
-import io.github.sspanak.tt9.commands.CmdVoiceInput;
 import io.github.sspanak.tt9.hacks.AppHacks;
 import io.github.sspanak.tt9.ime.modes.InputMode;
-import io.github.sspanak.tt9.ime.voice.VoiceInputOps;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
 import io.github.sspanak.tt9.ui.StatusIcon;
-import io.github.sspanak.tt9.ui.UI;
 import io.github.sspanak.tt9.ui.main.MainView;
 import io.github.sspanak.tt9.ui.tray.StatusBar;
 import io.github.sspanak.tt9.util.Logger;
@@ -35,9 +25,6 @@ import io.github.sspanak.tt9.util.sys.SystemSettings;
 abstract class UiHandler extends AbstractHandler {
 	private final static String LOG_TAG = "UiHandler";
 
-	/** Resting alpha of a tray quick action that is present but cannot act right now. */
-	private final static float DISABLED_KEY_ALPHA = 0.35f;
-
 	@NonNull protected final AppHacks appHacks = new AppHacks();
 	@Nullable protected FoldDetector foldDetector = null;
 	protected SettingsStore settings;
@@ -46,13 +33,6 @@ abstract class UiHandler extends AbstractHandler {
 	protected boolean isMainViewShown = false;
 	protected MainView mainView = null;
 	protected StatusBar statusBar = null;
-
-	// Sidephone: the "listening" pulse on the tray mic button. Held so it can be cancelled — an
-	// infinite animator left running on a detached view keeps it alive.
-	@Nullable private ObjectAnimator voiceKeyPulse = null;
-
-	// Sidephone: on-screen Emoji | Symbols drawer, opened from the status-bar emoji button.
-	private final io.github.sspanak.tt9.ui.EmojiDrawer emojiDrawer = new io.github.sspanak.tt9.ui.EmojiDrawer();
 
 
 	protected void cleanUp() {
@@ -115,207 +95,14 @@ abstract class UiHandler extends AbstractHandler {
 		statusBar.setColorScheme();
 		createSuggestionBar();
 		getSuggestionOps().setColorScheme();
-		wireQuickActionKeys();
 	}
 
 
-	/**
-	 * Sidephone quick-action icons in the status bar: add the current word to the dictionary, and open
-	 * the emoji key binds screen. See panel_small_status_bar.xml.
-	 */
-	private void wireQuickActionKeys() {
-		View view = mainView.getView();
-		if (view == null) {
-			return;
-		}
-
-		View dictKey = view.findViewById(R.id.sidephone_dict_key);
-		if (dictKey != null) {
-			dictKey.setOnClickListener(v -> new CmdAddWord().run((TraditionalT9) this));
-		}
-
-		View emojiKey = view.findViewById(R.id.sidephone_emoji_key);
-		if (emojiKey != null) {
-			emojiKey.setOnClickListener(v -> toggleEmojiDrawer());
-		}
-
-		// The language chip is also the Settings affordance: tap cycles the language, long-press opens
-		// Settings. The dedicated gear button was dropped when the voice mic arrived — five 44dp
-		// buttons left only 156dp of a 376dp tray for suggestions, and Settings is the one action
-		// nobody needs mid-sentence.
-		View languageKey = view.findViewById(R.id.sidephone_language_key);
-		if (languageKey != null) {
-			languageKey.setOnClickListener(v -> {
-				new CmdNextLanguage().run((TraditionalT9) this);
-				refreshLanguageKey();
-				refreshVoiceKey();
-			});
-			languageKey.setOnLongClickListener(v -> {
-				new CmdShowSettings().run((TraditionalT9) this);
-				return true;
-			});
-		}
-		refreshLanguageKey();
-
-		View voiceKey = view.findViewById(R.id.sidephone_voice_key);
-		if (voiceKey != null) {
-			voiceKey.setOnClickListener(v -> new CmdVoiceInput().run((TraditionalT9) this));
-		}
-		refreshVoiceKey();
-	}
-
-
-	/**
-	 * Decides whether the mic is on the strip at all, whether it is usable right now, and swaps its
-	 * icon while listening so the button doubles as the stop control.
-	 * <p>
-	 * The two questions are deliberately asked of different things:
-	 * <ul>
-	 *   <li><b>Visible</b> if <i>any enabled language</i> has a model. This is a property of the
-	 *       user's setup, not of the moment, so the button does not appear and disappear as they
-	 *       switch language — the strip would visibly reflow every time, since the suggestion
-	 *       container is weighted and swallows the freed 44dp.</li>
-	 *   <li><b>Enabled</b> only if the <i>current</i> language has one. On Finnish the mic greys out
-	 *       rather than vanishing.</li>
-	 * </ul>
-	 * A Finnish-only user therefore never sees it and keeps the full ~200dp of suggestions, while an
-	 * English+Finnish user gets a strip that never jumps. Nobody reserves space for a button their
-	 * setup can't use.
-	 * <p>
-	 * Both tests ask the catalog whether a model <i>exists</i>, never whether one is <i>downloaded</i>
-	 * — the download is triggered by pressing this very button, so gating on the disk state would hide
-	 * the only way to get one. See VoskModelCatalog.isSupported().
-	 */
-	protected void refreshVoiceKey() {
-		View view = mainView.getView();
-		if (view == null) {
-			return;
-		}
-
-		ImageView voiceKey = view.findViewById(R.id.sidephone_voice_key);
-		if (voiceKey == null) {
-			return;
-		}
-
-		if (!VoiceInputOps.isAvailableForAny(settings.getEnabledLanguageIds())) {
-			voiceKey.setVisibility(View.GONE);
-			stopVoiceKeyPulse(voiceKey);
-			return;
-		}
-
-		voiceKey.setVisibility(View.VISIBLE);
-
-		// Greyed but still clickable on an unsupported language: setEnabled(false) would stop the click
-		// dispatching entirely, and a dead button that does nothing when pressed reads as a bug.
-		// toggleVoiceInput() answers the tap by saying why it can't listen.
-		final boolean usableNow = VoiceInputOps.isAvailable(getFinalContext().getLanguage());
-
-		CmdVoiceInput voiceInput = new CmdVoiceInput();
-		boolean active = usableNow && voiceInput.isActive((TraditionalT9) this);
-		voiceKey.setImageResource(active ? voiceInput.getIconOff() : voiceInput.getIcon());
-
-		// Order matters: the pulse animates alpha, so settle the animation first and only then set a
-		// resting alpha, or cancelling it would stamp 1f over the greyed-out state.
-		if (active) {
-			startVoiceKeyPulse(voiceKey);
-		} else {
-			stopVoiceKeyPulse(voiceKey);
-			voiceKey.setAlpha(usableNow ? 1f : DISABLED_KEY_ALPHA);
-		}
-	}
-
-
-	/**
-	 * Pulses the mic while listening. Vosk exposes no amplitude — its RecognitionListener has no
-	 * equivalent of the platform recognizer's onRmsChanged, and SpeechService keeps its AudioRecord
-	 * private — so this is a fixed pulse meaning "listening", not a level meter. The real feedback is
-	 * the partial text appearing live in the editor. See SID-56.
-	 */
-	private void startVoiceKeyPulse(@NonNull View voiceKey) {
-		if (voiceKeyPulse != null && voiceKeyPulse.isRunning()) {
-			return;
-		}
-
-		voiceKeyPulse = ObjectAnimator.ofFloat(voiceKey, View.ALPHA, 1f, 0.35f);
-		voiceKeyPulse.setDuration(600);
-		voiceKeyPulse.setRepeatMode(ValueAnimator.REVERSE);
-		voiceKeyPulse.setRepeatCount(ValueAnimator.INFINITE);
-		voiceKeyPulse.start();
-	}
-
-
-	/** Cancels the pulse. The caller owns the resting alpha — see {@link #refreshVoiceKey}. */
-	private void stopVoiceKeyPulse(@NonNull View voiceKey) {
-		if (voiceKeyPulse != null) {
-			voiceKeyPulse.cancel();
-			voiceKeyPulse = null;
-			voiceKey.setAlpha(1f);
-		}
-	}
-
-
-	/**
-	 * Open (or close, if already open) the on-screen Emoji | Symbols drawer. Picking a glyph types it
-	 * straight into the focused field via onText and keeps the drawer open; the ⚙ corner opens the
-	 * key-binds editor. The drawer keeps the text field focused, so typing works while it is up.
-	 */
-	private void toggleEmojiDrawer() {
-		if (emojiDrawer.isShowing()) {
-			emojiDrawer.hide();
-			return;
-		}
-		View anchor = mainView != null ? mainView.getView() : null;
-		emojiDrawer.show(
-			anchor,
-			settings,
-			glyph -> onText(glyph, false),
-			() -> UI.showEmojiBinds(getFinalContext()),
-			this::getDrawerPreviewText
-		);
-	}
-
-
-	protected void hideEmojiDrawer() {
-		emojiDrawer.hide();
-	}
-
-
-	/**
-	 * Text around the cursor for the emoji drawer's preview bar. Overridden where the text field is
-	 * available (TypingHandler); the base returns nothing so the drawer simply shows an empty bar.
-	 */
-	protected String getDrawerPreviewText() {
-		return "";
-	}
-
-
-	/**
-	 * Updates the status-bar language chip to the current language's code (EN / FI / DE …). Shown
-	 * whenever there is a language at all — it used to hide unless two or more were enabled, but it
-	 * now also carries the long-press to Settings, and an affordance that vanishes for
-	 * single-language users is no affordance.
-	 */
-	protected void refreshLanguageKey() {
-		View view = mainView.getView();
-		if (view == null) {
-			return;
-		}
-
-		TextView languageKey = view.findViewById(R.id.sidephone_language_key);
-		if (languageKey == null) {
-			return;
-		}
-
-		// Shown whenever there is a language at all, even if it is the only one. It used to hide unless
-		// two or more were enabled, but it now carries the long-press to Settings — and a settings
-		// affordance that disappears for single-language users is no affordance. Tapping it simply does
-		// nothing when there is nowhere to cycle to.
-		Language language = getFinalContext().getLanguage();
-		languageKey.setVisibility(language != null ? View.VISIBLE : View.GONE);
-		if (language != null) {
-			languageKey.setText(language.getCode().toUpperCase(language.getLocale()));
-		}
-	}
+	// Sidephone SYM grid. Implemented in CommandHandler, where the text field and suggestions live;
+	// the defaults keep the key dispatch (KeyPadHandler) compiling without it.
+	protected void hideSymbolGrid() {}
+	protected boolean isSymbolGridShown() { return false; }
+	protected boolean onSymbolGridKey(int keyCode) { return false; }
 
 
 	protected void initUi(InputMode inputMode) {
@@ -330,7 +117,7 @@ abstract class UiHandler extends AbstractHandler {
 		mainView.showKeyboard();
 		mainView.render();
 
-		SystemSettings.setNavigationBarBackground(getWindow().getWindow(), settings, mainView.isBackgroundBlendingEnabled());
+		mainView.applyNavigationBar();
 
 		if (appHacks.isBrutalForceShowNeeded()) {
 			brutalForceShowWindow();

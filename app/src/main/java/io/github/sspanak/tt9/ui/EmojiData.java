@@ -1,35 +1,37 @@
 package io.github.sspanak.tt9.ui;
 
+import android.content.Context;
 import android.graphics.Paint;
 
+import androidx.annotation.NonNull;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import io.github.sspanak.tt9.R;
+import io.github.sspanak.tt9.util.Logger;
 
 /**
- * Shared emoji + symbol catalogue used by both the on-screen drawer ({@link EmojiDrawer}) and the
- * key-binds editor (EmojiBindsActivity). Android exposes no categorized emoji API, so the ranges are
- * curated here; hasGlyph() filters out anything the current device font can't actually draw.
+ * The emoji and symbol catalogue behind the SYM grid (ui.tray.SymbolGridPages) and the key-binds
+ * editor (EmojiBindsActivity).
+ * <p>
+ * Emojis come from Unicode's own list, emoji-test.txt, bundled as res/raw/emoji_list.txt by
+ * scripts/generate-emoji-list.py: the official order and groups, every fully-qualified emoji
+ * including the multi-character ones (families, flags, keycaps), minus skin-tone variants. Android
+ * exposes no emoji catalogue, and the hand-written code-point ranges this replaced had gaps (the
+ * hearts, for one). Whatever the phone's font cannot draw is dropped at load time, once per process.
  */
 public class EmojiData {
-	// Emoji categories, each a representative icon (tab label) + the Unicode code-point ranges that
-	// mostly fall under it. Ranges are disjoint to avoid duplicates.
-	public static final Object[][] CATEGORIES = {
-		// smileys (faces only)
-		{"😀", new int[][]{{0x1F600, 0x1F644}, {0x1F910, 0x1F917}, {0x1F920, 0x1F92F}, {0x1F970, 0x1F97A}, {0x1F9D0, 0x1F9D0}}},
-		// people, hands & gestures
-		{"👍", new int[][]{{0x1F440, 0x1F450}, {0x1F466, 0x1F487}, {0x1F595, 0x1F596}, {0x1F645, 0x1F64F}, {0x1F918, 0x1F91F}, {0x1F930, 0x1F93A}, {0x1F9B5, 0x1F9BB}, {0x1F9D1, 0x1F9DD}, {0x261D, 0x261D}, {0x270A, 0x270D}}},
-		// animals & nature
-		{"🐻", new int[][]{{0x1F400, 0x1F43F}, {0x1F980, 0x1F9AE}, {0x1F330, 0x1F344}}},
-		// food & drink
-		{"🍔", new int[][]{{0x1F345, 0x1F37F}, {0x1F32D, 0x1F32F}, {0x1F950, 0x1F96F}, {0x1F9C0, 0x1F9CB}}},
-		// activity & sport
-		{"⚽", new int[][]{{0x1F380, 0x1F3D3}, {0x1F3C0, 0x1F3C9}, {0x1F93C, 0x1F93F}, {0x26BD, 0x26BE}}},
-		// travel & places
-		{"🚗", new int[][]{{0x1F680, 0x1F6FF}, {0x1F3E0, 0x1F3F0}, {0x1F30D, 0x1F320}, {0x1F5FB, 0x1F5FF}}},
-		// objects & clothing
-		{"👕", new int[][]{{0x1F451, 0x1F465}, {0x1F4A0, 0x1F4FF}, {0x1F510, 0x1F5FA}, {0x1F9F0, 0x1F9FF}}},
-		// symbols (dingbats/weather; hands 270A-270D excluded — they live under People)
-		{"❤", new int[][]{{0x2600, 0x2638}, {0x263A, 0x26FF}, {0x2700, 0x2709}, {0x270E, 0x27BF}, {0x1F500, 0x1F50F}}},
-	};
+	private static final String LOG_TAG = EmojiData.class.getSimpleName();
+	private static final char GROUP_MARKER = '=';
+
+	/** One group of the Unicode list: a tab icon and its emojis, in official order. */
+	public record Category(@NonNull String icon, @NonNull String name, @NonNull List<String> emojis) {}
 
 	// Curated punctuation / symbols that are awkward or impossible to reach on the 2-letter tile.
 	public static final String[] SYMBOLS = {
@@ -42,20 +44,67 @@ public class EmojiData {
 		"✓", "✗", "«", "»", "¿", "¡", "µ", "π", "Ω", "∆",
 	};
 
+	private static List<Category> categories = null;
+
 	private EmojiData() {}
 
-	public static ArrayList<String> getEmojiForCategory(int catIndex) {
-		Paint paint = new Paint();
-		ArrayList<String> all = new ArrayList<>();
-		int[][] ranges = (int[][]) CATEGORIES[catIndex][1];
-		for (int[] range : ranges) {
-			for (int cp = range[0]; cp <= range[1]; cp++) {
-				String emoji = new String(Character.toChars(cp));
-				if (paint.hasGlyph(emoji)) {
-					all.add(emoji);
+
+	@NonNull
+	public static synchronized List<Category> getCategories(@NonNull Context context) {
+		if (categories == null) {
+			categories = load(context);
+		}
+
+		return categories;
+	}
+
+
+	@NonNull
+	public static List<String> getEmojiForCategory(@NonNull Context context, int index) {
+		final List<Category> all = getCategories(context);
+		return index >= 0 && index < all.size() ? all.get(index).emojis() : Collections.emptyList();
+	}
+
+
+	@NonNull
+	private static List<Category> load(@NonNull Context context) {
+		final ArrayList<Category> result = new ArrayList<>();
+		final Paint paint = new Paint();
+		int skipped = 0;
+
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.emoji_list), StandardCharsets.UTF_8))) {
+			String icon = null;
+			String name = null;
+			ArrayList<String> emojis = new ArrayList<>();
+
+			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+				if (line.isEmpty()) {
+					continue;
+				}
+
+				if (line.charAt(0) == GROUP_MARKER) {
+					if (icon != null && !emojis.isEmpty()) {
+						result.add(new Category(icon, name, Collections.unmodifiableList(emojis)));
+					}
+					final int tab = line.indexOf('\t');
+					icon = tab > 0 ? line.substring(1, tab) : line.substring(1);
+					name = tab > 0 ? line.substring(tab + 1) : "";
+					emojis = new ArrayList<>();
+				} else if (paint.hasGlyph(line)) {
+					emojis.add(line);
+				} else {
+					skipped++;
 				}
 			}
+
+			if (icon != null && !emojis.isEmpty()) {
+				result.add(new Category(icon, name, Collections.unmodifiableList(emojis)));
+			}
+		} catch (IOException e) {
+			Logger.e(LOG_TAG, "Failed reading the emoji list. " + e.getMessage());
 		}
-		return all;
+
+		Logger.d(LOG_TAG, "Loaded " + result.size() + " emoji groups; " + skipped + " emojis the font cannot draw were skipped.");
+		return Collections.unmodifiableList(result);
 	}
 }

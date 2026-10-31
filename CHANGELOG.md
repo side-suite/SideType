@@ -5,6 +5,19 @@ Notable changes to SideType. SideType is a fork of
 Compact QWERTY tile. Versions follow the signed APKs on the
 [Releases page](https://github.com/side-suite/SideType/releases).
 
+## [Unreleased]
+
+### Added
+- **ABC mode now remembers the words you type.** Spell a word out in ABC mode, and once you
+  end it — with a space, punctuation, Enter, or by switching back to Predictive mode — it
+  is added to your added words, exactly as if you had used **Add Word**. From then on
+  Predictive mode suggests it, so a name or a word the dictionary doesn't know only has to
+  be spelled out once. A capital at the start of a sentence is not kept; genuinely mixed
+  case ("iPhone") is. Words you typed only partly, or went back and edited with the cursor,
+  are left alone, so nothing misspelled slips in. You can review or delete them under
+  **Settings → Manage added words**, and turn the whole thing off under **Settings → ABC
+  Mode → Remember Typed Words**.
+
 ## [2.1.1] — 2026-07-18
 
 ### Fixed

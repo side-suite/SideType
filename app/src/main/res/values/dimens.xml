@@ -17,6 +17,7 @@
 	<dimen name="main_small_main_key_wrapper_height">46dp</dimen> <!-- key height + margin -->
 	<dimen name="main_small_main_key_wrapper_extra_height_for_messenger">50dp</dimen> <!-- empirically found the correct amount -->
 	<dimen name="main_small_command_palette_height">66dp</dimen>
+	<dimen name="main_small_symbol_grid_height">164dp</dimen> <!-- 3 x (44dp cell + 2x2dp margin) + 4dp top + 16dp bottom padding, see ui.tray.SymbolGrid -->
 	<dimen name="main_small_command_palette_key_text_size">18dp</dimen>
 
 	<!-- Preferences, default text size -->

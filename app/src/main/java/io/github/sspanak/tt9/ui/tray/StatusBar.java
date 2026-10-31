@@ -1,13 +1,11 @@
 package io.github.sspanak.tt9.ui.tray;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -114,37 +112,9 @@ public class StatusBar {
 			trayContainer.setBackgroundColor(host.barBackground(Color.TRANSPARENT));
 		}
 
-		setQuickActionColors(foreground);
 		setTopSeparatorColor(host);
 
 		return this;
-	}
-
-
-	/**
-	 * The Sidephone quick actions (settings / add-word / language / emoji) declare
-	 * {@code ?attr/colorKeyboardText} in XML, which resolves once at inflation from the static theme.
-	 * Without this they stay at the theme color and read as white islands on a host tint, so re-apply
-	 * the tray foreground here on every color-scheme pass. Absent from the Classic/Numpad layouts —
-	 * hence the null checks. See SID-17.
-	 */
-	private void setQuickActionColors(int foreground) {
-		final View root = mainView.getView();
-		if (root == null) {
-			return;
-		}
-
-		for (int id : new int[]{R.id.sidephone_dict_key, R.id.sidephone_emoji_key, R.id.sidephone_voice_key}) {
-			final ImageView icon = root.findViewById(id);
-			if (icon != null) {
-				icon.setImageTintList(ColorStateList.valueOf(foreground));
-			}
-		}
-
-		final TextView languageKey = root.findViewById(R.id.sidephone_language_key);
-		if (languageKey != null) {
-			languageKey.setTextColor(foreground);
-		}
 	}
 
 
