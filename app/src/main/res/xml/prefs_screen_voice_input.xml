@@ -1,13 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto" app:orderingFromXml="true">
 
-	<!-- Rows are added by VoiceInputScreen, one per enabled language: real size from the pinned
-	     catalogue, download state, and tap to download or delete. -->
+	<!-- The row is added by VoiceInputScreen: real size from the pinned catalogue, download state,
+	     and tap to download or delete. -->
 	<PreferenceCategory
 		app:key="category_voice_models"
 		app:title="@string/pref_voice_models"
 		app:summary="@string/pref_voice_models_summary"
 		app:singleLineTitle="true" />
+
+	<!-- Summaries and input types are set by VoiceInputScreen: the key is never shown back. -->
+	<PreferenceCategory
+		app:key="category_voice_online"
+		app:title="@string/pref_voice_online"
+		app:summary="@string/pref_voice_online_summary"
+		app:singleLineTitle="true">
+
+		<EditTextPreference
+			app:key="voice_api_key"
+			app:title="@string/pref_voice_api_key"
+			app:dialogTitle="@string/pref_voice_api_key"
+			app:iconSpaceReserved="false" />
+
+		<EditTextPreference
+			app:key="voice_api_url"
+			app:title="@string/pref_voice_api_url"
+			app:dialogTitle="@string/pref_voice_api_url"
+			app:iconSpaceReserved="false" />
+
+		<EditTextPreference
+			app:key="voice_api_model"
+			app:title="@string/pref_voice_api_model"
+			app:dialogTitle="@string/pref_voice_api_model"
+			app:iconSpaceReserved="false" />
+	</PreferenceCategory>
 
 	<PreferenceCategory
 		app:key="category_voice_hotkey"

@@ -130,19 +130,13 @@ abstract public class CommandHandler extends TextEditingHandler {
 
 	/**
 	 * Key dispatch while the grid is open. The 14 letter keys pick their cell, the ▲▼ key turns the
-	 * page, and Space / Enter just close the grid. Anything else (Backspace, Shift, the navigation
+	 * page (see isSymbolGridPagingKey), and Space / Enter just close the grid. Anything else (Backspace, Shift, the navigation
 	 * row) is left alone and works as usual.
 	 */
 	@Override
 	protected boolean onSymbolGridKey(int keyCode) {
 		if (Key.isCompactQwertyLetter(keyCode)) {
 			pickSymbolGridCell(Key.codeToNumber(settings, keyCode) - 2);
-			return true;
-		}
-
-		if (keyCode == KeyEvent.KEYCODE_CTRL_LEFT || keyCode == settings.getKeyNextSuggestion()) {
-			symbolGridPage++;
-			renderSymbolGrid();
 			return true;
 		}
 
@@ -154,6 +148,26 @@ abstract public class CommandHandler extends TextEditingHandler {
 		// Backspace is not intercepted: it deletes as usual and the grid stays open
 
 		return false;
+	}
+
+
+	/**
+	 * The ▲▼ key pages the grid. It is handled apart from the other grid keys because it has two
+	 * directions: a tap goes forward and a hold goes back, which can only be told apart once the key
+	 * is released or has been down long enough. See KeyPadHandler.
+	 */
+	@Override
+	protected boolean isSymbolGridPagingKey(int keyCode) {
+		return keyCode == KeyEvent.KEYCODE_CTRL_LEFT || keyCode == settings.getKeyNextSuggestion();
+	}
+
+
+	@Override
+	protected void pageSymbolGrid(int delta) {
+		if (isSymbolGridShown()) {
+			symbolGridPage += delta; // renderSymbolGrid() wraps it around at either end
+			renderSymbolGrid();
+		}
 	}
 
 

@@ -7,6 +7,22 @@ Compact QWERTY tile. Versions follow the signed APKs on the
 
 ## [Unreleased]
 
+### Changed
+- **Voice input now runs on Whisper, and you hold a key to talk.** Hold **SYM**, speak, and let
+  go: the text appears a moment later, already punctuated and capitalised. It still runs
+  entirely on the phone. The engine is [whisper.cpp](https://github.com/ggml-org/whisper.cpp)
+  with the multilingual Whisper "base" model, so one 82 MB download covers every language
+  Whisper knows, Turkish and Finnish included, instead of one model per language.
+  Text no longer appears word by word while you speak, and a recording is limited to 30 seconds.
+- **Optional online transcription.** Enter an API key under **Settings → Voice input** and
+  recordings are transcribed by an OpenAI-compatible service instead of on the phone: faster and
+  more accurate, but your audio is sent to that service. With no key, nothing leaves the phone.
+  If the service cannot be reached, the on-device model is used when it is downloaded.
+
+### Removed
+- **The Vosk speech engine and its per-language models.** Models downloaded for it are deleted
+  automatically the first time the new version runs.
+
 ### Added
 - **ABC mode now remembers the words you type.** Spell a word out in ABC mode, and once you
   end it — with a space, punctuation, Enter, or by switching back to Predictive mode — it

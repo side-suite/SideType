@@ -162,6 +162,14 @@ if (keystorePropertiesFile.exists()) {
 android {
 	namespace = PACKAGE_NAME
 	compileSdk = 36
+	ndkVersion = "27.1.12297006"
+
+	externalNativeBuild {
+		cmake {
+			path = file("src/main/cpp/CMakeLists.txt")
+			version = "3.22.1"
+		}
+	}
 
 	signingConfigs {
 		release {
@@ -182,11 +190,18 @@ android {
 		versionCode = getVerCode()
 		versionName = getVerName()
 
-		// SideType targets the SP-01, which is arm64-v8a. Vosk's AAR ships libvosk.so for four ABIs
-		// (~34.8 MB total); shipping the other three to a device that cannot run them is what made
-		// voice input look like it doubled the APK. One ABI is 8.5 MB. See docs/adr/0002.
+		// SideType targets the SP-01, which is arm64-v8a, so that is the only ABI the native Whisper
+		// library is built for.
 		ndk {
 			abiFilters 'arm64-v8a'
+		}
+
+		// Voice input: whisper.cpp, compiled from src/main/cpp. Always an optimised build, the debug
+		// variant included: an unoptimised Whisper is many times slower and useless for dictation.
+		externalNativeBuild {
+			cmake {
+				arguments '-DCMAKE_BUILD_TYPE=Release', '-DANDROID_STL=c++_static'
+			}
 		}
 
 		buildConfigField 'String', 'DICTIONARY_EXTENSION', "\"${DICTIONARY_OUTPUT_EXTENSION}\""
@@ -287,9 +302,4 @@ dependencies {
 	implementation "androidx.window:window-java:1.5.1"
 	implementation 'com.google.android.material:material:1.14.0'
 	premiumImplementation 'com.android.billingclient:billing:9.0.0'
-
-	// Offline on-device speech recognition. Ships libvosk.so + JNA for arm64-v8a only (~8.7 MB, see
-	// the abiFilters above); the per-language acoustic models are NOT bundled and download on demand.
-	// Binds natively through JNA, so proguard-rules.pro must keep org.vosk/com.sun.jna — see docs/adr/0001.
-	implementation 'com.alphacephei:vosk-android:0.3.47'
 }

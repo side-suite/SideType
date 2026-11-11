@@ -347,6 +347,9 @@ abstract public class BaseMainLayout {
 	/** Brings a collapsed strip up for a moment to show the status text (e.g. the new input mode). */
 	void flashStatus() {}
 
+	/** Keeps the status row on screen (or lets it collapse again) regardless of the suggestions. */
+	void setStatusPinned(boolean pinned) {}
+
 
 	/**
 	 * Paints the OS navigation bar to match the keyboard. Layouts that collapse (the Sidephone strip)

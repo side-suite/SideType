@@ -4,7 +4,7 @@ Date: 2026-07-15
 
 ## Status
 
-Accepted.
+Superseded by [0004](0004-whisper-hold-to-talk.md).
 
 ## Context
 

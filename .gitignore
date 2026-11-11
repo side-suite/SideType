@@ -16,6 +16,7 @@ gen/
 .gradle/
 assets/
 build/
+.cxx/
 app/full/
 app/lite/
 app/premium/

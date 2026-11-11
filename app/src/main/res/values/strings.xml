@@ -376,41 +376,44 @@
 
 	<string name="voice_input_listening">Speak</string>
 	<string name="voice_input_stopping">Turning off the microphone…</string>
+	<string name="voice_input_transcribing">Transcribing…</string>
 	<string name="voice_input_mic_permission_is_needed">You must allow the microphone permission to use voice input.</string>
 	<string name="voice_input_error_generic">Voice input error</string>
 	<string name="voice_input_error_no_permissions">No microphone permission</string>
 	<string name="voice_input_error_not_available">Voice input is not available</string>
 
-	<!-- SID-53: voice input runs entirely on-device via Vosk. The strings for network/server failures
-	     and for picking a third-party voice assistant went with the platform recognizer — there is no
-	     cloud and no other engine to fall back to. See docs/adr/0002. -->
-	<string name="voice_input_error_no_model_for_language">No voice model for this language</string>
+	<!-- Voice input runs entirely on-device via Whisper, so there are no network/server errors. -->
+	<string name="voice_input_error_no_model_for_language">Voice input does not support this language</string>
 	<string name="voice_input_error_model_not_downloaded">Voice model not downloaded</string>
 	<string name="voice_input_error_model_download_failed">Voice model download failed</string>
 	<string name="voice_input_error_model_corrupted">Voice model was damaged in transit</string>
 	<string name="voice_input_error_model_download_in_progress">Already downloading that voice model</string>
 	<string name="voice_input_error_model_load_failed">Could not load the voice model</string>
+	<string name="voice_input_error_remote_failed">Online transcription failed</string>
+	<string name="voice_input_error_remote_unauthorized">The API key was rejected</string>
 
 	<!-- SID-55: consent before a ~40 MB download. %1$s is the language, %2$s the real size from the
 	     pinned catalog (e.g. "42.8 MB") — never a hard-coded number. -->
 	<string name="voice_model_download_title">Download voice model</string>
-	<string name="voice_model_download_message">Voice input for %1$s needs a %2$s download. It runs entirely on your phone afterwards — nothing you say is sent anywhere.</string>
+	<string name="voice_model_download_message">Voice input needs a one-off %1$s download. It runs entirely on your phone afterwards, and nothing you say is sent anywhere.</string>
 	<string name="voice_model_download_confirm">Download</string>
-	<string name="voice_model_downloading">Downloading %1$s voice model… %2$d%%</string>
-	<string name="voice_model_unpacking">Installing %1$s voice model…</string>
+	<string name="voice_model_downloading">Downloading voice model… %1$d%%</string>
 
 	<!-- SID-57: Settings > Voice input. Sizes are always formatted from the pinned catalog. -->
 	<string name="pref_voice_input">Voice input</string>
 	<string name="pref_voice_hotkey">Hotkey</string>
-	<string name="pref_voice_models">Models</string>
-	<string name="pref_voice_models_summary">Voice input works offline. Each language needs a one-off download, and nothing you say leaves the phone.</string>
+	<string name="pref_voice_models">Model</string>
+	<string name="pref_voice_models_summary">Hold the voice key to talk and let go to get the text. This model transcribes on the phone, for every language, and nothing you say leaves the phone while no API key is set below.</string>
+	<string name="pref_voice_online">Online transcription</string>
+	<string name="pref_voice_online_summary">Optional. With an API key, recordings are sent to this service, which is faster and more accurate than the phone. If it cannot be reached, the on-device model is used when it is downloaded.</string>
+	<string name="pref_voice_api_key">API key</string>
+	<string name="pref_voice_api_key_set">Set · online transcription is on</string>
+	<string name="pref_voice_api_key_unset">Not set · transcribing on the phone</string>
+	<string name="pref_voice_api_url">Service address</string>
+	<string name="pref_voice_api_model">Model name</string>
 	<string name="voice_model_state_downloaded">Downloaded · %1$s · tap to delete</string>
 	<string name="voice_model_state_available">%1$s · tap to download</string>
-	<string name="voice_model_state_unsupported">No offline model available for this language</string>
-	<string name="voice_model_downloading_short">Downloading… %1$s%%</string>
-	<string name="voice_model_deleted">Deleted the %1$s voice model</string>
-	<string name="voice_model_ready">%1$s voice model ready</string>
-	<!-- Where the on-demand voice models are fetched from. %1$s is the model's zip filename, pinned in
-	     VoskModelCatalog. Mirrors R.string.dictionary_url. See docs/adr/0003. -->
-	<string name="vosk_model_url" translatable="false">https://alphacephei.com/vosk/models/%1$s</string>
+	<string name="voice_model_deleted">Deleted the voice model</string>
+	<string name="voice_model_ready">Voice model ready</string>
+	<string name="voice_model_name" translatable="false">Whisper base (multilingual)</string>
 </resources>

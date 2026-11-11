@@ -103,6 +103,8 @@ abstract class UiHandler extends AbstractHandler {
 	protected void hideSymbolGrid() {}
 	protected boolean isSymbolGridShown() { return false; }
 	protected boolean onSymbolGridKey(int keyCode) { return false; }
+	protected boolean isSymbolGridPagingKey(int keyCode) { return false; }
+	protected void pageSymbolGrid(int delta) {}
 
 
 	protected void initUi(InputMode inputMode) {

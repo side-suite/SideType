@@ -1,27 +1,28 @@
 package io.github.sspanak.tt9.preferences.screens.voice;
 
+import android.text.InputType;
+
 import androidx.annotation.Nullable;
+import androidx.preference.EditTextPreference;
 import androidx.preference.PreferenceCategory;
 
 import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.commands.CmdVoiceInput;
 import io.github.sspanak.tt9.commands.Command;
 import io.github.sspanak.tt9.commands.CommandCollection;
+import io.github.sspanak.tt9.ime.voice.RemoteWhisperClient;
 import io.github.sspanak.tt9.ime.voice.VoiceInputOps;
-import io.github.sspanak.tt9.languages.Language;
-import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.preferences.PreferencesActivity;
 import io.github.sspanak.tt9.preferences.screens.BaseScreenFragment;
 import io.github.sspanak.tt9.preferences.screens.hotkeys.PreferenceHotkey;
 import io.github.sspanak.tt9.util.Logger;
 
 /**
- * Everything voice, in one screen: which languages have a model, how big it really is, whether it is
- * downloaded, and the hotkey.
+ * Everything voice, in one screen: the model (its real size, whether it is downloaded, a tap to
+ * download or delete it) and the hotkey.
  * <p>
  * The hotkey lives here rather than under Settings → Hotkeys so there is exactly one definition of
- * it. The known cost is that a user scanning the Hotkeys screen for "voice" now finds nothing; this
- * screen is meant to be the obvious home for it instead. See SID-57.
+ * it. Bound to holding a key it is hold-to-talk; bound to a plain press it is a toggle.
  */
 public class VoiceInputScreen extends BaseScreenFragment {
 	final public static String NAME = "VoiceInput";
@@ -35,43 +36,61 @@ public class VoiceInputScreen extends BaseScreenFragment {
 
 	@Override
 	protected void onCreate() {
-		createModelList();
+		createModelRow();
+		setUpOnlineTranscription();
 		createHotkey();
 		resetFontSize(false);
 	}
 
-	private void createModelList() {
+	private void createModelRow() {
 		if (activity == null) {
 			return;
 		}
 
 		PreferenceCategory category = findPreference("category_voice_models");
 		if (category == null) {
-			Logger.w(NAME, "Cannot append voice models to a NULL category");
+			Logger.w(NAME, "Cannot append the voice model to a NULL category");
 			return;
 		}
 
-		// Only the user's own languages — listing all 32 of Vosk's would be noise. Unsupported ones
-		// are included so the absence is explained rather than silently missing.
-		VoiceInputOps voiceInputOps = new VoiceInputOps(activity, null, null, null, null);
-		for (int languageId : activity.getSettings().getEnabledLanguageIds()) {
-			Language language = LanguageCollection.getLanguage(languageId);
-			if (language != null) {
-				category.addPreference(new PreferenceVoiceModel(activity, voiceInputOps, language));
-			}
+		category.addPreference(new PreferenceVoiceModel(activity, new VoiceInputOps(activity, null, null, null, null)));
+	}
+
+	private void setUpOnlineTranscription() {
+		EditTextPreference key = findPreference("voice_api_key");
+		if (key != null) {
+			// A password field, so the key is masked and the keyboard neither predicts nor learns it.
+			key.setOnBindEditTextListener(input -> {
+				input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+				input.setSelection(input.getText().length());
+			});
+			key.setSummaryProvider(p -> getString(
+				activity != null && !activity.getSettings().getVoiceApiKey().isEmpty() ? R.string.pref_voice_api_key_set : R.string.pref_voice_api_key_unset
+			));
+		}
+
+		EditTextPreference url = findPreference("voice_api_url");
+		if (url != null) {
+			url.setOnBindEditTextListener(input -> {
+				input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+				input.setHint(RemoteWhisperClient.DEFAULT_URL);
+			});
+			url.setSummaryProvider(p -> activity != null ? activity.getSettings().getVoiceApiUrl() : RemoteWhisperClient.DEFAULT_URL);
+		}
+
+		EditTextPreference model = findPreference("voice_api_model");
+		if (model != null) {
+			model.setOnBindEditTextListener(input -> {
+				input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+				input.setHint(RemoteWhisperClient.DEFAULT_MODEL);
+			});
+			model.setSummaryProvider(p -> activity != null ? activity.getSettings().getVoiceApiModel() : RemoteWhisperClient.DEFAULT_MODEL);
 		}
 	}
 
-	/**
-	 * The hotkey row is added only when at least one enabled language has a model — binding a key to
-	 * something that can never fire is worse than not offering it.
-	 * <p>
-	 * That decision is made <b>here</b>, not inside a Preference subclass that overrides populate().
-	 * PreferenceHotkey's constructor calls populate(), so an override reading a subclass field runs
-	 * before that field is assigned and dereferences null. A PreferenceVoiceInputHotkey doing exactly
-	 * that crashed this screen on open; the class is gone rather than patched, since the screen was
-	 * always the better place to ask the question.
-	 */
+	// The row is added here, not by a Preference subclass overriding populate(): PreferenceHotkey's
+	// constructor calls populate(), so an override reading a subclass field runs before that field is
+	// assigned and dereferences null.
 	private void createHotkey() {
 		if (activity == null) {
 			return;
@@ -84,7 +103,7 @@ public class VoiceInputScreen extends BaseScreenFragment {
 		}
 
 		Command voiceInput = CommandCollection.getById(CommandCollection.COLLECTION_HOTKEYS, CmdVoiceInput.ID);
-		if (voiceInput == null || !VoiceInputOps.isAvailableForAny(activity.getSettings().getEnabledLanguageIds())) {
+		if (voiceInput == null) {
 			category.setVisible(false);
 			return;
 		}

@@ -10,8 +10,8 @@
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" /> <!-- allows words exporting on Android < 10 -->
 
 	<queries>
-		<!-- SID-53 removed the android.speech.RecognitionService query: voice input runs on the bundled
-		     Vosk engine in-process, so we never look for a recognizer package to bind to. -->
+		<!-- No android.speech.RecognitionService query: voice input runs on the bundled Whisper
+		     engine in-process, so we never look for a recognizer package to bind to. -->
 		<intent> <!-- SID-19: enumerate launchable apps to bias prediction in host app-launcher search fields -->
 			<action android:name="android.intent.action.MAIN" />
 			<category android:name="android.intent.category.LAUNCHER" />

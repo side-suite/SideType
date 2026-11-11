@@ -31,7 +31,7 @@ import io.github.sspanak.tt9.ime.helpers.Hotkey;
 import io.github.sspanak.tt9.util.Logger;
 
 public class SettingsHotkeys extends SettingsVirtualNumpad {
-	private static final String HOTKEY_VERSION = "hotkeys_v7"; // v7: Sidephone ▲▼ hold = next language, tap = toggle mode when idle
+	private static final String HOTKEY_VERSION = "hotkeys_v8"; // v8: Sidephone hold SYM = voice input (hold to talk)
 
 
 	SettingsHotkeys(Context context) { super(context); }

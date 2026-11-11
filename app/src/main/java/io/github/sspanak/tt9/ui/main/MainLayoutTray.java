@@ -29,6 +29,7 @@ class MainLayoutTray extends MainLayoutExtraPanel {
 	private boolean hasSuggestions = false;
 	protected boolean isSymbolGridShown = false;
 	private boolean isFlashing = false;
+	private boolean isStatusPinned = false;
 	private static final long STATUS_FLASH_DURATION = 1200;
 	@NonNull private final Handler flashHandler = new Handler(Looper.getMainLooper());
 
@@ -86,6 +87,19 @@ class MainLayoutTray extends MainLayoutExtraPanel {
 		isSymbolGridShown = shown;
 		getHeight(true);
 		applyCollapse();
+	}
+
+
+	/**
+	 * Voice input writes "Speak", "Transcribing" and download progress into the status row. Those
+	 * must stay readable in ABC mode too, where the strip would otherwise be collapsed.
+	 */
+	@Override
+	void setStatusPinned(boolean pinned) {
+		if (isStatusPinned != pinned) {
+			isStatusPinned = pinned;
+			applyCollapse();
+		}
 	}
 
 
@@ -152,7 +166,7 @@ class MainLayoutTray extends MainLayoutExtraPanel {
 			return false;
 		}
 
-		return !hasSuggestions && !isSymbolGridShown && !isFlashing && !isFnPanelVisible();
+		return !hasSuggestions && !isSymbolGridShown && !isFlashing && !isStatusPinned && !isFnPanelVisible();
 	}
 
 

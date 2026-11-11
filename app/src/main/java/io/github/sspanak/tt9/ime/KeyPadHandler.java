@@ -14,6 +14,13 @@ abstract class KeyPadHandler extends UiHandler {
 
 	// temporal key handling
 	private int ignoreNextKeyUp = 0;
+	private int heldKeyCode = 0;
+
+	// paging the SYM grid: tap = next page, hold = previous pages
+	private final static int GRID_PAGING_REPEAT_INTERVAL = 350; // ms between pages while held
+	private int gridPagingKeyCode = 0;
+	private boolean gridPagingHeld = false;
+	private long gridPagingLastStep = 0;
 
 	private int lastKeyCode = 0;
 	private int keyRepeatCounter = 0;
@@ -59,6 +66,12 @@ abstract class KeyPadHandler extends UiHandler {
 		// Sidephone: while the SYM grid is open, the tile picks, pages or closes it. Nothing reaches the
 		// editor until it is closed. SYM itself is not intercepted: its tap is the hotkey that cycles
 		// the grid (CmdShowSymbols), and that is decided on key-up as usual.
+		if (isSymbolGridShown() && isSymbolGridPagingKey(keyCode)) {
+			return onSymbolGridPagingKeyDown(keyCode, event);
+		}
+		gridPagingKeyCode = 0; // any other key press ends a paging gesture that never saw its release
+		gridPagingHeld = false;
+
 		if (isSymbolGridShown() && onSymbolGridKey(keyCode)) {
 			ignoreNextKeyUp = keyCode;
 			return true;
@@ -120,7 +133,16 @@ abstract class KeyPadHandler extends UiHandler {
 			return true;
 		}
 
+		// Sidephone: holding the ▲▼ key over the SYM grid pages backwards instead of forwards
+		if (keyCode == gridPagingKeyCode && isSymbolGridShown()) {
+			gridPagingHeld = true;
+			gridPagingLastStep = event.getEventTime();
+			pageSymbolGrid(-1);
+			return true;
+		}
+
 		ignoreNextKeyUp = keyCode;
+		heldKeyCode = keyCode;
 		if (Key.isNumber(keyCode)) {
 			numKeyRepeatCounter = 0;
 			lastNumKeyCode = 0;
@@ -162,6 +184,27 @@ abstract class KeyPadHandler extends UiHandler {
 
 //		Logger.d("onKeyUp", "Key: " + keyCode + " repeat?: " + event.getRepeatCount());
 
+		if (keyCode == gridPagingKeyCode) {
+			final boolean wasHeld = gridPagingHeld;
+			gridPagingKeyCode = 0;
+			gridPagingHeld = false;
+			// Only swallow the release while the grid is still up. If it went away in the meantime,
+			// this is an ordinary key release again and must reach the normal handling below.
+			if (isSymbolGridShown()) {
+				if (!wasHeld) {
+					pageSymbolGrid(1); // a tap: forwards
+				}
+				return true;
+			}
+		}
+
+		// A key that was long-pressed is coming back up. Its tap action is skipped below as usual, but
+		// hold-to-talk needs to know the hold is over.
+		if (keyCode == heldKeyCode) {
+			heldKeyCode = 0;
+			onHeldKeyReleased(keyCode);
+		}
+
 		if (keyCode == ignoreNextKeyUp) {
 //			Logger.d("onKeyUp", "Ignored: " + keyCode);
 			ignoreNextKeyUp = 0;
@@ -191,6 +234,35 @@ abstract class KeyPadHandler extends UiHandler {
 			|| Key.isPoundOrStar(keyCode) && onText(String.valueOf((char) event.getUnicodeChar()), false)
 			|| super.onKeyUp(keyCode, event); // let the system handle the keys we don't care about (usually, the touch "buttons")
 	}
+
+
+	/**
+	 * The ▲▼ key over an open SYM grid. Nothing happens on the way down, because a tap and a hold
+	 * mean opposite directions: onKeyUp() pages forwards after a tap, onKeyLongPress() pages
+	 * backwards once the hold registers, and further repeats here keep going back at a steady pace.
+	 */
+	private boolean onSymbolGridPagingKeyDown(int keyCode, KeyEvent event) {
+		if (event.getRepeatCount() == 0) {
+			gridPagingKeyCode = keyCode;
+			gridPagingHeld = false;
+			event.startTracking();
+		} else if (gridPagingHeld && keyCode == gridPagingKeyCode && event.getEventTime() - gridPagingLastStep >= GRID_PAGING_REPEAT_INTERVAL) {
+			gridPagingLastStep = event.getEventTime();
+			pageSymbolGrid(-1);
+		}
+
+		return true;
+	}
+
+
+	/** The key that is currently held down past the long-press threshold, or 0. */
+	protected int getHeldKey() {
+		return heldKeyCode;
+	}
+
+
+	/** Called when a long-pressed key is released. */
+	protected void onHeldKeyReleased(int keyCode) {}
 
 
 	private boolean handleHotkey(int keyCode, boolean hold, boolean repeat, boolean validateOnly) {

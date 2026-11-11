@@ -38,6 +38,23 @@ class SettingsTyping extends SettingsMindReading {
 		return prefs.getBoolean("sym_grid_keep_open", false);
 	}
 
+	/** The API key for online voice transcription. Empty means "transcribe on the phone". */
+	@NonNull
+	public String getVoiceApiKey() {
+		final String key = prefs.getString("voice_api_key", "");
+		return key == null ? "" : key.trim();
+	}
+	@NonNull
+	public String getVoiceApiUrl() {
+		final String url = prefs.getString("voice_api_url", "");
+		return url == null || url.trim().isEmpty() ? io.github.sspanak.tt9.ime.voice.RemoteWhisperClient.DEFAULT_URL : url.trim();
+	}
+	@NonNull
+	public String getVoiceApiModel() {
+		final String model = prefs.getString("voice_api_model", "");
+		return model == null || model.trim().isEmpty() ? io.github.sspanak.tt9.ime.voice.RemoteWhisperClient.DEFAULT_MODEL : model.trim();
+	}
+
 	public int getAutoAcceptTimeoutPredictive() {
 		int time = getStringifiedInt(DropDownPredictiveAutoAcceptTime.NAME, DropDownPredictiveAutoAcceptTime.DEFAULT);
 		return time > 0 ? time + getKeyPadDebounceTime() : time;

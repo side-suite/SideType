@@ -23,6 +23,10 @@ public class VoiceInputError {
 	public final static int ERROR_MODEL_CORRUPTED = 109;
 	/** A download for this model is already running. Not a failure — saying so would be a lie. */
 	public final static int ERROR_MODEL_DOWNLOAD_IN_PROGRESS = 110;
+	/** The online service could not be reached or answered with an error, and there is no local model to fall back on. */
+	public final static int ERROR_REMOTE_FAILED = 111;
+	/** The online service rejected the API key. */
+	public final static int ERROR_REMOTE_UNAUTHORIZED = 112;
 
 	public final int code;
 	public final String message;
@@ -50,15 +54,15 @@ public class VoiceInputError {
 
 
 	/**
-	 * The language has no Vosk model and never will, so there is nothing to download and no fallback
-	 * to offer. Distinct from {@link #isModelNotDownloaded()}, which is a temporary state.
+	 * Whisper was not trained on this language, so there is nothing to download and no fallback to
+	 * offer. Distinct from {@link #isModelNotDownloaded()}, which is a temporary state.
 	 */
 	public boolean isNoModelForLanguage() {
 		return code == ERROR_NO_MODEL_FOR_LANGUAGE;
 	}
 
 
-	/** A model exists for this language but is not on disk yet. Recoverable — offer the download. */
+	/** The model is not on disk yet. Recoverable: offer the download. */
 	public boolean isModelNotDownloaded() {
 		return code == ERROR_MODEL_NOT_DOWNLOADED;
 	}
@@ -90,6 +94,10 @@ public class VoiceInputError {
 				-> context.getString(R.string.voice_input_error_model_download_in_progress);
 			case ERROR_MODEL_LOAD_FAILED
 				-> context.getString(R.string.voice_input_error_model_load_failed);
+			case ERROR_REMOTE_FAILED
+				-> context.getString(R.string.voice_input_error_remote_failed);
+			case ERROR_REMOTE_UNAUTHORIZED
+				-> context.getString(R.string.voice_input_error_remote_unauthorized);
 			default -> context.getString(R.string.voice_input_error_generic);
 		};
 	}
@@ -102,10 +110,10 @@ public class VoiceInputError {
 
 
 	/**
-	 * The SpeechRecognizer.ERROR_* codes survive the move to Vosk purely as a numbering scheme —
-	 * {@link VoskSpeechRecognizer} reuses the ones that still describe something real (no mic
-	 * permission, recognizer busy, client error). The network/server codes are gone with the cloud
-	 * backend: recognition is entirely on-device now.
+	 * The SpeechRecognizer.ERROR_* codes survive purely as a numbering scheme:
+	 * {@link WhisperSpeechRecognizer} reuses the ones that still describe something real (no mic
+	 * permission, recognizer busy, nothing said). The network/server codes are gone with the cloud
+	 * backend: recognition is entirely on-device.
 	 */
 	private static String codeToDebugStringCommon(int code) {
 		return switch (code) {
@@ -117,12 +125,14 @@ public class VoiceInputError {
 			case SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech detected.";
 			case ERROR_NOT_AVAILABLE -> "Voice input is not available.";
 			case ERROR_INVALID_LANGUAGE -> "Invalid language for voice input.";
-			case ERROR_NO_MODEL_FOR_LANGUAGE -> "No voice model exists for this language.";
-			case ERROR_MODEL_NOT_DOWNLOADED -> "The voice model for this language has not been downloaded.";
+			case ERROR_NO_MODEL_FOR_LANGUAGE -> "Whisper does not support this language.";
+			case ERROR_MODEL_NOT_DOWNLOADED -> "The voice model has not been downloaded.";
 			case ERROR_MODEL_DOWNLOAD_FAILED -> "Voice model download failed.";
-			case ERROR_MODEL_CORRUPTED -> "Voice model failed its size/md5 check and was discarded.";
+			case ERROR_MODEL_CORRUPTED -> "Voice model failed its size/SHA-256 check and was discarded.";
 			case ERROR_MODEL_DOWNLOAD_IN_PROGRESS -> "A voice model download is already running.";
-			case ERROR_MODEL_LOAD_FAILED -> "Could not load the voice model. If this is a release build, suspect the R8 keep rules for org.vosk/com.sun.jna.";
+			case ERROR_REMOTE_FAILED -> "Online transcription failed and no local model is available.";
+			case ERROR_REMOTE_UNAUTHORIZED -> "The online transcription service rejected the API key.";
+			case ERROR_MODEL_LOAD_FAILED -> "Could not load the voice model or the native Whisper library.";
 			default -> null;
 		};
 	}

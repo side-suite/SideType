@@ -221,29 +221,27 @@ on the on-screen strip to hop between them. **Long-press that same chip to open 
 
 ## 🎤 Voice input
 
-Press 🎤 on the on-screen strip and talk — words appear as you speak. It runs **entirely on the
-phone**: nothing you say is uploaded, there's no account, and it works in a tunnel. It's powered by
-[Vosk](https://alphacephei.com/vosk/), an open-source speech engine.
+**Hold SYM and talk; let go and the text appears.** It runs **entirely on the phone**: nothing you
+say is uploaded, there's no account, and it works in a tunnel. It's powered by
+[Whisper](https://github.com/openai/whisper), run locally through
+[whisper.cpp](https://github.com/ggml-org/whisper.cpp).
 
-Each language needs a **one-off voice model** (~40 MB), downloaded only after you approve it — the
-real size is shown before anything is fetched. Manage them under **Settings → Voice input**: download,
-see what's on disk, delete what you don't want.
+Whisper transcribes a finished recording, so the text arrives a moment after you release the key
+rather than word by word. It comes back with capitals and punctuation already in place. A recording
+can be up to 30 seconds long.
 
-| Language | Voice model |
-| --- | --- |
-| English (US) | ✅ 41 MB |
-| English (UK) | ✅ 43 MB |
-| German | ✅ 46 MB |
-| French | ✅ 42 MB |
-| Spanish | ✅ 40 MB |
-| **Finnish, Norwegian, Danish** | ❌ **not possible** — no model exists |
-| Swedish | ⏳ on hold — see below |
+One **multilingual voice model** (82 MB) covers every language Whisper knows, including English,
+Turkish, Finnish, Swedish, Norwegian and Danish. The keyboard's current language tells it what to
+expect. The model is downloaded only after you approve it, with the real size shown first, and you
+can delete it again under **Settings → Voice input**. The same screen lets you move voice input to a
+different key; bound to a plain press instead of a hold, it becomes a start/stop toggle.
 
-> ⚠️ **Finnish has no voice input, and this isn't something I can fix.** Vosk publishes no Finnish
-> model at any size. I looked hard at the alternatives — Whisper, Parakeet, Meta's Omnilingual ASR —
-> and they all cover Finnish but need far more phone than the SP-01 has: the one I measured took
-> **15 seconds to load and 783 MB of RAM** on this hardware. It's genuinely painful, since I write
-> Finnish every day and it's why SideType exists at all. The realistic path is a second engine later.
+**Optional: online transcription.** Enter an API key under **Settings → Voice input → Online
+transcription** and recordings are sent to that service instead, which is faster and more accurate
+than this phone can manage. It uses the OpenAI audio-transcription API by default; the address and
+model name can be changed to any compatible service. If the service cannot be reached, the on-device
+model takes over when it is downloaded. **With a key set, what you say is sent to that service.**
+Without one, nothing leaves the phone. The key is stored in the app's private settings.
 > The full reasoning, with measurements, is in [`docs/adr/0001`](docs/adr/0001-on-device-asr-engine.md).
 >
 > **Swedish** is on hold rather than ruled out: its only model is **303 MB** — seven times the others —
@@ -493,11 +491,11 @@ SideType stands entirely on the shoulders of **[Traditional T9](https://github.c
 engine, the language dictionaries, and the keyboard framework are their work. SideType only adapts it
 to the Sidephone Compact QWERTY tile. **Huge thanks** to those projects and their contributors.
 
-Voice input is powered by **[Vosk](https://alphacephei.com/vosk/)** (Apache-2.0) by Alpha Cephei —
-the speech engine and the acoustic models both. The models are downloaded from
-[alphacephei.com](https://alphacephei.com/vosk/models) and stay under their own licences (Apache-2.0
-for the English, German, French and Spanish small models). SideType doesn't redistribute them; it
-fetches the exact published file and checks its md5 before use.
+Voice input is powered by **[whisper.cpp](https://github.com/ggml-org/whisper.cpp)** (MIT) by Georgi
+Gerganov and contributors, running OpenAI's **[Whisper](https://github.com/openai/whisper)** model
+(MIT). The model file is downloaded from the
+[whisper.cpp repository on Hugging Face](https://huggingface.co/ggerganov/whisper.cpp). SideType
+doesn't redistribute it; it fetches the exact published file and checks its SHA-256 before use.
 
 The British spellings in **English (UK)** are paired using
 **[VarCon](http://wordlist.aspell.net/varcon/)** by Kevin Atkinson, the variant dataset that

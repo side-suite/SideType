@@ -118,6 +118,13 @@ public class StaticMainView {
 		}
 	}
 
+
+	public void setStatusPinned(boolean pinned) {
+		if (main != null) {
+			main.setStatusPinned(pinned);
+		}
+	}
+
 	public void applyNavigationBar() {
 		if (main != null) {
 			main.applyNavigationBar();
